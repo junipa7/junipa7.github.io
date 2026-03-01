@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이승훈(Lee SeungHoon) Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="wrapper">
+    <nav class="sidebar">
+        <div class="profile-section">
+            <img src="img/profilepicture.jpg" alt="이승훈 프로필" class="profile-img">
+            <div>
+                <p class="user-name">이승훈</p>
+                <p class="user-title">Lee SeungHoon</p>
+            </div>
+            <button id="theme-toggle" class="theme-btn">🌙 Dark Mode</button>
+        </div>
+
+<h3>탐색기</h3>
+    <div class="file-item active" data-file="about.html">📄 자기소개</div>
+    <div class="file-item" data-file="mes.html">📊 MES 솔루션</div>
+    <div class="file-item" data-file="oee.html">📈 OEE(설비종합효율)</div>
+    <div class="file-item" data-file="database.html">🗄️ 데이터베이스</div>
+    <div class="file-item" data-file="developer.html">💻 개발경험</div>
+    <div class="file-item" data-file="androidnextcloud.html" style="padding-left: 30px; font-size: 0.8rem;">└ 📱 안드로이드 넥스트클라우드</div>
+    <div class="file-item" data-file="education.html">🎓 교육 이력</div>
+    <div class="file-item" data-file="other.html">✨ 기타 활동</div>
+    </nav>
+
+    <main class="main-editor">
+        <div class="tabs">
+            <div class="tab" id="current-tab">📄 About Me</div>
+        </div>
+        
+        <div class="content-area" id="editor-content">
+            </div>
+    </main>
+</div>
+
+<footer class="status-bar">
+    <div class="status-left">
+        <span>➔ main*</span>
+        <span>0 ⚠ 0 ⓧ 0 🛈</span>
+    </div>
+    <div class="status-right">
+        <span>Preview Mode</span>
+        <span>UTF-8</span>
+        <span>© 2026 Lee SeungHoon</span>
+        <span id="clock" style="margin-left:15px; font-weight:bold; color:#000;">00:00:00</span>
+    </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

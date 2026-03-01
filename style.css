@@ -1,0 +1,285 @@
+/* =========================================================
+   [1부] VS Code 기본 레이아웃 및 뼈대 (화면 밀림 방지 포함)
+   ========================================================= */
+
+:root {
+    --sidebar-color: #f3f3f3;
+    --editor-bg: #ffffff;
+    --status-bar-bg: #007acc;
+    --text-color: #333333;
+    --primary-color: #0056b3;
+}
+
+body.dark-mode {
+    --sidebar-color: #252526;
+    --editor-bg: #1e1e1e;
+    --status-bar-bg: #007acc;
+    --text-color: #cccccc;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* 페이지 자체의 스크롤을 막아 밀림 방지 */
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    color: var(--text-color);
+    background-color: var(--editor-bg);
+    display: flex;
+    flex-direction: column;
+}
+
+/* 전체 래퍼 (사이드바 + 메인 에디터) */
+.wrapper {
+    flex: 1;
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* 왼쪽 사이드바 */
+.sidebar {
+    width: 280px;
+    background-color: var(--sidebar-color);
+    padding: 20px;
+    border-right: 1px solid #cbd5e0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+body.dark-mode .sidebar { border-right-color: #333; }
+
+/* 프로필 영역 */
+.profile-section { text-align: center; margin-bottom: 20px; }
+.profile-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
+.user-name { font-weight: bold; font-size: 1.2rem; margin: 10px 0 5px; color: var(--primary-color); }
+body.dark-mode .user-name { color: #4daafc; }
+.user-title { color: #666; font-size: 0.9rem; margin-bottom: 15px; }
+body.dark-mode .user-title { color: #aaa; }
+.theme-btn { padding: 5px 10px; border-radius: 5px; cursor: pointer; border: 1px solid #ccc; background: transparent; color: inherit; }
+
+/* 탐색기 메뉴 아이템 */
+h3 { font-size: 0.9rem; color: #666; margin-bottom: 10px; }
+.file-item { padding: 8px 10px; cursor: pointer; border-radius: 4px; margin-bottom: 2px; transition: background 0.2s; }
+.file-item:hover { background-color: rgba(0,0,0,0.05); }
+body.dark-mode .file-item:hover { background-color: rgba(255,255,255,0.1); }
+.file-item.active { background-color: rgba(0, 86, 179, 0.1); color: var(--primary-color); font-weight: bold; }
+body.dark-mode .file-item.active { background-color: rgba(77, 170, 252, 0.2); color: #4daafc; }
+
+/* 오른쪽 메인 에디터 */
+.main-editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--editor-bg);
+    overflow: hidden;
+    min-height: 0;
+}
+
+/* 상단 탭 */
+.tabs { display: flex; background-color: #ececec; border-bottom: 1px solid #ccc; }
+body.dark-mode .tabs { background-color: #2d2d2d; border-bottom-color: #1e1e1e; }
+.tab { padding: 10px 20px; background-color: var(--editor-bg); border-top: 2px solid var(--primary-color); border-right: 1px solid #ccc; font-weight: bold; }
+body.dark-mode .tab { border-right-color: #1e1e1e; border-top-color: #4daafc; }
+
+/* 실제 콘텐츠가 들어가는 영역 (내부 스크롤) */
+.content-area {
+    padding: 40px 50px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+/* 하단 상태 바 (Footer) */
+.status-bar {
+    background-color: var(--status-bar-bg);
+    color: #fff;
+    height: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 15px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   [2부] 포트폴리오 전체 공통 통합 스타일 시스템 (콘텐츠 디자인)
+   ========================================================= */
+
+/* 1. 글로벌 타이포그래피 */
+h1 { color: var(--primary-color); font-size: 2rem; border-bottom: 3px solid var(--primary-color); padding-bottom: 15px; margin-bottom: 30px; margin-top: 0; }
+body.dark-mode h1 { color: #4daafc; border-bottom-color: #4daafc; }
+h2 { color: #007bff; font-size: 1.4rem; margin-top: 40px; border-bottom: 2px solid #e1e4e8; padding-bottom: 10px; }
+body.dark-mode h2 { color: #66b2ff; border-bottom-color: #444; }
+p { line-height: 1.8; margin-bottom: 15px; font-size: 1.05rem; }
+ul, ol { line-height: 1.8; padding-left: 25px; margin-bottom: 20px; font-size: 1.05rem; }
+li { margin-bottom: 10px; }
+a { color: #007bff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+body.dark-mode a { color: #4daafc; }
+
+/* 2. 텍스트 유틸리티 */
+.text-desc { color: #666; font-size: 0.95rem; display: block; margin-top: 5px; }
+.text-center { text-align: center; }
+.mb-0 { margin-bottom: 0 !important; }
+.highlight-text { font-weight: bold; color: #e74c3c; }
+.highlight-bg { background-color: #ffeeba; padding: 2px 5px; border-radius: 3px; font-weight: bold; color: #333; }
+
+/* 3. 공통 박스(Box) 테마 시스템 */
+.box { padding: 20px; margin: 25px 0; border-radius: 8px; background-color: #f8f9fa; border-left: 6px solid #ccc; line-height: 1.8; }
+.box-title { font-weight: bold; margin-bottom: 10px; display: block; font-size: 1.1rem; }
+.box-primary { background-color: #e7f3fe; border-left-color: #2196F3; } 
+.box-success { background-color: #d4edda; border-left-color: #28a745; color: #155724; } 
+.box-warning { background-color: #fff3cd; border-left-color: #ffc107; } 
+.box-danger  { background-color: #fff5f5; border-left-color: #e63946; } 
+.box-focus   { background-color: #eaf2f8; border-left-color: #8e44ad; } 
+
+/* 4. 터미널 및 코드 블록 Box 스타일 */
+.code-wrapper { 
+    position: relative; 
+    margin: 20px 0; 
+    background-color: #282c34; 
+    border-radius: 8px; 
+    overflow: hidden; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border: 1px solid #1e2227;
+}
+
+/* 터미널 상단 타이틀 바 */
+.code-wrapper::before {
+    content: "💻 Terminal / Command";
+    display: block;
+    background-color: #1e2227;
+    color: #8b92a5;
+    padding: 10px 15px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    border-bottom: 1px solid #181a1f;
+}
+
+/* 실제 코드 영역 */
+.code-wrapper pre { 
+    background-color: transparent; 
+    color: #abb2bf; 
+    padding: 15px 20px; 
+    overflow-x: auto; 
+    font-family: 'Consolas', monospace; 
+    font-size: 0.95rem; 
+    line-height: 1.5; 
+    margin: 0; 
+}
+code { font-family: 'Consolas', monospace; background-color: #e9ecef; color: #d63384; padding: 3px 6px; border-radius: 4px; font-size: 0.9rem; }
+pre code { background-color: transparent; color: inherit; padding: 0; }
+
+/* 복사 버튼 디자인 */
+.copy-btn { 
+    position: absolute; 
+    top: 6px; 
+    right: 10px; 
+    background-color: #3e4451; 
+    color: #fff; 
+    border: none; 
+    padding: 4px 12px; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-size: 0.8rem; 
+    transition: all 0.2s; 
+}
+.copy-btn:hover { background-color: #4b5263; }
+
+/* 5. 테이블 공통 스타일 */
+.common-table { width: 100%; border-collapse: collapse; margin: 20px 0; background-color: #fff; }
+.common-table th, .common-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+.common-table th { background-color: #f2f2f2; color: #0056b3; font-weight: bold; }
+
+/* =========================================================
+   [3부] 다크 모드 통합 지원 (어두운 화면에서도 완벽하게)
+   ========================================================= */
+
+body.dark-mode .box { background-color: #2d2d2d; color: #e0e0e0; border-left-color: #555; }
+body.dark-mode .box-primary { background-color: #1e2a38; border-left-color: #2196F3; }
+body.dark-mode .box-success { background-color: #1a3a22; border-left-color: #28a745; color: #e0e0e0; }
+body.dark-mode .box-warning { background-color: #332b18; border-left-color: #ffc107; }
+body.dark-mode .box-danger { background-color: #3b1c1e; border-left-color: #e63946; }
+body.dark-mode .box-focus { background-color: #2a1b38; border-left-color: #8e44ad; }
+
+body.dark-mode .text-desc { color: #aaa; }
+body.dark-mode code { background-color: #444; color: #ff79c6; }
+
+body.dark-mode .common-table { background-color: #1e1e1e; }
+body.dark-mode .common-table th { background-color: #333; color: #fff; border-color: #444; }
+body.dark-mode .common-table td { border-color: #444; }
+
+/* =========================================================
+   [4부] 모바일 반응형 디자인 (전체 화면 원스크롤 통합)
+   ========================================================= */
+
+@media (max-width: 768px) {
+    /* 1. 기본 레이아웃 고정 해제 (브라우저 전체 스크롤 활성화) */
+    html, body {
+        overflow: auto; 
+        height: auto;
+    }
+
+    /* 2. 전체 틀 세로 배치 및 제한 해제 */
+    .wrapper {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+    }
+
+    /* 3. 메뉴(사이드바) 높이 제한 및 내부 스크롤 해제 */
+    .sidebar {
+        width: 100%;
+        max-height: none; /* 높이 제한을 없애서 메뉴 전체가 보이게 함 */
+        overflow: visible; 
+        border-right: none;
+        border-bottom: 1px solid #cbd5e0;
+        padding: 15px;
+        box-sizing: border-box;
+    }
+    
+    body.dark-mode .sidebar {
+        border-bottom-color: #333;
+    }
+
+    /* 4. 메인 콘텐츠 내부 스크롤 해제 */
+    .main-editor {
+        overflow: visible;
+        height: auto;
+    }
+
+    .content-area {
+        overflow: visible; /* 내부 스크롤 해제 */
+        padding: 20px 15px;
+    }
+
+    /* 5. 모바일 폰트 및 여백 최적화 */
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.25rem; }
+    p, ul, ol, .box { font-size: 0.95rem; }
+    
+    .box { padding: 15px; margin: 15px 0; }
+    
+    .code-wrapper pre {
+        padding: 15px;
+        font-size: 0.85rem;
+    }
+
+    /* 6. 하단 상태 바 배치 */
+    .status-bar {
+        height: auto;
+        padding: 10px 15px;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .status-left, .status-right {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+    }
+}

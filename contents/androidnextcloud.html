@@ -1,0 +1,646 @@
+<div class="container">
+    <h1>📱 스마트폰(Termux) 개인 클라우드 완벽 구축 가이드</h1>
+    
+    <div class="box box-primary">
+        <span class="box-title">💡 프로젝트 개요</span>
+        <p class="mb-0">이 가이드는 사용하지 않는 안드로이드 기기(예: 삼성 갤럭시 노트 10+, Android 버전 12)를 활용하여 <strong>Nginx + PHP + MariaDB</strong> 기반의 강력한 <strong>Nextcloud 서버</strong>를 구축하는 상세 문서입니다. 모든 운영체제 시스템은 스마트폰의 고속 내부 메모리에 구동되며, 대용량 사용자 데이터(사진, 파일)는 마이크로 SD 카드에 분리 저장하는 '이중 스토리지 아키텍처'를 채택했습니다.</p>
+    </div>
+
+    <h1>[1단계] 스마트폰 완전 초기화 및 기초 공사</h1>
+    
+    <div class="box box-primary">
+        <span class="box-title">💡 이 단계의 목표</span>
+        <p class="mb-0">기기를 공장초기화하여 깨끗한 상태를 만들고, 24시간 서버가 중단되지 않도록 전원 설정을 변경합니다. 가장 중요한 핵심은 <strong>노트북에서 스마트폰으로 원격 접속(SSH)하여 편하게 명령어를 복사/붙여넣기 할 수 있는 환경</strong>을 가장 먼저 구축하는 것입니다.</p>
+    </div>
+
+    <h2>1. 기기 공장초기화 및 기본 설정</h2>
+    <p>이전의 잘못된 설정이나 캐시 파일이 서버 구동을 방해하지 않도록 스마트폰을 완전히 초기화합니다.</p>
+    <ol>
+        <li>스마트폰 <strong>[설정] > [일반] > [초기화] > [기기 전체 초기화]</strong>를 진행합니다.</li>
+        <li>초기화 완료 후 와이파이를 연결하고, 불필요한 기본 앱들은 모두 사용 중지 또는 삭제합니다.</li>
+    </ol>
+
+    <h2>2. 서버 생존을 위한 '배터리 최적화' 해제 (★매우 중요)</h2>
+    <p>안드로이드 운영체제는 화면이 꺼지면 배터리를 아끼기 위해 앱을 강제로 종료합니다. 서버가 죽는 것을 막으려면 이 기능을 반드시 해제해야 합니다.</p>
+    <div class="box box-warning">
+        <span class="box-title">⚙️ 설정 방법</span>
+        <ul class="mb-0">
+            <li><strong>[설정] > [애플리케이션] > [Termux] > [배터리]</strong>로 이동하여 <strong><span class="highlight-bg">제한 없음</span></strong>으로 설정합니다.</li>
+            <li>디스플레이 설정에서 '화면 자동 꺼짐 시간'을 최대한 길게 설정해 둡니다.</li>
+        </ul>
+    </div>
+
+    <h2>3. F-Droid 및 Termux 설치</h2>
+    <p>Google Play 스토어 버전은 오류를 유발하므로 반드시 오픈소스 마켓인 F-Droid를 사용합니다.</p>
+    <ol>
+        <li>스마트폰 브라우저에서 <a href="https://f-droid.org/" target="_blank">F-Droid 홈페이지</a>에 접속하여 <code>F-Droid.apk</code>를 다운로드하고 설치합니다.</li>
+        <li>F-Droid 앱을 실행하고 <strong>Termux</strong>를 검색하여 설치합니다.</li>
+    </ol>
+
+    <h2>4. 저장소 권한 부여 및 시스템 최신화</h2>
+    <p>이제 스마트폰에서 Termux 앱을 열고 아래 명령어들을 직접 타건합니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 안드로이드 저장소 접근 권한 요청 (팝업 창에서 '허용' 클릭)
+termux-setup-storage
+
+# 시스템 전체 의존성 갱신 (진행 중 Y/N을 물으면 Y 입력 후 엔터)
+pkg update && pkg full-upgrade -y</code></pre>
+    </div>
+
+    <h2>5. PC 원격 접속(SSH) 환경 구축 (게임 체인저!)</h2>
+    <p>긴 명령어를 스마트폰에서 치는 것은 오타의 원인이 됩니다. 동일한 와이파이에 연결된 노트북(PC)에서 스마트폰으로 접속하여 쾌적하게 작업할 수 있도록 SSH 서버를 엽니다.</p>
+    
+    <div class="box box-focus">
+        <span class="box-title">📱 스마트폰(Termux)에서 할 일</span>
+        <p>1) SSH 패키지를 설치합니다.</p>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code>pkg install openssh -y</code></pre>
+        </div>
+        <p>2) 접속에 사용할 비밀번호를 설정합니다.</p>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code>passwd</code></pre>
+        </div>
+        <p>3) 내 스마트폰의 IP 주소를 확인합니다.</p>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code>ifconfig</code></pre>
+        </div>
+        <p>4) SSH 서버 엔진을 켭니다.</p>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code>sshd</code></pre>
+        </div>
+    </div>
+
+    <div class="box box-focus">
+        <span class="box-title">💻 노트북(PC)에서 접속하기</span>
+        <p>이제 스마트폰은 충전기에 꽂아 옆에 두시고, 편안하게 노트북 키보드 앞에 앉으세요!</p>
+        <ol>
+            <li>노트북에서 <strong>명령 프롬프트(CMD)</strong> 또는 <strong>Windows PowerShell</strong>을 실행합니다.</li>
+            <li>아래 형식에 맞춰 접속 명령어를 입력합니다 (Termux의 SSH 기본 포트는 22가 아닌 <strong>8022</strong>입니다).</li>
+        </ol>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code># 명령어 형식: ssh -p 8022 [스마트폰의 IP 주소]
+# 예시:
+ssh -p 8022 192.168.0.15</code></pre>
+        </div>
+        <p class="mb-0">Are you sure you want to continue connecting? 메시지가 나오면 <code>yes</code>를 치고, 아까 스마트폰에서 설정한 비밀번호를 입력하면 접속 성공입니다!</p>
+    </div>
+
+    <h2>6. 기초 필수 유틸리티 개별 설치 (PC에서 진행)</h2>
+    <p>노트북과 연결된 터미널 창에서 아래 명령어들을 마우스로 편하게 <strong>복사 ➡️ 붙여넣기</strong> 하며 하나씩 설치합니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 웹에서 파일을 다운로드하는 도구
+pkg install wget -y
+
+# 네트워크 통신 테스트 도구
+pkg install curl -y
+
+# 터미널용 텍스트 편집기
+pkg install nano -y
+
+# 압축 해제 도구
+pkg install tar -y
+
+# 보안 인증서 관련 도구
+pkg install openssl -y</code></pre>
+    </div>
+
+    <div class="box box-primary">
+        <span class="box-title">✅ 1단계 완료!</span>
+        <p class="mb-0">축하합니다! 오타 걱정 없이 마우스 클릭만으로 서버를 지을 수 있는 완벽한 원격 제어 베이스캠프가 완성되었습니다. 다음 단계에서는 이 쾌적한 노트북 환경에서 웹 서버(Nginx)와 데이터베이스(MariaDB)를 설치해 보겠습니다.</p>
+    </div>
+
+    <hr>
+
+    <h1>[2단계] 핵심 엔진 설치 및 데이터베이스 무결점 초기화</h1>
+    
+    <div class="box box-primary">
+        <span class="box-title">💻 PC 원격 접속(SSH) 상태에서 진행하세요!</span>
+        <p class="mb-0">1단계에서 구축한 SSH 환경을 통해 노트북의 터미널 창에서 작업합니다. 스마트폰의 작은 화면 대신, 넓은 모니터에서 아래 명령어들을 마우스로 <strong>복사 ➡️ 붙여넣기</strong> 하여 쾌적하게 서버를 구축해 보세요.</p>
+    </div>
+
+    <h2>1. Nextcloud 구동용 핵심 패키지 개별 설치</h2>
+    <p>웹 서버 역할을 하는 Nginx, 데이터를 처리하는 PHP, 데이터를 저장하는 MariaDB를 설치합니다. 의존성 꼬임으로 인한 설치 실패를 막기 위해 <strong>반드시 한 줄씩 따로따로 복사하여 설치</strong>합니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 웹 서버
+pkg install nginx -y
+
+# 데이터베이스
+pkg install mariadb -y
+
+# PHP 엔진
+pkg install php-fpm -y</code></pre>
+    </div>
+
+    <h2>2. PHP 엔진 최적화 (타임아웃 에러 원천 차단)</h2>
+    <p>스마트폰 AP 특성상 연산 시간이 PC보다 길어질 수 있습니다. 기본 설정(30초)을 그대로 두면 Nextcloud 설치 시 <code>504 Gateway Time-out</code> 에러가 발생하므로, 엔진의 '대기 시간'을 1시간(3600초)으로 대폭 늘려주고 필수 모듈을 활성화합니다.</p>
+    <div class="box box-warning">
+        <span class="box-title">🔧 PHP 설정 파일 원격 수정</span>
+        <p class="mb-0">아래 명령어 네 줄을 차례대로 복사해서 실행하면, 설정 파일(php.ini)을 직접 열지 않고도 필요한 부분만 완벽하게 덮어쓸 수 있습니다.</p>
+    </div>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 최대 실행 시간 및 입력 대기 시간 3600초로 연장
+sed -i 's/max_execution_time = .*/max_execution_time = 3600/' $PREFIX/lib/php.ini
+echo "max_input_time = 3600" >> $PREFIX/lib/php.ini
+
+# MariaDB와의 원활한 통신을 위한 필수 확장 모듈 활성화
+echo "extension=pdo_mysql" >> $PREFIX/lib/php.ini
+echo "extension=mysqli" >> $PREFIX/lib/php.ini</code></pre>
+    </div>
+
+    <h2>3. 데이터베이스 엔진 가동 및 초기화</h2>
+    <p>MariaDB를 처음으로 켜고, Nextcloud가 사용할 수 있는 '방'을 만들어 주는 단계입니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 백그라운드에서 MariaDB 가동 (명령어 끝의 & 기호 필수)
+mysqld_safe &amp;
+
+# 엔진이 완전히 켜질 때까지 5초 대기
+sleep 5</code></pre>
+    </div>
+
+    <h2>4. 계정 생성 및 권한 부여 (무결점 버전)</h2>
+    <p>Nextcloud 전용 데이터베이스를 생성하고, 해당 DB를 관리할 사용자(db_nc_user)를 만들어 권한을 부여합니다. 꼬여있는 기존 데이터를 완전히 지우고 깨끗하게 시작하는 무결점 명령어입니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 1. (선택 사항) 만약 꼬인 데이터가 있다면 방 비우기
+mariadb -u root -e "DROP DATABASE IF EXISTS nextcloud;"
+
+# 2. 깨끗한 Nextcloud 전용 데이터베이스 생성
+mariadb -u root -e "CREATE DATABASE nextcloud;"
+
+# 3. 데이터베이스 관리자 계정(db_nc_user) 생성 및 비밀번호(db_password1234) 지정
+mariadb -u root -e "GRANT ALL PRIVILEGES ON nextcloud.* TO 'db_nc_user'@'localhost' IDENTIFIED BY 'db_password1234';"
+
+# 4. 권한 즉시 적용
+mariadb -u root -e "FLUSH PRIVILEGES;"</code></pre>
+    </div>
+
+    <div class="box box-primary">
+        <span class="box-title">✅ 2단계 완료!</span>
+        <p class="mb-0">웹 서버와 PHP 엔진이 준비되었고, 데이터를 담을 그릇(데이터베이스)까지 완벽하고 깨끗하게 생성되었습니다. 다음 단계에서는 본격적으로 <strong>DuckDNS를 통한 외부 도메인 연동 및 완벽한 Nginx 설정</strong>을 진행해 보겠습니다.</p>
+    </div>
+
+    <hr>
+
+    <h1>[3단계] Nextcloud 다운로드 및 SD카드 전용 폴더 구축</h1>
+    
+    <div class="box box-primary">
+        <span class="box-title">💡 기업형 '이중 스토리지(투 트랙)' 아키텍처 구현</span>
+        <p class="mb-0">스마트폰의 내부 메모리는 시스템을 돌리는 데 특화되어 속도가 매우 빠르지만 용량이 적습니다. 반대로 SD 카드는 속도는 평범하지만 저렴하게 대용량을 구축할 수 있습니다. 이 단계에서는 <strong>Nextcloud의 엔진은 스마트폰 내장 메모리(Home)에 두고, 용량을 많이 차지하는 사진과 영상은 SD 카드로 직행하도록 분리 설계</strong>를 진행합니다.</p>
+    </div>
+
+    <h2>1. Nextcloud 서버 본체 다운로드 및 압축 해제</h2>
+    <p>먼저 공식 서버에서 설치 파일을 스마트폰 내부 메모리로 다운로드합니다. PC의 터미널(SSH) 창에 아래 명령어를 입력합니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 사용자의 홈 디렉토리로 이동
+cd ~
+
+# 공식 서버에서 최신 버전 다운로드
+wget https://download.nextcloud.com/server/releases/latest.tar.bz2
+
+# 압축 해제 (글씨가 빠르게 올라가며 다소 시간이 소요됨)
+tar -xjf latest.tar.bz2
+
+# 설치가 끝난 원본 파일 삭제 (용량 확보)
+rm latest.tar.bz2</code></pre>
+    </div>
+
+    <h2>2. 마이크로 SD 카드에 데이터 전용 폴더 생성</h2>
+    <p>안드로이드 보안 정책상, Termux가 SD 카드에 데이터를 저장하려면 반드시 정해진 전용 경로(<code>Android/data/com.termux/files</code>)를 사용해야 합니다.</p>
+    
+    <div class="box box-warning">
+        <span class="box-title">⚠️ 매우 중요: 내 SD 카드 고유 번호 찾기</span>
+        <p>아래 명령어에 쓰인 <code>2263-EEDB</code>는 단순한 예시입니다. <strong>SD 카드의 8자리 고유 번호는 스마트폰이나 카드마다 무조건 다릅니다.</strong> 반드시 본인의 번호로 수정해서 명령어를 입력해야 합니다.</p>
+        
+        <strong>[권한 오류 없이 내 번호 확인하는 법]</strong>
+        <ul class="mb-0">
+            <li>안드로이드 최신 버전에서는 <code>ls /storage</code> 명령어가 'Permission denied(권한 없음)'으로 막히는 경우가 많습니다.</li>
+            <li>대신 터미널에 <strong><code>df -h</code></strong> 명령어를 입력해 보세요. 출력되는 목록 중에서 맨 오른쪽에 <strong><code>/storage/XXXX-XXXX</code></strong> 형태(예: 1A2B-3C4D)로 마운트된 경로가 바로 본인의 SD 카드입니다.</li>
+        </ul>
+    </div>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 본인의 SD카드 번호로 수정하여 입력!
+# SD 카드 내부에 Nextcloud 데이터 전용 폴더(nc_data) 생성
+mkdir -p /storage/2263-EEDB/Android/data/com.termux/files/nc_data</code></pre>
+    </div>
+
+    <h2>3. 저장소 인식용 필수 파일 생성 및 보안 설정</h2>
+    <p>Nextcloud는 지정된 폴더 안에 <code>.ocdata</code>라는 빈 파일이 있어야만 정상적인 저장소로 인정합니다. 또한 외부 앱이 접근하지 못하도록 권한을 잠가야 합니다.</p>
+    
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 저장소 인증을 위한 .ocdata 숨김 파일 생성
+touch /storage/2263-EEDB/Android/data/com.termux/files/nc_data/.ocdata
+
+# 외부 접근을 막기 위해 폴더 권한을 770으로 제한
+chmod -R 770 /storage/2263-EEDB/Android/data/com.termux/files/nc_data</code></pre>
+    </div>
+
+    <div class="box box-primary">
+        <span class="box-title">✅ 3단계 완료!</span>
+        <p class="mb-0">축하합니다! 서버의 엔진과 대용량 데이터 창고(SD카드)가 모두 완벽하게 분리되어 세팅되었습니다. 다음 단계에서는 이 둘을 이어주고 외부에서 안전하게 접속할 수 있도록 <strong>DuckDNS 외부 도메인 연동 및 완벽한 Nginx 보안(SSL) 설정</strong>을 진행해 보겠습니다.</p>
+    </div>
+
+    <hr>
+
+    <h1>[4단계] DuckDNS 연동 및 Nginx 무결점 보안(SSL) 설정</h1>
+    
+    <div class="box box-primary">
+        <span class="box-title">💡 포트폴리오를 위한 필수 보안 과정</span>
+        <p class="mb-0">집 밖에서도 내 클라우드에 접속하려면 주소가 필요합니다. 가정용 인터넷은 IP가 수시로 바뀌므로 무료 도메인 서비스인 <strong>DuckDNS</strong>를 이용해 고정된 주소를 만들고, <strong>Let's Encrypt</strong>를 통해 군사급 암호화 통신(HTTPS)이 가능하도록 자물쇠를 채우는 과정입니다.</p>
+    </div>
+
+    <h2>1. acme.sh 설치 및 인증 환경 구성</h2>
+    <p>인증서를 무료로 발급받고 자동으로 갱신해 주는 똑똑한 스크립트인 <code>acme.sh</code>를 설치합니다. PC 원격(SSH) 터미널에 아래 명령어를 입력하세요.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># acme.sh 다운로드 및 설치
+curl https://get.acme.sh | sh
+
+# 설치된 스크립트를 현재 터미널에 바로 적용
+source ~/.bashrc</code></pre>
+    </div>
+
+    <h2>2. DuckDNS 토큰 입력 및 SSL 인증서 발급</h2>
+    <p>사전에 DuckDNS 홈페이지(duckdns.org)에서 본인만의 도메인(예: <code>본인도메인.duckdns.org</code>)을 만들고, 화면에 보이는 <strong>Token(토큰) 값</strong>을 복사해 두어야 합니다.</p>
+    
+    <div class="box box-warning">
+        <span class="box-title">⚠️ 도메인 이름과 토큰 수정 필수</span>
+        <p class="mb-0">아래 명령어에서 <code>발급받은_토큰_값_입력</code> 부분과 <code>본인도메인.duckdns.org</code> 부분을 반드시 본인의 정보로 변경하여 실행하세요.</p>
+    </div>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># DuckDNS 토큰 등록 (서버가 내가 도메인 주인임을 증명하는 과정)
+export DuckDNS_Token="발급받은_토큰_값_입력"
+
+# ECC 방식의 빠르고 가벼운 SSL 인증서 발급 요청
+acme.sh --issue --dns dns_duckdns -d 본인도메인.duckdns.org</code></pre>
+    </div>
+
+    <h2>3. Nginx 설정 파일 교체 (무결점 마스터 버전)</h2>
+    <p>이 단계는 전체 서버 구축 과정 중 가장 오류가 잦은 마의 구간입니다. 일반적인 가이드대로 설정하면 접속 시 화면이 하얗게 변하며 <code>500 Internal Server Error</code>가 뜨거나, Nginx가 <code>rewrite or internal redirection cycle</code>(무한 루프)에 빠져버립니다.</p>
+    
+    <div class="box box-danger">
+        <span class="box-title">🔧 트러블슈팅 완벽 반영</span>
+        <p class="mb-0">아래 제공되는 설정 코드는 무한 루프 에러를 해결하고, 구버전의 <code>listen 58080 ssl http2;</code> 문법 경고를 없애기 위해 <code>http2 on;</code>을 분리했으며, PHP 대기 시간을 3600초로 늘려 타임아웃을 방지한 <strong>'스마트폰 완벽 호환 버전'</strong>입니다.</p>
+    </div>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 기존에 꼬여있거나 기본으로 제공되는 Nginx 설정 파일 삭제
+rm $PREFIX/etc/nginx/conf.d/nextcloud.conf
+
+# 깨끗하고 완벽한 설정 파일 새로 생성 (아래 cat부터 EOF까지 한 번에 복사 후 붙여넣기)
+cat &lt;&lt; 'EOF' &gt; $PREFIX/etc/nginx/conf.d/nextcloud.conf
+server {
+    listen 58080 ssl;
+    http2 on;
+    server_name 본인도메인.duckdns.org;
+
+    ssl_certificate /data/data/com.termux/files/home/.acme.sh/본인도메인.duckdns.org_ecc/fullchain.cer;
+    ssl_certificate_key /data/data/com.termux/files/home/.acme.sh/본인도메인.duckdns.org_ecc/본인도메인.duckdns.org.key;
+
+    # 최신/구형 브라우저 모두 호환되는 강력한 보안 프로토콜
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    root /data/data/com.termux/files/home/nextcloud;
+    index index.php index.html index.htm;
+
+    client_max_body_size 10G;
+    fastcgi_buffers 64 4K;
+
+    location / {
+        rewrite ^ /index.php$request_uri;
+    }
+
+    location ~ ^\/(?:build|tests|config|lib|3rdparty|templates|data)\/ {
+        deny all;
+    }
+
+    location ~ ^\/(?:index|remote|public|cron|core\/ajax\/update|status|ocs\/v[12]|updater\/.+|oc[ms]-provider\/.+|.+\/richdocumentscode\/proxy)\.php(?:$|\/) {
+        fastcgi_split_path_info ^(.+?\.php)(\/.*|)$;
+        set $path_info $fastcgi_path_info;
+        try_files $fastcgi_script_name =404;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $path_info;
+        fastcgi_param HTTPS on;
+        fastcgi_pass 127.0.0.1:9000;
+        
+        # PHP 응답을 기다리는 Nginx의 인내심 시간 연장 (504 에러 원천 차단)
+        fastcgi_read_timeout 3600;
+    }
+
+    location ~ \.(?:css|js|svg|gif|png|jpg|ico|wasm|tflite|map|ogg|flac)$ {
+        try_files $uri /index.php$request_uri;
+        access_log off;
+    }
+}
+EOF</code></pre>
+    </div>
+
+    <h2>4. Nginx 문법 검사</h2>
+    <p>방금 만든 파일에 오타가 없는지, Nginx 엔진이 제대로 이해했는지 확인합니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code>nginx -t</code></pre>
+    </div>
+    <p>결과 화면에 <code>syntax is ok</code>와 <code>test is successful</code>이 나오면 100% 성공입니다!</p>
+
+    <div class="box box-primary">
+        <span class="box-title">✅ 4단계 완료!</span>
+        <p class="mb-0">복잡했던 통신 경로와 보안 설정이 모두 깔끔하게 정리되었습니다. 이제 대망의 마지막 설치 단계인 <strong>[5단계] 터미널(OCC)을 이용한 Nextcloud 강제 설치 및 공유기 포트포워딩</strong>만 남았습니다!</p>
+    </div>
+
+    <hr>
+
+    <h1>[5단계] 터미널(OCC) 강제 설치 및 완벽한 외부 접속 개통</h1>
+    
+    <div class="box box-primary">
+        <span class="box-title">💡 최후의 관문, OCC 전문가 설치 모드</span>
+        <p class="mb-0">보통 브라우저로 <code>http://주소</code>에 접속해서 화면을 보며 설치를 진행하지만, 스마트폰 서버에서는 이 과정에서 <code>500 Internal Error</code>나 권한 꼬임(Configuration Lock)이 빈번하게 발생합니다. 우리는 이를 원천 차단하기 위해 터미널(SSH)에서 명령어로 직접 DB를 뚫고 설치하는 가장 확실한 방법을 사용합니다.</p>
+    </div>
+
+    <h2>1. 2GB 메모리 할당 및 OCC 강제 설치 실행</h2>
+    <div class="box box-warning">
+        <span class="box-title">⚠️ 명령어 작성 전 필수 점검</span>
+        <ul class="mb-0">
+            <li><code>--database-host</code>는 반드시 <strong>127.0.0.1</strong>로 적어야 소켓 에러가 나지 않습니다.</li>
+            <li><code>--data-dir</code> 부분에는 3단계에서 찾았던 <strong>본인의 SD 카드 고유 번호</strong>(예: <code>2263-EEDB</code>)가 정확히 들어가야 합니다.</li>
+            <li><code>--admin-pass</code>에 초기 접속에 사용할 임시 비밀번호를 지정해 줍니다.</li>
+        </ul>
+    </div>
+    <p>아래 명령어를 본인의 환경에 맞게 수정하여 복사한 뒤, SSH 터미널에 한 번에 붙여넣고 실행합니다.</p>
+    
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code>php -d memory_limit=2048M ~/nextcloud/occ maintenance:install \
+--database "mysql" \
+--database-host "127.0.0.1" \
+--database-name "nextcloud" \
+--database-user "db_nc_user" \
+--database-pass "db_password1234" \
+--admin-user "nc_admin_user" \
+--admin-pass "nc_admin_password1234" \
+--data-dir "/storage/2263-EEDB/Android/data/com.termux/files/nc_data"</code></pre>
+    </div>
+    <p>실행 후 <code>Nextcloud was successfully installed</code>라는 문구가 뜨면 시스템 구축은 완벽하게 끝난 것입니다!</p>
+
+    <h2>2. 외부 접속(DuckDNS) 주소 신뢰 목록 등록</h2>
+    <p>Nextcloud는 자신이 모르는 주소로 누군가 접속하면 해킹으로 간주하고 화면을 차단합니다. 4단계에서 만든 DuckDNS 주소를 '믿을 수 있는 주소'로 시스템에 등록해 줍니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code>php ~/nextcloud/occ config:system:set trusted_domains 0 --value="본인도메인.duckdns.org"</code></pre>
+    </div>
+
+    <h2>3. 최종 엔진 재시작 및 포트포워딩 (가장 중요★)</h2>
+    <p>모든 설정이 끝났으니 Nginx와 PHP 엔진을 깨끗하게 재시작합니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code>pkill -9 php-fpm
+pkill -9 nginx
+php-fpm
+nginx</code></pre>
+    </div>
+
+    <div class="box box-danger">
+        <span class="box-title">🔧 트러블슈팅: 사이트에 보안 연결할 수 없음 (ERR_SSL_PROTOCOL_ERROR)</span>
+        <p>외부(LTE)에서 <code>https://본인도메인.duckdns.org:58080</code>으로 접속했을 때 접속이 거부된다면, 99.9% <strong>공유기의 포트포워딩 설정 충돌</strong>입니다.</p>
+        
+        <p>외부에서 암호화된(HTTPS) 포트인 58080으로 찾아온 데이터를 공유기가 내부망의 8080 등 암호화되지 않은 일반 포트로 밀어 넣으면 통신이 깨집니다. <strong>공유기 설정 페이지(예: 192.168.0.1)에 접속하여 포트포워딩 규칙을 다음과 같이 정확히 일치시켜야 합니다.</strong></p>
+        <ul class="mb-0">
+            <li><strong>내부 IP:</strong> 스마트폰의 와이파이 IP 주소</li>
+            <li><strong>프로토콜:</strong> TCP</li>
+            <li><strong>외부 포트:</strong> <span class="highlight-bg">58080</span></li>
+            <li><strong>내부 포트:</strong> <span class="highlight-bg">58080</span> (★여기를 80이나 8080으로 하면 절대 안 됩니다!)</li>
+        </ul>
+    </div>
+
+    <h2>4. 보안 강화: 고유 관리자 계정으로 교체하기</h2>
+    <p>기본으로 생성된 <code>admin 계정</code> 아이디를 변경하고 싶은 경우 신규 <code>admin 계정</code>을 등록하고 기존 계정은 삭제 한다.</p>
+    <ol>
+        <li>PC나 스마트폰 브라우저에서 <strong>https://본인도메인.duckdns.org:58080</strong> 으로 접속합니다.</li>
+        <li>터미널에서 만든 <code>nc_admin_user</code> / <code>nc_admin_password1234</code> 으로 로그인합니다.</li>
+        <li>우측 상단 프로필 ➡️ <strong>[사용자(Users)]</strong> 메뉴로 이동합니다.</li>
+        <li><strong>[새 사용자]</strong>를 누르고 원하는 아이디와 비밀번호를 입력하되, <strong>반드시 그룹을 'admin'으로 지정</strong>하여 생성합니다.</li>
+        <li>새로 만든 계정으로 다시 로그인한 뒤, 기존의 <code>nc_admin_user</code> 계정은 삭제합니다.</li>
+    </ol>
+
+    <div class="box box-success text-center">
+        <h3 style="color: #155724; margin-top: 0;">🎉 대망의 클라우드 서버 구축 완료! 🎉</h3>
+        <p class="mb-0">정말 고생 많으셨습니다! 이제 기기 고장이나 초기화 시에도 5분 만에 복구할 수 있는 백업 파일(별도 가이드 참고)을 만들어 두시면 완벽합니다. 이제 PC와 스마트폰에 동기화 앱을 설치하여 진정한 나만의 무제한 클라우드를 마음껏 누려보세요!</p>
+    </div>
+
+    <hr>
+
+    <h1>[6단계] 완벽한 서버 백업 및 타임머신 복구 가이드</h1>
+    
+    <div class="box box-primary">
+        <span class="box-title">💡 무중단 서버 운영의 핵심, 백업과 복구</span>
+        <p class="mb-0">기기를 초기화하거나 Termux 앱이 실수로 삭제되더라도 당황할 필요가 없습니다. 우리가 구축한 이중 스토리지 시스템은 명령어 몇 줄이면 지금의 완벽한 세팅 상태로 100% 되돌아갈 수 있습니다. <strong>서버 관리자의 가장 강력한 무기인 재난 복구(Disaster Recovery) 절차</strong>를 익혀보세요.</p>
+    </div>
+
+    <h2>📦 1부: 서버 영구 보존하기 (백업 절차)</h2>
+    <p>백업은 파일이 생성되거나 수정 중일 때 꼬이는 것을 막기 위해, <strong>반드시 서버 엔진을 잠시 멈춘 상태</strong>에서 진행해야 합니다.</p>
+
+    <div class="box box-primary">
+        <span class="box-title">1. 엔진 임시 정지 및 백업 저장소 생성</span>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code># 구동 중인 웹 서버 및 PHP 엔진 정지
+pkill -9 nginx
+pkill -9 php-fpm
+
+# 스마트폰 내장 메모리(다운로드 폴더)에 백업 파일을 담을 상자 만들기
+mkdir -p /sdcard/Download/Nextcloud_Backup</code></pre>
+        </div>
+
+        <span class="box-title">2. 데이터베이스(MariaDB) 추출</span>
+        <p>127개가 넘는 구조 테이블과 계정 정보 등 서버의 '기억'을 단 하나의 SQL 파일로 뽑아냅니다.</p>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code>mysqldump -u root nextcloud > /sdcard/Download/Nextcloud_Backup/db_backup.sql</code></pre>
+        </div>
+
+        <span class="box-title">3. Termux 시스템 파일(내장 메모리) 압축</span>
+        <p>Nginx 설정, PHP 환경, 발급받은 SSL 인증서 및 Nextcloud 본체 파일까지 며칠간 세팅한 모든 것을 통째로 압축합니다.</p>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code>tar -czvf /sdcard/Download/Nextcloud_Backup/termux_system_backup.tar.gz -C /data/data/com.termux/files ./home ./usr</code></pre>
+        </div>
+
+        <span class="box-title">4. SD 카드 데이터 폴더(외장 메모리) 압축</span>
+        <p>SD 카드에 저장된 실제 사진과 파일들을 포장합니다. (※ <code>2263-EEDB</code> 부분은 본인의 SD 카드 식별자로 변경하세요.)</p>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code>tar -czvf /sdcard/Download/Nextcloud_Backup/sdcard_data_backup.tar.gz -C /storage/2263-EEDB/Android/data/com.termux/files ./nc_data</code></pre>
+        </div>
+
+        <span class="box-title">5. 엔진 재가동</span>
+        <p>안전하게 포장이 끝났으니 서버를 다시 돌려놓습니다.</p>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code>php-fpm
+nginx</code></pre>
+        </div>
+    </div>
+
+    <div class="box box-warning">
+        <span class="box-title">⚠️ 외부 2차 백업 필수</span>
+        <p class="mb-0">방금 생성된 3개의 백업 파일(<code>db_backup.sql</code>, <code>termux_system_backup.tar.gz</code>, <code>sdcard_data_backup.tar.gz</code>)은 스마트폰의 Download 폴더 안에 있습니다. 스마트폰 고장에 대비하여 이 파일들을 <strong>반드시 PC(노트북)나 외장하드로 복사</strong>해 두시기 바랍니다.</p>
+    </div>
+
+    <hr>
+
+    <h2>🔄 2부: 타임머신 탑재 (재난 복구 절차)</h2>
+    <p>기기를 초기화했거나 서버가 완전히 망가졌을 때, 빼두었던 3개의 백업 파일을 다시 스마트폰의 <code>Download/Nextcloud_Backup</code> 폴더에 넣어두고 아래 절차를 진행합니다.</p>
+    
+    <div class="box box-danger">
+        <span class="box-title">사전 준비: Termux 초기 세팅</span>
+        <p>새 Termux 앱을 깐 직후라면 <strong>반드시</strong> 아래 명령어부터 실행해야 합니다.</p>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code>termux-setup-storage
+pkg update && pkg full-upgrade -y
+pkg install mariadb nginx php-fpm tar -y</code></pre>
+        </div>
+
+        <span class="box-title">1. 엔진 강제 정지 및 기존 잔여물 제거</span>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code>pkill -9 nginx
+pkill -9 php-fpm
+pkill -9 mariadbd
+
+# 꼬여버린 기존 시스템과 데이터 폴더를 과감히 삭제
+rm -rf ~/home ~/usr
+rm -rf /storage/2263-EEDB/Android/data/com.termux/files/nc_data</code></pre>
+        </div>
+
+        <span class="box-title">2. 백업 파일 압축 해제 (시스템 & 데이터)</span>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code># 시스템(Home, Usr) 복원
+tar -xzvf /sdcard/Download/Nextcloud_Backup/termux_system_backup.tar.gz -C /data/data/com.termux/files
+
+# SD카드 데이터 복원 및 권한 재설정
+tar -xzvf /sdcard/Download/Nextcloud_Backup/sdcard_data_backup.tar.gz -C /storage/2263-EEDB/Android/data/com.termux/files/
+chmod -R 770 /storage/2263-EEDB/Android/data/com.termux/files/nc_data</code></pre>
+        </div>
+
+        <span class="box-title">3. 데이터베이스(MariaDB) 부활</span>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code># DB 엔진 먼저 켜기
+mysqld_safe &amp;
+sleep 5
+
+# 빈 방을 다시 만들고 SQL 기억 주입하기
+mariadb -u root -e "DROP DATABASE IF EXISTS nextcloud; CREATE DATABASE nextcloud;"
+mariadb -u root nextcloud < /sdcard/Download/Nextcloud_Backup/db_backup.sql</code></pre>
+        </div>
+
+        <span class="box-title">4. 엔진 가동 및 복구 완료 확인</span>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code>php-fpm
+nginx</code></pre>
+        </div>
+    </div>
+
+    <div class="box box-primary">
+        <span class="box-title">🎉 전 과정 마스터 완료!</span>
+        <p class="mb-0">이것으로 1단계 기초 공사부터 6단계 완벽한 재난 복구 체계까지, 안드로이드 스마트폰을 엔터프라이즈급 개인 클라우드로 만드는 모든 대장정이 끝났습니다. 이제 어떠한 에러나 기기 고장이 발생해도 사용자님은 당황하지 않고 5분 만에 서버를 부활시킬 수 있는 진정한 마스터입니다!</p>
+    </div>
+
+    <hr>
+
+    <h1 id="step7">[7단계] 외부 접속을 위한 공유기 포트포워딩 설정</h1>
+
+    <div class="box box-primary">
+        <span class="box-title">💡 포트포워딩이란?</span>
+        <p class="mb-0">외부망(인터넷)에서 우리 집 공유기로 들어오는 신호를 집 안에 있는 특정 기기(스마트폰 서버)로 전달해주는 이정표 역할을 합니다. 이 설정을 하지 않으면 외부에서 내 클라우드 주소를 쳐도 공유기 문턱에서 막히게 됩니다.</p>
+    </div>
+
+    <h2>1. 공유기 관리 페이지 접속</h2>
+    <p>먼저 공유기의 설정 화면으로 진입해야 합니다. 보통 공유기와 연결된 PC나 스마트폰 브라우저 주소창에 아래 주소를 입력합니다.</p>
+    <ul>
+        <li><strong>ipTIME:</strong> 192.168.0.1</li>
+        <li><strong>TP-Link:</strong> 192.168.0.1 또는 192.168.1.1</li>
+        <li><strong>ASUS:</strong> 192.168.1.1 또는 router.asus.com</li>
+        <li><strong>KT/SKT/LG 통신사 공유기:</strong> 공유기 뒷면 스티커에 적힌 주소 확인</li>
+    </ul>
+
+    <h2>2. 포트포워딩 규칙 추가</h2>
+    <p>관리 페이지 내 <strong>[고급 설정] > [네트워크 관리] > [포트포워드 설정]</strong> 메뉴로 이동하여 새로운 규칙을 추가합니다.</p>
+
+    <div class="box box-warning">
+        <span class="box-title">⚠️ 반드시 아래 값과 똑같이 입력하세요!</span>
+        <p>Nextcloud 설정 시 사용했던 포트 번호를 정확히 매칭시켜야 보안 통신(SSL)이 깨지지 않습니다.</p>
+        
+        <table class="common-table">
+            <thead>
+                <tr>
+                    <th>항목</th>
+                    <th>설정 값</th>
+                    <th>비고</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>규칙 이름</strong></td>
+                    <td>Nextcloud</td>
+                    <td>자유롭게 지정</td>
+                </tr>
+                <tr>
+                    <td><strong>내부 IP 주소</strong></td>
+                    <td>스마트폰 와이파이 IP</td>
+                    <td>1단계 ifconfig로 확인한 주소</td>
+                </tr>
+                <tr>
+                    <td><strong>프로토콜</strong></td>
+                    <td>TCP</td>
+                    <td>반드시 TCP 선택</td>
+                </tr>
+                <tr>
+                    <td><strong>외부 포트</strong></td>
+                    <td><span class="highlight-text">58080</span></td>
+                    <td>외부에서 접속할 때 쓰는 번호</td>
+                </tr>
+                <tr>
+                    <td><strong>내부 포트</strong></td>
+                    <td><span class="highlight-text">58080</span></td>
+                    <td>Nginx 설정 파일에 적은 번호</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>3. 설정 적용 및 확인</h2>
+    <p>모든 값을 입력했다면 <strong>[추가]</strong> 또는 <strong>[적용]</strong> 버튼을 누릅니다. 이제 아래 방법으로 접속 테스트를 진행하세요.</p>
+    <ol>
+        <li>스마트폰의 와이파이를 끄고 <strong>LTE/5G 데이터</strong>를 켭니다.</li>
+        <li>브라우저를 열고 <code>https://본인도메인.duckdns.org:58080</code>을 입력합니다.</li>
+        <li>보안 경고 없이 로그인 화면이 나오면 성공입니다!</li>
+    </ol>
+
+    <div class="box box-success text-center">
+        <h3 style="color: #155724; margin-top: 0;">✅ 프로젝트 완성!</h3>
+        <p class="mb-0" style="color: #155724;">이제 포트포워딩까지 완료되어 전 세계 어디서든 나만의 데이터에 접근할 수 있게 되었습니다. 6단계에서 배운 백업 방법을 주기적으로 실천하여 소중한 데이터를 안전하게 지키세요!</p>
+    </div>
+
+</div>
