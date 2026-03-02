@@ -1,0 +1,198 @@
+<article class="content-area">
+    <h1>Nextcloud 외부 저장소(SMB) 연동 잔혹사 및 트러블슈팅 완결판</h1>
+    
+    <p class="text-desc">📅 작성일: 2026-03-02 | 🛠️ 환경: Galaxy Note 10+ (Termux/Ubuntu), Nextcloud 33.0.0, ipTIME A9004M-X2</p>
+
+    <p>본 문서는 개인용 클라우드 서버 구축 과정에서 마주친 가장 큰 난관이었던 <strong>'외부 저장소(ipTIME 외장하드) 연동'</strong> 과정을 기록한 기술 문서입니다. 특히 Nextcloud 최신 버전(33.0.0)에서 발생하는 치명적인 버그들과, 이를 우회하기 위한 수많은 실패 사례들을 상세히 기록하여 향후 서버 재구축 시 훌륭한 반면교사로 삼고자 합니다.</p>
+
+    <div class="box box-primary">
+        <span class="box-title">📌 프로젝트 목표</span>
+        <ul>
+            <li>스마트폰(Note 10+) 내부 용량의 한계를 극복하기 위해 ipTIME 공유기에 연결된 대용량 HDD를 Nextcloud의 저장소로 편입한다.</li>
+            <li>스마트폰 Nextcloud 앱의 '사진 자동 업로드' 기능이 외장하드를 향하도록 설정한다.</li>
+            <li><strong>모든 백그라운드 작업을 자동화(Cron)</strong>하여 무인 운영이 가능하게 만든다.</li>
+        </ul>
+    </div>
+
+    <hr>
+
+    <h2 id="case-1">Case Study 1: 웹 GUI 설정의 함정 (비밀번호 확인 버그)</h2>
+    <p>가장 직관적이고 쉬운 방법인 Nextcloud 관리자 웹 페이지의 <strong>[External storage]</strong> 메뉴를 통한 설정을 시도했으나, 최신 버전의 치명적인 보안 인증 버그로 인해 실패했습니다.</p>
+
+    <div class="box box-danger">
+        <span class="box-title">🚨 에러 증상: Authentication required 무한 루프</span>
+        <p>외부 저장소 정보(IP, 폴더명, ID, PW)를 모두 기입하고 저장을 누르면, 권한 확인을 위한 <code>Authentication required</code> 팝업창이 나타납니다. 하지만 정확한 관리자 비밀번호를 입력해도 <strong>"Unknown error while checking password"</strong>라는 에러 메시지만 뱉으며 설정이 전혀 저장되지 않는 현상이 발생했습니다.</p>
+    </div>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">Copy</button>
+        <pre><code>[원인 분석]
+Nextcloud는 관리자 권한이 필요한 중대한 설정 변경 시 'Sudo mode(세션 재인증)'를 요구합니다. 
+그러나 안드로이드 Termux 기반의 PHP-FPM 환경에서는 이 일시적인 인증 세션(Session) 파일이 
+정상적으로 생성/검증되지 않거나, 브라우저 캐시와 충돌하여 무한 루프에 빠지는 고질적인 버그가 존재합니다.
+
+[결론]
+웹 GUI를 통한 외부 저장소 추가는 불가능하다고 판단, 터미널(CLI) 환경에서 
+Nextcloud 내부 명령어인 'occ'를 사용하여 DB에 다이렉트로 설정을 주입하기로 전략을 수정했습니다.</code></pre>
+    </div>
+
+    <hr>
+
+    <h2 id="case-2">Case Study 2: FTP 프로토콜 연동 및 인식 불능 사태</h2>
+    <p>비밀번호 확인 버그를 우회하기 위해 <code>occ</code> 명령어를 사용하기로 하고, ipTIME 공유기에서 기본적으로 제공하는 <strong>ipDISK/FTP 서비스</strong>를 활용하여 연동을 시도했습니다.</p>
+
+    <div class="box box-focus">
+        <span class="box-title">🛠️ 1차 시도: FTP 연결 명령어 주입</span>
+        <p>터미널에서 아래 명령어를 통해 강제로 FTP 마운트 정보를 생성했습니다.</p>
+    </div>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">Copy</button>
+        <pre><code># 기존 잘못된 설정 삭제 (Mount ID 확인 후)
+php ~/nextcloud/occ files_external:list
+php ~/nextcloud/occ files_external:delete 1
+
+# FTP 방식으로 외부 저장소 생성
+php ~/nextcloud/occ files_external:create "ipTIME_HDD" "ftp" "password::password" \
+-c host="192.168.0.1" \
+-c root="/HDD1/Nextcloud" \
+-c user="FTP아이디" \
+-c password="FTP비밀번호"
+
+# 파일 시스템 스캔 명령어로 강제 인식 유도
+php ~/nextcloud/occ files:scan --all</code></pre>
+    </div>
+
+    <div class="box box-warning">
+        <span class="box-title">🚨 에러 증상: 껍데기만 남은 폴더 (We were unable to check...)</span>
+        <p>명령어 입력 후 Nextcloud 웹 화면 좌측 메뉴에 <code>ipTIME_HDD</code>라는 폴더가 나타났습니다. 하지만 폴더를 클릭해 보면 내부는 완전히 백지상태였으며, 화면 우측 상단에 <strong>"We were unable to check the external storage ipTIME_HDD"</strong>라는 노란색 에러 알림이 지속적으로 발생했습니다.</p>
+        <p>더불어 모바일 앱에서는 해당 폴더에 접근하거나 새 폴더를 만들려고 할 때마다 <strong>"서버 설정이 잘못됨"</strong>이라는 치명적인 에러를 뿜어냈습니다.</p>
+    </div>
+
+    <table class="common-table">
+        <thead>
+            <tr>
+                <th>추정 원인 (Troubleshooting)</th>
+                <th>상세 설명 및 테스트 결과</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>1. FTP 권한 부재</strong></td>
+                <td>ipTIME 설정에서 해당 사용자의 권한이 '읽기' 전용으로 되어 있어 Nextcloud가 폴더 생성을 거부함. -> <strong>'읽기/쓰기'로 변경했으나 증상 동일.</strong></td>
+            </tr>
+            <tr>
+                <td><strong>2. IP 루프백(Loopback) 문제</strong></td>
+                <td>ipTIME FTP 설정이 외부망 주소(222.x.x.x)로 매핑되어 있어, 내부망(192.168.0.1) 접근 시 공유기가 최상위 경로를 다르게 렌더링함.</td>
+            </tr>
+            <tr>
+                <td><strong>3. 문자셋(Charset) 충돌</strong></td>
+                <td>ipTIME 공유기의 폴더명을 Termux(UTF-8)가 제대로 파싱하지 못함. 경로 옵션을 <code>-c root=""</code> 또는 <code>-c root="/"</code>로 변경해보았으나 여전히 인식 불가.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>결국 FTP 방식은 공유기와 Termux 간의 디렉토리 구조 해석 차이를 좁히지 못하고, 다른 프로토콜(SMB)을 사용하기로 결정하는 계기가 되었습니다.</p>
+
+</article>
+
+<h2 id="case-3">Case Study 3: SMB/CIFS 전환, 패키지 오류 돌파 그리고 최종 성공</h2>
+    <p>FTP의 한계를 절감하고, 가장 대중적이고 안정적인 통신 규격인 <strong>윈도우 파일공유(SMB/CIFS)</strong> 방식으로 통신 프로토콜을 전면 수정했습니다. ipTIME 공유기의 [USB/서비스 관리] -> [윈도우 파일공유 서비스]를 '동작중'으로 켜고, 계정 권한을 <strong>'읽기/쓰기'</strong>로 맞추는 것부터 다시 시작했습니다.</p>
+
+    <h3>3.1 패키지 설치 단계의 난관: Mirror Sync Error</h3>
+    <p>Nextcloud 엔진이 SMB 통신을 하려면 리눅스 시스템(Termux)에 <code>samba</code> 패키지가 기본적으로 깔려 있어야 합니다. 그러나 패키지 다운로드 중 뜻밖의 에러를 마주했습니다.</p>
+
+    <div class="box box-danger">
+        <span class="box-title">🚨 에러 증상: File has unexpected size</span>
+        <p>터미널에서 <code>pkg install samba -y</code>를 입력하자, 아래와 같은 해시값 불일치 에러가 뿜어져 나오며 설치가 중단되었습니다.</p>
+        <pre><code>E: Failed to fetch https://termux.niranjan.co/termux-main/...
+File has unexpected size (540765 != 541737). Mirror sync in progress?</code></pre>
+        <p><strong>원인:</strong> Termux가 패키지를 다운로드하는 기본 미러(Mirror) 서버가 마침 전 세계 동기화(Sync) 작업을 진행 중이어서, 서버에 기록된 파일 용량과 실제 다운로드되는 용량이 달라 보안상 설치가 차단된 것입니다.</p>
+    </div>
+
+    <div class="box box-success">
+        <span class="box-title">💡 조치 내용: 미러 서버 강제 변경</span>
+        <p>동기화가 끝날 때까지 기다릴 수 없으므로, 안정적인 다른 국가의 미러 서버로 접속처를 강제 변경했습니다.</p>
+        <div class="code-wrapper">
+            <button class="copy-btn">Copy</button>
+            <pre><code>termux-change-repo
+# 화면이 뜨면 [Main Repository] 선택 후 Enter
+# 목록 중 [Mirrors by Albatross (Cloudflare)] 또는 [Grimler] 선택 후 OK
+
+# 서버 변경 후 캐시를 비우고 다시 설치
+pkg update && pkg install samba -y</code></pre>
+        </div>
+    </div>
+
+    <h3>3.2 대망의 최종 성공: SMB 마운트 및 앱 캐시 초기화</h3>
+    <p>samba 패키지 설치 완료 후, 다시 한번 <code>occ</code> 명령어로 DB에 다이렉트 꽂아넣기를 시도했습니다.</p>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">Copy</button>
+        <pre><code># 기존 FTP 실패 찌꺼기 완벽 삭제
+php ~/nextcloud/occ files_external:delete 3
+
+# SMB 방식으로 외부 저장소 설정 주입
+php ~/nextcloud/occ files_external:create "ipTIME_HDD" "smb" "password::password" \
+-c host="192.168.0.1" \
+-c share="HDD1" \
+-c root="Nextcloud" \
+-c user="아이디" \
+-c password="비밀번호"
+
+# 뇌(DB) 동기화를 위한 파일 시스템 전체 스캔
+php ~/nextcloud/occ files:scan --all</code></pre>
+    </div>
+
+    <div class="box box-warning">
+        <span class="box-title">⚠️ 마지막 고비: 스마트폰 앱 "서버 설정이 잘못됨" 에러의 잔재</span>
+        <p>웹 브라우저에서는 드디어 <code>ipTIME_HDD</code> 폴더가 열리고 파일 생성이 가능해졌습니다. <strong>그러나 스마트폰 Nextcloud 앱에서는 여전히 "서버 설정이 잘못됨" 에러를 뿜으며 접근을 거부했습니다.</strong></p>
+        <p><strong>해결:</strong> 이는 서버의 통신 방식이 FTP에서 SMB로 바뀌었음에도, 스마트폰 앱이 과거의 실패한 세션(Session)과 캐시(Cache)를 쥐고 있었기 때문입니다. 스마트폰의 <strong>[설정] ➡️ [애플리케이션] ➡️ [Nextcloud] ➡️ [저장공간] ➡️ [데이터 삭제]</strong>를 진행하여 앱을 초기화한 후 재로그인하자, 드디어 외장하드 내부로 진입 및 사진 자동 업로드 폴더 지정이 완벽하게 동작했습니다!</p>
+    </div>
+
+    <hr>
+
+    <h2 id="case-4">Case Study 4: 서버 자율 주행의 완성 (Cron 백그라운드 스케줄러)</h2>
+    <p>저장소 연동은 끝났으나, Nextcloud 웹 화면 상단에 또 다른 노란색 경고창이 서버 관리자를 압박했습니다.</p>
+
+    <div class="box box-danger">
+        <span class="box-title">🚨 에러 증상: Some jobs have not been executed</span>
+        <p><strong>"Some jobs have not been executed since 2 days ago. Please consider switching to system cron."</strong></p>
+        <p>기본 설정인 AJAX 모드는 사용자가 웹페이지를 클릭하고 로딩할 때마다 청소(휴지통 비우기, 섬네일 생성 등)를 하나씩 실행합니다. 하지만 1인 서버 특성상 매일 접속하지 않으므로 작업이 심각하게 적체되는 문제가 발생합니다.</p>
+    </div>
+
+    <p>이 문제를 근본적으로 해결하고 완전한 무인 자율 서버를 만들기 위해, Termux 내부에 리눅스 표준 스케줄러인 <strong>Cron</strong>을 심었습니다.</p>
+
+    <div class="box box-focus">
+        <span class="box-title">🛠️ 자동 로봇 청소기(Cron) 설치 및 세팅</span>
+        <div class="code-wrapper">
+            <pre><code># 1. 스케줄러 엔진(cronie) 설치
+pkg install cronie -y
+
+# 2. 5분 주기로 Nextcloud 유지보수 파일(cron.php)을 실행하도록 시스템에 등록
+echo "*/5 * * * * php ~/nextcloud/cron.php" | crontab -
+
+# 3. 만약 밀린 작업이 많아 당장 경고를 없애고 싶다면 1회 수동 강제 실행
+php ~/nextcloud/cron.php</code></pre>
+        </div>
+    </div>
+
+    <div class="box box-success">
+        <span class="box-title">🛡️ 화룡점정: 재부팅 생존(Persistence) 설정</span>
+        <p>터미널에서 <code>crond</code>를 실행하더라도 스마트폰이 껐다 켜지면 스케줄러는 다시 죽어버립니다. 서버 관리자로서 가장 중요한 '재부팅 후의 생존성'을 확보하기 위해, 기존에 만들어둔 <strong>자동 실행 스크립트</strong>에 Cron 엔진을 추가했습니다.</p>
+        <div class="code-wrapper">
+            <pre><code># 부팅 시 서버 엔진들을 깨우는 스크립트 수정 (Termux:Boot 활용)
+nano ~/.termux/boot/start_server.sh
+
+# --- 파일 맨 아랫줄에 다음 한 줄 추가 ---
+crond</code></pre>
+        </div>
+        <p>이로써 Nginx, MariaDB, PHP-FPM과 함께 백그라운드 청소기(Cron)까지 동시에 기상하는 완벽한 24시간 무소음/저전력 자동화 서버가 탄생했습니다.</p>
+    </div>
+
+    <hr>
+
+    <h2>총평 (Conclusion)</h2>
+    <p>Nextcloud의 메이저 버전(33.0.0) 업그레이드는 강력한 기능을 제공하지만, 안드로이드 Termux라는 특수한 경량화 환경에서는 예상치 못한 인증 꼬임과 세션 오류를 유발했습니다. 웹 GUI를 맹신하지 않고 터미널의 <code>occ</code> 명령어와 리눅스 기본기(SMB, Cron, Bash 스크립트)를 활용하여 정면 돌파한 이번 경험은, 향후 운영체제 제어 역량을 한 단계 높이는 귀중한 기술 자산이 되었습니다.</p>
+
+</article>

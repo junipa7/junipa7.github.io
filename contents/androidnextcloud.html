@@ -258,7 +258,7 @@ chmod -R 770 /storage/2263-EEDB/Android/data/com.termux/files/nc_data</code></pr
     <h1>[4단계] DuckDNS 연동 및 Nginx 무결점 보안(SSL) 설정</h1>
     
     <div class="box box-primary">
-        <span class="box-title">💡 포트폴리오를 위한 필수 보안 과정</span>
+        <span class="box-title">💡 포트포워딩을 위한 필수 보안 과정</span>
         <p class="mb-0">집 밖에서도 내 클라우드에 접속하려면 주소가 필요합니다. 가정용 인터넷은 IP가 수시로 바뀌므로 무료 도메인 서비스인 <strong>DuckDNS</strong>를 이용해 고정된 주소를 만들고, <strong>Let's Encrypt</strong>를 통해 군사급 암호화 통신(HTTPS)이 가능하도록 자물쇠를 채우는 과정입니다.</p>
     </div>
 
@@ -441,7 +441,7 @@ nginx</code></pre>
     </ol>
 
     <div class="box box-success text-center">
-        <h3 style="color: #155724; margin-top: 0;">🎉 대망의 클라우드 서버 구축 완료! 🎉</h3>
+        <h3>🎉 대망의 클라우드 서버 구축 완료! 🎉</h3>
         <p class="mb-0">정말 고생 많으셨습니다! 이제 기기 고장이나 초기화 시에도 5분 만에 복구할 수 있는 백업 파일(별도 가이드 참고)을 만들어 두시면 완벽합니다. 이제 PC와 스마트폰에 동기화 앱을 설치하여 진정한 나만의 무제한 클라우드를 마음껏 누려보세요!</p>
     </div>
 
@@ -569,7 +569,106 @@ nginx</code></pre>
 
     <hr>
 
-    <h1 id="step7">[7단계] 외부 접속을 위한 공유기 포트포워딩 설정</h1>
+    <h1>[7단계] 서버 성능 100% 최적화 및 보안 세팅</h1>
+
+    <div class="box box-info">
+        <span class="box-title">💡 최적화의 목표: 완벽함을 증명하는 '녹색 체크 마크'</span>
+        <p class="mb-0">Nextcloud 설치 직후 관리자 설정 화면에 들어가면 "Security & setup warnings"라는 수많은 경고창을 보게 됩니다. 이는 시스템이 고장난 것이 아니라, 기업용 수준의 <strong>최고 성능과 철벽 보안을 달성하기 위한 시스템의 최적화 가이드라인</strong>입니다. 이 단계에서는 모든 경고를 지우고 완벽한 서버를 완성합니다.</p>
+    </div>
+
+    <h2>1. 터미널(OCC) 명령어로 해결하는 항목들</h2>
+    <p>시스템 내부의 데이터베이스 색인(Index)을 추가하고, 파일 인식률을 높이며, 무거운 시스템 정리 작업을 사용량이 적은 새벽 시간으로 미루는 설정입니다. PC 원격(SSH) 터미널에 한 줄씩 복사하여 실행합니다.</p>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 1. 데이터베이스 검색 속도 향상을 위한 누락된 인덱스 추가
+php ~/nextcloud/occ db:add-missing-indices
+
+# 2. 새로운 파일 형식(.mimetype) 인식 업데이트
+php ~/nextcloud/occ maintenance:repair --include-expensive
+
+# 3. 무거운 유지보수 작업을 한국 시간 새벽 3시(UTC 18시)로 설정
+php ~/nextcloud/occ config:system:set maintenance_window_start --type=integer --value=18</code></pre>
+    </div>
+
+    <h2>2. PHP 엔진 성능 돌파 (메모리 및 환경 변수)</h2>
+    <p>Termux 환경에서 PHP가 시스템 경로를 정상적으로 읽고, 데이터 처리 속도를 높이기 위한 캐시 버퍼를 넉넉하게 할당합니다.</p>
+
+    <div class="box box-danger">
+        <span class="box-title">🔧 트러블슈팅: OPcache 경고가 계속 뜰 때</span>
+        <p class="mb-0">설정 파일 어딘가에 옵션을 한 줄 넣는 것만으로는 기존 규칙에 밀려 적용되지 않을 수 있습니다. <code>php.ini</code> 파일 맨 밑바닥에 완전한 <code>[opcache]</code> 세트를 강제로 주입하여 최우선으로 적용되게 만듭니다.</p>
+    </div>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 환경 변수(getenv) 읽기 권한 허용
+sed -i 's/;clear_env = no/clear_env = no/' $PREFIX/etc/php-fpm.d/www.conf
+
+# 완벽한 OPcache 메모리 캐시 설정 주입 (cat부터 EOF까지 한 번에 복사)
+cat &lt;&lt; 'EOF' &gt;&gt; $PREFIX/lib/php.ini
+
+[opcache]
+opcache.enable=1
+opcache.enable_cli=1
+opcache.memory_consumption=128
+opcache.interned_strings_buffer=16
+opcache.max_accelerated_files=10000
+opcache.revalidate_freq=1
+opcache.save_comments=1
+EOF</code></pre>
+    </div>
+
+    <h2>3. Nginx 웹 서버 규칙 고도화 (보안 및 호환성)</h2>
+    <p>가장 해결하기 까다로운 자바스크립트(<code>.mjs</code>) 인식 문제와 HSTS 보안 헤더 추가 작업입니다.</p>
+
+    <div class="box box-danger">
+        <span class="box-title">🔧 트러블슈팅: .mjs 파일 인식 오류 완벽 해결</span>
+        <p class="mb-0">MIME 타입에 <code>mjs</code>를 추가하더라도, Nginx 라우팅 규칙(정규식)에 <code>mjs</code>가 빠져있으면 에러가 사라지지 않습니다. 아래 명령어 2개로 양쪽 모두를 완벽하게 뚫어줍니다.</p>
+    </div>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 1. MIME 타입 목록에 mjs 확장자 인식 추가
+sed -i 's/application\/javascript.*js;/application\/javascript js mjs;/' $PREFIX/etc/nginx/mime.types
+
+# 2. Nginx 설정 파일(nextcloud.conf)의 정적 파일 처리 규칙(정규식)에 mjs 강제 추가
+sed -i 's/css|js|svg/css|js|mjs|svg/' $PREFIX/etc/nginx/conf.d/nextcloud.conf</code></pre>
+    </div>
+
+    <p>이어서 Nginx 설정 파일(<code>nextcloud.conf</code>)을 <code>nano $PREFIX/etc/nginx/conf.d/nextcloud.conf</code> 명령어로 열고, <code>server_name</code> 아래에 다음 3줄을 수동으로 추가하여 HSTS 보안과 캘린더 동기화 주소 문제를 해결합니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code>add_header Strict-Transport-Security "max-age=15552000; includeSubDomains" always;
+location = /.well-known/carddav { return 301 $scheme://$host:$server_port/remote.php/dav; }
+location = /.well-known/caldav  { return 301 $scheme://$host:$server_port/remote.php/dav; }</code></pre>
+    </div>
+
+    <h2>4. 최종 엔진 재가동 및 무시 가능한 알림</h2>
+    <p>모든 최적화 세팅이 끝났으므로 엔진을 껐다 켜서 설정을 적용합니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code>pkill -9 php-fpm
+pkill -9 nginx
+php-fpm
+nginx</code></pre>
+    </div>
+
+    <div class="box box-warning">
+        <span class="box-title">😎 조치하지 않아도 되는 안전한 알림들</span>
+        <ul class="mb-0">
+            <li><strong>MariaDB version:</strong> "MariaDB 12 버전을 감지했습니다."라는 알림은, 현재 스마트폰에 설치된 데이터베이스 버전이 전 세계에서 가장 최신이라 Nextcloud가 자체 권장(테스트 완료)하는 버전인 11.8보다 높아서 띄우는 단순 안내문입니다. 100% 정상 작동하므로 무시합니다.</li>
+            <li><strong>Errors in the log:</strong> 서버를 처음 짓는 과정에서 발생했던 과거의 접속 실패 기록들입니다. 관리자 메뉴의 [로깅] 탭에 한 번 들어가서 확인만 해주면 알아서 사라집니다.</li>
+        </ul>
+    </div>
+
+    <div class="box box-success text-center">
+        <h3>✅ 모든 검사를 통과했습니다. (All checks passed.)</h3>
+        <p class="mb-0">웹 브라우저에서 새로고침을 누르면 영광스러운 녹색 체크 마크를 볼 수 있습니다. 이제 당신의 클라우드 서버는 기업용 수준의 속도와 보안을 갖춘 완전체로 거듭났습니다!</p>
+    </div>
+
+    <hr>
+
+    <h1 id="step8">[8단계] 외부 접속을 위한 공유기 포트포워딩 설정</h1>
 
     <div class="box box-primary">
         <span class="box-title">💡 포트포워딩이란?</span>
@@ -639,8 +738,281 @@ nginx</code></pre>
     </ol>
 
     <div class="box box-success text-center">
-        <h3 style="color: #155724; margin-top: 0;">✅ 프로젝트 완성!</h3>
-        <p class="mb-0" style="color: #155724;">이제 포트포워딩까지 완료되어 전 세계 어디서든 나만의 데이터에 접근할 수 있게 되었습니다. 6단계에서 배운 백업 방법을 주기적으로 실천하여 소중한 데이터를 안전하게 지키세요!</p>
+        <h3>✅ 프로젝트 완성!</h3>
+        <p class="mb-0">이제 포트포워딩까지 완료되어 전 세계 어디서든 나만의 데이터에 접근할 수 있게 되었습니다. 6단계에서 배운 백업 방법을 주기적으로 실천하여 소중한 데이터를 안전하게 지키세요!</p>
+    </div>
+
+    <h1 id="step9">[9단계] Windows 노트북 동기화 클라이언트 설치 및 파일 연동</h1>
+
+    <div class="box box-primary">
+        <span class="box-title">💡 나만의 드라이브(내 PC) 만들기</span>
+        <p class="mb-0">스마트폰 서버에 매번 웹 브라우저로 접속해서 파일을 올릴 필요가 없습니다. 삼성 노트북(NT550P5C-S55S)에 Nextcloud 공식 프로그램을 설치하면, 윈도우 탐색기 안에 전용 폴더가 생기며 <strong>이 폴더에 파일을 넣기만 하면 자동으로 스마트폰(SD카드) 서버로 전송되고 동기화</strong>됩니다.</p>
+    </div>
+
+    <h2>1. PC 클라이언트 다운로드 및 설치</h2>
+    <p>먼저 노트북에서 Nextcloud 공식 홈페이지에 접속하여 윈도우용 설치 파일을 다운로드합니다.</p>
+    
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code>https://nextcloud.com/install/#install-clients</code></pre>
+    </div>
+    
+    <ol>
+        <li>위 주소로 접속하여 <strong>Download for Desktop</strong> 버튼을 누르고 <strong>Windows</strong> 버전을 클릭해 다운로드합니다.</li>
+        <li>다운로드된 설치 파일(<code>Nextcloud-x.x.x-x64.msi</code>)을 실행하여 기본 설정 그대로 <strong>[Next]</strong>를 눌러 설치를 완료합니다.</li>
+        <li>설치가 끝나고 프로그램이 실행되면 컴퓨터를 한 번 재부팅 할지 묻는 창이 나올 수 있습니다. 안정적인 연동을 위해 가급적 재부팅을 권장합니다.</li>
+    </ol>
+
+    <h2>2. 서버 주소 입력 및 로그인 (접근 권한 허용)</h2>
+    <p>프로그램이 실행되면 방금까지 우리가 구축한 노트10+ 스마트폰 서버와 연결하는 과정을 거칩니다.</p>
+
+    <ol>
+        <li>첫 화면에서 <strong>[Log in (로그인)]</strong> 버튼을 클릭합니다.</li>
+        <li>서버 주소(Server Address) 입력창이 나오면 아래와 같이 포트 번호(58080)까지 포함된 완벽한 외부 접속 주소를 입력하고 <strong>[Next]</strong>를 누릅니다.</li>
+    </ol>
+
+    <div class="box box-warning">
+        <span class="box-title">⚠️ 서버 주소 입력 주의사항</span>
+        <p class="mb-0">반드시 <code>https://</code> 로 시작해야 하며, 끝에 <code>:58080</code> 포트를 빼먹으면 연결되지 않습니다.</p>
+    </div>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code>https://본인도메인.duckdns.org:58080</code></pre>
+    </div>
+
+    <ol start="3">
+        <li>노트북의 기본 웹 브라우저가 열리며 Nextcloud 로그인 화면이 나타납니다. 이전에 만들었던 본인의 <strong>관리자 아이디와 비밀번호</strong>를 입력합니다.</li>
+        <li><strong>[접근 허용 (Grant access)]</strong> 버튼을 클릭하여 PC 프로그램이 서버와 통신할 수 있도록 권한을 부여합니다.</li>
+    </ol>
+
+    <h2>3. 동기화 방식 및 로컬 폴더 설정</h2>
+    <p>로그인이 완료되면 PC의 어느 폴더를 서버와 똑같이 맞출 것인지(동기화) 설정하는 창이 나타납니다. 여기서 아주 중요한 선택을 해야 합니다.</p>
+
+    
+
+    <div class="box box-info">
+        <span class="box-title">💡 가상 파일(Virtual Files) vs 전체 동기화</span>
+        <ul class="mb-0">
+            <li><strong>가상 파일 사용 (권장):</strong> 서버에 있는 파일 목록(껍데기)만 PC 탐색기에 보여주고, 실제로 파일을 더블클릭해서 열 때만 다운로드합니다. 삼성 노트북의 하드디스크 용량을 완벽하게 아낄 수 있는 최고의 기능입니다.</li>
+            <li><strong>모든 파일 동기화 (기존 방식):</strong> 서버에 100GB의 파일이 있다면 노트북 하드디스크에도 똑같이 100GB 공간을 차지하며 즉시 다운로드해 둡니다. 인터넷이 안 되는 오프라인 환경에서 작업할 일이 많을 때 유리합니다.</li>
+        </ul>
+    </div>
+
+    <ol>
+        <li>원하는 동기화 방식(가상 파일 권장)을 선택합니다.</li>
+        <li><strong>로컬 폴더(Local Folder):</strong> 윈도우 탐색기에서 Nextcloud 전용 폴더가 생성될 위치를 지정합니다. 기본값(<code>C:\Users\사용자이름\Nextcloud</code>)을 그대로 사용해도 좋습니다.</li>
+        <li><strong>[연결 (Connect)]</strong> 버튼을 클릭하면 세팅이 완료됩니다!</li>
+    </ol>
+
+    <h2>4. 파일 전송 테스트 (탐색기 연동 확인)</h2>
+    <p>모든 연결이 끝났습니다. 이제 실제로 파일이 잘 오가는지 확인해 볼 차례입니다.</p>
+
+    
+
+    <ol>
+        <li>윈도우 바탕화면 하단 작업 표시줄이나 <strong>윈도우 탐색기(내 PC)</strong>의 왼쪽 즐겨찾기 메뉴를 보면 <strong>파란색 동그라미의 Nextcloud 아이콘</strong>이 새로 생긴 것을 볼 수 있습니다.</li>
+        <li>해당 폴더를 열고, 테스트용 사진이나 텍스트 파일을 하나 복사해서 폴더 안에 붙여넣어 봅니다.</li>
+        <li>파일 아이콘에 <strong>파란색 뱅글뱅글 도는 화살표(동기화 중)</strong>가 나타났다가 <strong>초록색 체크 마크(동기화 완료)</strong>로 변하면 노트10+ 서버(SD카드)로 완벽하게 전송된 것입니다!</li>
+        <li>이제 웹 브라우저로 서버에 접속해 보면, 방금 노트북에서 넣은 파일이 웹에도 똑같이 들어와 있는 것을 눈으로 확인할 수 있습니다.</li>
+    </ol>
+
+    <div class="box box-success text-center">
+        <h3 style="color: #155724; margin-top: 0;">🚀 진정한 개인 업무 클라우드 환경 완성!</h3>
+        <p class="mb-0">수고하셨습니다! 이제 USB 메모리나 거추장스러운 케이블 연결 없이도, 노트북 탐색기에 파일을 쓱 밀어 넣으면 스마트폰 서버에 영구 저장되고 전 세계 어디서든 꺼내볼 수 있습니다. 추가로 스마트폰(본 기기) 플레이스토어에서 <strong>Nextcloud 앱</strong>을 설치하시면 스마트폰으로 찍은 사진까지 내 서버로 100% 자동 백업하실 수 있습니다!</p>
+    </div>
+
+    <h1 id="step10">[10단계] 안드로이드 스마트폰 앱 연동 및 사진 자동 백업</h1>
+
+    <div class="box box-primary">
+        <span class="box-title">💡 구글 포토를 대체하는 나만의 무제한 사진 백업</span>
+        <p class="mb-0">서버 구축의 진정한 꽃은 바로 '스마트폰 사진 자동 백업'입니다. 안드로이드 기기(주로 사용하시는 메인 스마트폰)에 Nextcloud 공식 앱을 설치하고 자동 업로드를 켜두면, 사진을 찍을 때마다 집에 있는 노트10+ 서버(SD카드)로 사진이 안전하게 전송됩니다. 이제 더 이상 클라우드 용량 부족 경고에 시달릴 필요가 없습니다!</p>
+    </div>
+
+    <h2>1. Nextcloud 공식 앱 설치</h2>
+    <p>서버 역할을 하는 노트10+가 아닌, <strong>평소 들고 다니며 사용하는 메인 스마트폰</strong>에서 진행합니다.</p>
+    <ol>
+        <li>구글 <strong>Play 스토어</strong> 앱을 엽니다.</li>
+        <li>검색창에 <strong>Nextcloud</strong>를 검색하여 파란색 동그라미 세 개가 그려진 공식 앱을 다운로드 및 설치합니다.</li>
+    </ol>
+
+    <h2>2. 서버 주소 입력 및 로그인</h2>
+    <p>PC 클라이언트와 마찬가지로, 외부에서 접속 가능한 도메인 주소로 로그인해야 언제 어디서든 백업이 가능합니다.</p>
+    <ol>
+        <li>Nextcloud 앱을 실행하고 <strong>[로그인]</strong>을 터치합니다.</li>
+        <li>서버 주소 입력창에 <strong>포트 번호(58080)를 포함한 완벽한 외부 접속 주소</strong>를 입력합니다.</li>
+    </ol>
+
+    <div class="box box-warning">
+        <span class="box-title">⚠️ 서버 주소 입력 주의사항</span>
+        <p class="mb-0">반드시 <code>https://</code>로 시작해야 하며, 끝에 <code>:58080</code> 포트를 정확히 입력해야 합니다.</p>
+    </div>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code>https://본인도메인.duckdns.org:58080</code></pre>
+    </div>
+
+    <ol start="3">
+        <li>입력 후 화살표(다음) 버튼을 누르면 로그인 웹 화면이 뜹니다. 관리자 아이디와 비밀번호를 입력하고 <strong>[접근 허용 (Grant access)]</strong>을 터치합니다.</li>
+    </ol>
+
+    <h2>3. 사진/동영상 자동 업로드(Auto Upload) 설정</h2>
+    <p>로그인이 완료되었다면, 스마트폰의 카메라 앨범을 서버와 연결해 줍니다.</p>
+
+    <div class="box box-focus">
+        <span class="box-title">📱 자동 업로드 활성화 방법</span>
+        <ol class="mb-0">
+            <li>앱 좌측 상단의 <strong>[가로줄 3개(메뉴) 아이콘]</strong>을 터치합니다.</li>
+            <li>메뉴 목록에서 <strong>[자동 업로드 (Auto upload)]</strong>를 선택합니다.</li>
+            <li>스마트폰 안의 여러 사진 폴더(카메라, 스크린샷, 카카오톡 등) 목록이 나타납니다. 백업을 원하는 폴더(예: Camera) 우측의 <strong>[구름 모양 아이콘]</strong>을 터치하여 파란색으로 활성화합니다.</li>
+        </ol>
+    </div>
+
+    <h2>4. 배터리 및 데이터 절약 세부 설정</h2>
+    <p>파란색 구름 아이콘 옆에 있는 <strong>[점 3개(설정) 아이콘]</strong>을 누르면 백업 방식을 입맛에 맞게 조절할 수 있습니다.</p>
+    <ul>
+        <li><strong>Wi-Fi에서만 업로드:</strong> 데이터 요금이 걱정된다면 체크해 둡니다. 집에 와서 와이파이가 연결될 때만 사진이 백업됩니다.</li>
+        <li><strong>충전 중에만 업로드:</strong> 배터리 소모를 막기 위해 충전기를 꽂았을 때만 백업을 진행합니다.</li>
+        <li><strong>기존 파일도 업로드:</strong> 이 앱을 설치하기 전에 찍었던 과거의 사진들까지 싹 다 서버로 올리고 싶을 때 선택합니다.</li>
+        <li><strong>로컬 파일 유지/삭제:</strong> 서버로 전송이 완료된 사진을 스마트폰 기기에서 지워버릴지(용량 확보용), 아니면 폰에도 그대로 남겨둘지 결정합니다. 보통은 '기존 파일 유지'를 권장합니다.</li>
+    </ul>
+
+    <div class="box box-success text-center">
+        <h3>🎉 완벽한 개인용 클라우드 생태계 구축 완료! 🎉</h3>
+        <p class="mb-0">이제 스마트폰으로 사진을 찍으면 노트10+ 서버로 쏙 들어가고, 그 사진을 삼성 노트북(NT550P5C-S55S) 탐색기에서 바로 꺼내서 편집할 수 있습니다! 월 구독료 없이 평생 무료로 쓰는 <strong>'나만의 구글 드라이브 & 구글 포토'</strong>가 완벽하게 작동하기 시작했습니다. 그동안 정말 고생 많으셨습니다!</p>
+    </div>
+
+    <h1 id="step11">[11단계] 가족 사진 백업 최적화 및 앨범 공유 설정</h1>
+
+    <div class="box box-primary">
+        <span class="box-title">💡 상용 클라우드의 '패밀리 요금제' 완벽 대체!</span>
+        <p class="mb-0">이 단계에서는 스마트폰에서 서버로 사진이 백업될 때 <strong>년도별로 폴더를 자동 생성</strong>하여 깔끔하게 정리하고, 이름이 같은 파일이 업로드될 때 <strong>중복 여부를 판별하여 자동으로 이름을 변경(_1, _2)</strong>하는 스마트 백업 환경을 구축합니다. 또한, 가족 구성원 각자의 개인 사생활(개인 폴더)은 철저히 보호하면서 <strong>서로의 사진 앨범만 '조회(읽기 전용)'</strong> 할 수 있는 완벽한 가족 공유 클라우드를 세팅합니다.</p>
+    </div>
+
+    <h2>1. 스마트폰 앱: 년도별 폴더 정리 및 중복 파일 처리 설정</h2>
+    <p>가족들의 각 스마트폰에 설치된 Nextcloud 앱에서 '자동 업로드' 규칙을 아주 똑똑하게 수정해 줍니다.</p>
+
+    <ol>
+        <li>스마트폰의 Nextcloud 앱 좌측 상단 <strong>[메뉴(가로줄 3개)] ➡️ [자동 업로드]</strong>로 들어갑니다.</li>
+        <li>카메라(Camera) 폴더 우측의 파란색 구름 아이콘 옆에 있는 <strong>[점 3개(설정) 아이콘]</strong>을 터치합니다.</li>
+    </ol>
+
+    <div class="box box-warning">
+        <span class="box-title">⚙️ 자동 업로드 세부 설정 변경</span>
+        <ul class="mb-0">
+            <li><strong>하위 폴더 사용 (Subfolders):</strong> 기본값인 '사용 안 함'을 눌러 <strong>[연도(Year)]</strong> 또는 <strong>[연도 및 월(Year and month)]</strong>로 변경합니다. 이제 서버에 사진이 올라갈 때 자동으로 `2026` 폴더가 생기고 그 안에 정리됩니다.</li>
+            <li><strong>파일이 이미 존재할 경우 (Existing file behavior):</strong> 이 부분을 <strong>[이름 바꾸기 (Rename)]</strong>로 선택합니다.</li>
+        </ul>
+    </div>
+
+    <div class="box box-success">
+        <span class="box-title">🤖 넥스트클라우드의 스마트 중복 처리 원리</span>
+        <p class="mb-0">넥스트클라우드 서버는 파일이 업로드될 때 고유의 지문(Hash)을 검사합니다. 만약 이름도 같고 지문(내용)도 완전히 똑같은 파일이 들어오면 서버 용량 낭비를 막기 위해 업로드를 취소(건너뛰기)합니다. 하지만 <strong>이름은 같지만 내용이 다른 사진(예: 다른 기기에서 찍은 동일한 이름의 사진)일 경우, 앱 설정에 따라 원본을 보호하기 위해 파일명 뒤에 자동으로 `_1`, `_2`를 붙여 새로운 파일로 안전하게 저장</strong>합니다.</p>
+    </div>
+
+    <hr>
+
+    <h2>2. 서버: 가족 구성원 개인 계정 및 그룹 생성</h2>
+    <p>가족들이 각자의 독립된 공간을 가질 수 있도록, PC나 스마트폰 브라우저에서 '관리자 계정(admin)'으로 로그인하여 계정을 만들어 줍니다.</p>
+
+    <ol>
+        <li>관리자 계정 로그인 후 우측 상단 프로필 ➡️ <strong>[사용자 (Users)]</strong> 메뉴로 이동합니다.</li>
+        <li>왼쪽 메뉴에서 <strong>[그룹 추가]</strong>를 눌러 <code>Family</code>라는 그룹을 하나 만들어 줍니다.</li>
+        <li><strong>[새 사용자]</strong> 버튼을 눌러 부모님, 배우자, 자녀 등의 아이디와 비밀번호를 만듭니다. 이때 <strong>'그룹' 항목을 방금 만든 <code>Family</code>로 지정</strong>해 줍니다. (할당량은 기기 용량에 맞게 무제한 또는 100GB 등으로 자유롭게 설정하세요.)</li>
+    </ol>
+
+    <h2>3. 갤러리 앨범만 안전하게 공유하기 (조회 전용)</h2>
+    <p>이제 각 가족 구성원이 자신의 아이디로 로그인하여, 자신의 사진 폴더를 다른 가족들이 '볼 수만 있도록' 권한을 열어줍니다.</p>
+
+    
+
+    <ol>
+        <li>가족 구성원(예: 아빠)의 아이디로 넥스트클라우드 웹에 로그인합니다.</li>
+        <li>스마트폰에서 사진이 백업되고 있는 <strong>[Photos]</strong> 폴더(또는 사진이 모여있는 폴더) 우측의 <strong>[공유(🔗) 아이콘]</strong>을 클릭합니다.</li>
+        <li>우측 화면의 검색창('이름, 페더레이션 클라우드 ID 또는 이메일 주소 입력...')에 아까 만든 그룹 이름인 <strong><code>Family</code></strong>를 타이핑하여 선택합니다.</li>
+    </ol>
+
+    <div class="box box-danger">
+        <span class="box-title">⚠️ 매우 중요: '편집 허용' 체크 해제!</span>
+        <p class="mb-0">Family 그룹이 추가되면 기본적으로 폴더에 대한 수정 권한이 부여됩니다. 다른 가족이 내 사진을 실수로 지우지 못하도록, 우측 설정에서 <strong>[편집 허용 (Allow editing)]</strong>, <strong>[생성 (Create)]</strong>, <strong>[삭제 (Delete)]</strong> 항목의 <strong>체크를 모두 해제</strong>하세요. 오직 <strong>[보기 가능 (Can view)]</strong>만 활성화되어야 합니다.</p>
+    </div>
+
+    <p>이제 다른 가족 구성원이 로그인하면, 메인 화면에 <strong>'아빠의 Photos'</strong>라는 폴더가 나타납니다. 들어가서 사진을 구경하거나 다운로드할 수는 있지만, 마음대로 지우거나 수정할 수는 없습니다. 완벽한 프라이버시와 공유가 결합된 나만의 패밀리 클라우드가 완성되었습니다!</p>
+
+    <div class="box box-primary text-center">
+        <h3 style="color: #004a99; margin-top: 0;">📸 우리 가족만의 영구적인 사진 기록 보관소</h3>
+        <p class="mb-0">스마트폰을 잃어버리거나 고장 나도, 가족들의 소중한 추억은 안전한 집 안의 노트10+ 서버(SD카드)에 연도별로 차곡차곡 쌓이게 됩니다. 넥스트클라우드의 강력한 계정 분리 및 권한 공유 시스템을 통해 더욱 풍요로운 디지털 라이프를 즐겨보세요!</p>
+    </div>
+
+    <h1 id="step12">[12단계] ipTIME 공유기 간이 NAS(외부 저장소) 완벽 연동</h1>
+
+    <div class="box box-primary">
+        <span class="box-title">💡 스마트폰 전력 한계 극복 및 대용량 확장</span>
+        <p class="mb-0">스마트폰에 외장하드를 직접 연결하면 전력 부족으로 서버가 다운될 위험이 큽니다. 하지만 <strong>ipTIME 공유기의 USB 포트에 외장하드를 꽂고 네트워크(FTP)로 연결</strong>하면, 전원은 공유기가 부담하고 스마트폰은 통신만 담당하므로 24시간 무중단 대용량 서버를 가장 안전하게 구축할 수 있습니다.</p>
+    </div>
+
+    <h2>1. 꽁꽁 숨겨진 '외부 저장소 지원' 앱 활성화하기</h2>
+    <p>Nextcloud는 기본적으로 이 기능이 꺼져 있습니다. 관리자 계정으로 숨겨진 스위치를 켜주어야 합니다.</p>
+
+    <ol>
+        <li>PC 브라우저에서 <strong>관리자 계정(admin)</strong>으로 Nextcloud에 로그인합니다.</li>
+        <li>우측 상단 프로필 아이콘을 클릭하고 <strong>[앱 (Apps)]</strong> 메뉴로 들어갑니다.</li>
+        <li>왼쪽 사이드바 메뉴에서 <strong>[비활성화된 앱 (Disabled apps)]</strong>을 클릭하거나, 우측 상단 돋보기 아이콘을 눌러 <code>External storage support</code>를 검색합니다.</li>
+        <li>해당 앱을 찾았다면 <strong>[활성화 (Enable)]</strong> 버튼을 클릭합니다. (비밀번호를 한 번 더 물어볼 수 있습니다.)</li>
+    </ol>
+
+    <h2>2. ipTIME 공유기 설정 (FTP 서버 켜기)</h2>
+    <p>이제 공유기에 외장하드를 꽂고, Nextcloud가 접속해서 파일을 넣고 뺄 수 있도록 통신문(FTP)을 열어줍니다.</p>
+
+    
+
+    <ol>
+        <li>공유기에 외장하드를 USB로 연결합니다.</li>
+        <li>PC 브라우저 주소창에 <code>192.168.0.1</code>을 입력하여 <strong>ipTIME 관리자 페이지</strong>에 접속합니다.</li>
+        <li><strong>[고급 설정] ➡️ [USB/서비스 관리] ➡️ [장치 관리]</strong>로 들어가서 하드디스크가 정상적으로 인식되었는지 확인합니다.</li>
+        <li><strong>[고급 설정] ➡️ [USB/서비스 관리] ➡️ [서비스 설정]</strong> 메뉴로 이동합니다.</li>
+        <li>목록에서 <strong>[ipDISK 주소 관리]</strong>를 실행하여 적당한 주소와 이메일을 등록합니다.</li>
+        <li>가장 중요한 <strong>[FTP 서비스]</strong>를 클릭하고 <strong>[실행]</strong>으로 변경합니다.</li>
+        <li>하단의 <strong>사용자 ID</strong>와 <strong>암호</strong>를 입력하고, 권한은 <strong>[읽기/쓰기]</strong>로 선택한 뒤 <strong>[적용]</strong>을 누릅니다. (이 계정 정보는 다음 단계에서 쓰입니다.)</li>
+    </ol>
+
+    <h2>3. Nextcloud에 ipTIME 하드디스크 마운트(연결)하기</h2>
+    <p>다시 Nextcloud 화면으로 돌아와서, 방금 만든 공유기의 FTP 창고를 내 클라우드에 묶어줍니다.</p>
+
+    <div class="box box-warning">
+        <span class="box-title">⚠️ SMB/CIFS 대신 FTP를 쓰는 이유</span>
+        <p class="mb-0">윈도우 공유 방식인 SMB(CIFS)는 안드로이드(Termux) 환경에서 호환성 충돌이 잦습니다. 가볍고 통신 규격이 확실한 <strong>FTP 방식</strong>으로 연결하는 것이 스마트폰 서버에서는 훨씬 안정적입니다.</p>
+    </div>
+
+    <ol>
+        <li>Nextcloud 우측 상단 프로필 아이콘 ➡️ <strong>[관리자 설정 (Administration settings)]</strong>을 클릭합니다.</li>
+        <li>왼쪽 관리(Administration) 메뉴 모음에 새롭게 생겨난 <strong>[외부 저장소 (External storages)]</strong>를 클릭합니다.</li>
+        <li>설정 칸을 다음과 같이 채워 넣습니다.
+            <ul>
+                <li><strong>폴더 이름 (Folder name):</strong> <code>ipTIME_HDD</code> (Nextcloud 화면에 표시될 폴더 이름입니다. 자유롭게 정하세요.)</li>
+                <li><strong>외부 저장소 (External storage):</strong> 드롭다운 메뉴에서 <strong>[FTP]</strong>를 선택합니다.</li>
+                <li><strong>인증 (Authentication):</strong> 로그인 정보 (Log in credentials)</li>
+                <li><strong>호스트 (Host):</strong> <code>192.168.0.1</code> (ipTIME 내부망 주소)</li>
+                <li><strong>사용자 이름 (Username):</strong> 아까 ipTIME 설정 2-7에서 만든 FTP 사용자 ID</li>
+                <li><strong>비밀번호 (Password):</strong> 아까 만든 FTP 암호</li>
+            </ul>
+        </li>
+        <li>우측 끝에 있는 <strong>[V (체크 마크)]</strong> 버튼을 누릅니다.</li>
+    </ol>
+
+    <div class="box box-success text-center">
+        <h3 style="color: #155724; margin-top: 0;">🟢 녹색 동그라미가 떴다면 연결 성공!</h3>
+        <p class="mb-0">입력창 왼쪽 끝에 <strong>초록색 원(🟢)</strong>이 표시되면 공유기의 외장하드와 Nextcloud가 완벽하게 한 몸이 된 것입니다! 이제 넥스트클라우드 [파일] 메뉴의 첫 화면으로 돌아가 보면 <code>ipTIME_HDD</code>라는 폴더가 생겨 있습니다. 이 폴더 안에 넣는 모든 자료는 스마트폰 용량을 1MB도 차지하지 않고, 공유기에 꽂힌 외장하드로 쏙쏙 저장됩니다.</p>
+    </div>
+
+    <div class="box box-info">
+        <span class="box-title">🍯 꿀팁: 마운트 고급 옵션 (Check for changes) 설정법</span>
+        <p class="mb-0">외부 저장소 설정 창 우측의 <strong>[톱니바퀴 아이콘]</strong>을 누르면 변경 사항 확인(Check for changes) 주기를 설정할 수 있습니다.</p>
+        <ul class="mb-0" style="margin-top: 10px;">
+            <li><strong>Never (절대 안 함) - 🚀권장:</strong> 파일을 넣고 뺄 때 넥스트클라우드만 이용한다면 무조건 이 옵션을 선택하세요. 폴더 진입 속도가 비약적으로 빨라집니다.</li>
+            <li><strong>Always (항상) / Once every direct access:</strong> 넥스트클라우드를 거치지 않고, 윈도우 PC에서 공유기 네트워크 폴더로 '직접' 파일을 넣는 일이 많을 때 선택합니다. 단, 폴더를 열 때마다 스캔을 하므로 로딩 속도가 조금 느려질 수 있습니다.</li>
+        </ul>
     </div>
 
 </div>
