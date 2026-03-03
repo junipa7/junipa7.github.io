@@ -1,24 +1,138 @@
-<h1>📈 OEE Dashboard (설비 종합 효율)</h1>
-<p>제조 현장의 생산성을 객관적으로 평가하는 핵심 지표(KPI)인 OEE를 분석하고 모니터링합니다.</p>
+<div class="oee-standard-document">
+  <h1>제조 경쟁력 강화를 위한 OEE(설비종합효율) 측정 및 운영 관리 표준</h1>
 
-<div class="box box-focus text-center">
-    <strong style="font-size: 1.2rem;">OEE (%) = 가동률(Availability) × 성능 효율(Performance) × 양품률(Quality)</strong>
+  <h2>1. 개요 (Overview)</h2>
+  
+  <h3>1.1 목적</h3>
+  <p>본 표준은 설비 데이터의 누락, 왜곡, 오류를 최소화하기 위한 <strong>'데이터 무결성(Data Integrity) 확보'</strong>를 전제로 합니다. 수집된 데이터의 가공 없는 투명한 공개를 통해 현장 문제(6대 로스)의 근본 원인을 직시하고, 설비 투자 대비 생산성을 극대화하여 제조 원가 경쟁력을 강화하는 것을 목적으로 합니다.</p>
+
+  <h3>1.2 적용 범위 및 설비 등급 분류</h3>
+  <p>OEE 산출의 최소 단위는 단일 설비(공정)를 원칙으로 하며, 자산 가치·공정 영향도·품질 리스크를 종합 평가하여 설비 등급을 시스템적으로 자동 부여합니다.</p>
+  <ul>
+    <li><strong>A등급 (핵심 관리 설비):</strong> 병목 공정 및 고가 자산. SEMI E10 준거 표준 의무 적용, PLC/센서 기반 1초 단위 실시간 자동 수집.</li>
+    <li><strong>B등급 (일반 관리 설비):</strong> 일반 자동화 라인. 표준 OEE 산출 방식 적용.</li>
+    <li><strong>C등급 (자율 관리 설비):</strong> 저가 설비 및 수동 보조 공정. 시스템을 통한 사후 입력 병행 및 선택적 관리.</li>
+  </ul>
+
+  <hr>
+
+  <h2>2. 용어의 정의 및 준거 표준</h2>
+
+  <h3>2.1 준거 표준 (SEMI E10)</h3>
+  <p>핵심 설비의 정밀한 로스 분석을 위해 반도체/디스플레이 장비 표준인 SEMI E10을 준용하여 설비의 상태(State)를 다음 6가지로 엄격히 분류합니다.</p>
+  
+  <ol>
+    <li><strong>가동 시간 (Productive Time):</strong> 실제 제품을 생산하고 있는 시간</li>
+    <li><strong>대기 시간 (Standby Time):</strong> 설비는 정상이나 자재/작업자 부족으로 대기하는 시간 (시간 가동율 저하 요인으로 강력히 관리)</li>
+    <li><strong>엔지니어링 시간 (Engineering Time):</strong> 공정 테스트 및 장비 셋업 시간</li>
+    <li><strong>계획된 정지 (Scheduled Downtime):</strong> 예방 보전(PM), 교육 등 계획에 의한 정지</li>
+    <li><strong>계획되지 않은 정지 (Unscheduled Downtime):</strong> 돌발 고장, 수리 등</li>
+    <li><strong>비가동 시간 (Non-Scheduled Time):</strong> 휴무, 가동 계획 없음 등 (부하 시간에서 제외)</li>
+  </ol>
+
+  <h3>2.2 예외 처리 기준 (휴무일 특근 및 인력 부족 반영)</h3>
+  <ul>
+    <li><strong>동적 전환 (Dynamic Shift):</strong> 비가동 시간(휴무일)이라도 실제 가동 신호가 감지된 설비는 해당 시간만큼 '부하 시간'으로 자동 전환되어 OEE가 산출됩니다. 가동되지 않은 나머지 설비는 비가동으로 유지됩니다.</li>
+    <li><strong>자원 제약 (Resource Constraint):</strong> 가용 인원 부족으로 인한 다수 설비 동시 운영 시, 발생하는 공회전 및 미세 중단은 성능 가동율 하락(운영 로스)으로 투명하게 반영됩니다.</li>
+  </ul>
+
+  <hr>
+
+  <h2>3. OEE 산출 지표 및 계산 기준</h2>
+  
+
+  <h3>3.1 OEE 산출 계층 구조</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>계층 (Level)</th>
+        <th>제외 항목 (Loss)</th>
+        <th>산출 결과 (Result)</th>
+        <th>관련 지표</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>1. 전체 시간</td>
+        <td>-</td>
+        <td>Total Time</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>2. 부하 시간</td>
+        <td>(-) 계획 비가동</td>
+        <td>Loading Time</td>
+        <td>-</td>
+      </tr>
+      <tr>
+        <td>3. 가동 시간</td>
+        <td>(-) 정지 로스 (고장, 대기 등)</td>
+        <td>Operating Time</td>
+        <td><strong>시간 가동율</strong></td>
+      </tr>
+      <tr>
+        <td>4. 순 가동 시간</td>
+        <td>(-) 성능 로스 (공회전, 속도 저하)</td>
+        <td>Net Operating Time</td>
+        <td><strong>성능 가동율</strong></td>
+      </tr>
+      <tr>
+        <td>5. 가치 가동 시간</td>
+        <td>(-) 품질 로스 (불량, 재작업)</td>
+        <td>Valuable Time</td>
+        <td><strong>양품률</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>3.2 시간 가동율 (Availability Rate)</h3>
+  <p>설비가 조업을 위해 할당된 부하 시간 중 실제 가동이 가능한 상태였던 시간의 비중입니다. (공회전은 시간 가동율에서는 '가동'으로 인정하되 성능 가동율에서 삭감합니다.)</p>
+  <p>$$ \text{시간 가동율} = \frac{\text{부하 시간} - \text{정지 시간}}{\text{부하 시간}} \times 100 $$</p>
+
+  <h3>3.3 성능 가동율 (Performance Rate) 및 S/T 산정 기준</h3>
+  <p>실제 가동 시간 동안 표준 생산 능력의 달성도를 의미합니다. 성능 측정의 절대적 기준이 되는 <strong>표준 시간(S/T, Standard Time)</strong>은 다음의 원칙을 따릅니다.</p>
+  <ul>
+    <li><strong>S/T 적용 원칙:</strong> 설비의 실제 가공 능력인 <strong>APT(Actual Processing Time)</strong>와 요구 생산 페이스인 <strong>ATT(Actual Tact Time)</strong> 중 더 낮은 값(최소값)을 적용하여 설비의 잠재 성능을 한계까지 끌어냅니다.</li>
+  </ul>
+  <p>$$ S/T = \min(\text{APT}, \text{ATT}) $$</p>
+  <p>$$ \text{성능 가동율} = \frac{\text{실제 생산량} \times S/T}{\text{가동 시간}} \times 100 $$</p>
+
+  <h3>3.4 양품률 (Quality Rate)</h3>
+  <p>총 생산 수량 중 무결점 양품(합격품) 수량의 비율입니다.</p>
+  <p>$$ \text{양품률} = \frac{\text{양품 수량}}{\text{총 생산 수량}} \times 100 $$</p>
+
+  <hr>
+
+  <h2>4. 6대 로스(Loss) 분류 및 관리</h2>
+  <p>현장의 모든 로스는 작업자의 임의 텍스트 입력이 아닌, 시스템에 사전 정의된 사유 코드(Drop-down)를 통해서만 매핑되어야 합니다.</p>
+  <ul>
+    <li><strong>시간 가동율 로스 (정지 시간):</strong>
+      <ol>
+        <li>설비 고장 (Equipment Failure)</li>
+        <li>작업 준비 및 조정 (Setup and Adjustments), 자재 대기</li>
+      </ol>
+    </li>
+    <li><strong>성능 가동율 로스 (속도 저하):</strong>
+      <ol start="3">
+        <li>공회전 및 순간 정지 (Idling and Minor Stops)</li>
+        <li>속도 저하 (Reduced Speed)</li>
+      </ol>
+    </li>
+    <li><strong>양품률 로스 (불량 발생):</strong>
+      <ol start="5">
+        <li>공정 불량 및 재작업 (Process Defects)</li>
+        <li>초기 수율 저하 (Reduced Yield)</li>
+      </ol>
+    </li>
+  </ul>
+
+  <hr>
+
+  <h2>5. 다기종 생산 라인의 S/T(표준 시간) 자동화 전략</h2>
+  <p>다품종 소량생산 환경에서 인적 공수 낭비를 막고 데이터의 객관성을 유지하기 위해 시스템 기반의 S/T 갱신 룰을 적용합니다.</p>
+  <ul>
+    <li><strong>주력 기종 집중 관리:</strong> 생산량 상위 20% 주력 기종에 한해서만 정기 크로스펑셔널(생산/품질/기술) 협의체를 통해 S/T를 검증합니다.</li>
+    <li><strong>데이터 기반 자동 갱신 (Auto-Calibration):</strong> 그 외 기종은 최근 6개월 내 불량률 0%를 기록했던 조업 중 속도가 가장 빨랐던 상위 5%의 평균 실적 데이터를 시스템이 자동으로 새로운 S/T로 Lock-in 하여 적용합니다.</li>
+    <li><strong>OEE 100% 초과 방지:</strong> 성능 가동율이 지속적으로 100%를 초과할 경우, 해당 S/T(기준)가 너무 느리게 설정된 것으로 간주하고 즉시 재평가 및 상향 업데이트를 수행합니다.</li>
+  </ul>
 </div>
-
-<h2>세부 지표 구성</h2>
-<ul>
-    <li>
-        <strong>가동률 (Availability):</strong> 부하 시간 대비 실제 설비가 가동된 시간의 비율입니다.
-        <span class="text-desc">※ 주요 저해 요인: 설비 고장, 자재 결품, 작업 준비 시간(Setup)</span>
-    </li>
-    <li>
-        <strong>성능 효율 (Performance):</strong> 이론적인 목표 생산 속도(Cycle Time) 대비 실제 생산 속도의 비율입니다.
-        <span class="text-desc">※ 주요 저해 요인: 순간 정지, 속도 저하</span>
-    </li>
-    <li>
-        <strong>양품률 (Quality):</strong> 총 생산 수량 중 양품(합격품) 수량의 비율입니다.
-        <span class="text-desc">※ 주요 저해 요인: 공정 불량, 초기 수율 저하</span>
-    </li>
-</ul>
-
-<p>👉 대시보드를 통해 병목(Bottleneck) 공정을 파악하고, OEE 저해 요인을 시각화하여 개선 포인트를 도출하는 것이 목표입니다.</p>
