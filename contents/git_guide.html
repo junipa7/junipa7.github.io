@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WSL2 Ubuntu - Git & GitHub 가이드</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f4f7f9; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #2980b9; margin-top: 30px; border-left: 5px solid #2980b9; padding-left: 10px; }
+        .step { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        code { background-color: #f0f0f0; padding: 2px 5px; border-radius: 4px; font-family: 'Consolas', monospace; color: #e74c3c; }
+        pre { background: #2d3436; color: #dfe6e9; padding: 15px; border-radius: 5px; overflow-x: auto; font-family: 'Consolas', monospace; }
+        .note { background-color: #fff3cd; border-left: 5px solid #ffca28; padding: 10px 15px; margin: 15px 0; border-radius: 4px; }
+        .token-list { list-style-type: square; }
+        strong { color: #2c3e50; }
+    </style>
+</head>
+<body>
+
+    <h1>WSL2 Ubuntu 환경 Git 등록 상세 가이드</h1>
+    <p>이 가이드는 기존의 잘못된 설정을 제거하고, 처음부터 GitHub에 소스를 올리는 전 과정을 담고 있습니다.</p>
+
+    <div class="step">
+        <h2>1단계: 기존의 잘못된 Git 설정 완전 삭제</h2>
+        <p>기존에 꼬여있던 <code>.git</code> 폴더를 삭제하여 초기 상태로 만듭니다. (소스 파일은 삭제되지 않습니다.)</p>
+        <pre># 작업 폴더로 이동
+cd ~/your-project-folder
+
+# 기존 Git 설정 강제 삭제
+rm -rf .git</pre>
+    </div>
+
+    <div class="step">
+        <h2>2단계: Git 사용자 정보 설정 (Identity)</h2>
+        <p>커밋을 남길 때 사용할 사용자 이름과 이메일을 Ubuntu 시스템에 등록합니다.</p>
+        <pre># 이메일 등록 (GitHub 이메일 권장)
+git config --global user.email "your-email@example.com"
+
+# 이름 등록 (영문 권장)
+git config --global user.name "YourName"
+
+# 설정 확인
+git config --list</pre>
+    </div>
+
+    <div class="step">
+        <h2>3단계: GitHub Personal Access Token (PAT) 발급</h2>
+        <p>보안 정책상 비밀번호 대신 토큰을 사용해야 합니다. GitHub 웹사이트에서 수행하세요.</p>
+        <ol>
+            <li>GitHub 우측 상단 프로필 클릭 → <strong>Settings</strong></li>
+            <li>왼쪽 메뉴 하단 <strong>Developer settings</strong> 클릭</li>
+            <li><strong>Personal access tokens</strong> → <strong>Tokens (classic)</strong> 클릭</li>
+            <li><strong>Generate new token (classic)</strong> 선택</li>
+            <li><strong>Note:</strong> <code>wsl-access-token</code> 등 이름 입력</li>
+            <li><strong>Expiration:</strong> 기간 선택 (예: 30 days)</li>
+            <li><strong>Select scopes:</strong> <code style="color: blue;">repo</code> 항목에 반드시 체크 (저장소 접근 권한)</li>
+            <li>하단 <strong>Generate token</strong> 클릭 후 생성된 문자열을 <strong>반드시 복사하여 따로 보관</strong>하세요.</li>
+        </ol>
+    </div>
+
+    <div class="step">
+        <h2>4단계: GitHub 원격 저장소 생성</h2>
+        <p>온라인상에 파일을 담을 빈 저장소를 만듭니다.</p>
+        <ol>
+            <li>GitHub 메인에서 <strong>New Repository</strong> 클릭</li>
+            <li><strong>Repository name</strong> 입력 (예: <code>my-project</code>)</li>
+            <li><strong>Public</strong> 선택 후, <strong>Create repository</strong> 클릭</li>
+            <li>생성된 페이지의 HTTPS 주소(<code>https://github.com/...</code>)를 복사합니다.</li>
+        </ol>
+    </div>
+
+    <div class="step">
+        <h2>5단계: 로컬 소스 코드 초기화 및 업로드</h2>
+        <p>이제 Ubuntu 터미널에서 실제로 파일을 전송합니다.</p>
+        <pre># 1. 현재 폴더를 Git 저장소로 지정
+git init
+
+# 2. 모든 파일을 업로드 대기 상태로 추가
+git add .
+
+# 3. 첫 번째 커밋 생성
+git commit -m "First commit: Initialize project"
+
+# 4. 기본 브랜치명을 main으로 변경
+git branch -M main
+
+# 5. GitHub 주소 연결
+git remote add origin [복사한_GitHub_주소]
+
+# 6. 서버로 전송
+git push -u origin main</pre>
+        <div class="note">
+            <strong>로그인 요청 시:</strong><br>
+            - <strong>Username:</strong> GitHub 아이디 입력<br>
+            - <strong>Password:</strong> 위 3단계에서 복사한 <strong>토큰(Token)</strong>을 붙여넣기
+        </div>
+    </div>
+
+    <div class="step">
+        <h2>6단계: 인증 정보 저장 (토큰 재입력 방지)</h2>
+        <p>앞으로 토큰을 다시 입력하지 않도록 인증 정보를 저장합니다.</p>
+        <pre># 파일에 영구적으로 인증 정보 저장 설정
+git config --global credential.helper store</pre>
+        <p>이후 한 번만 더 <code>git push</code>를 하여 인증을 완료하면 <code>~/.git-credentials</code> 파일에 저장되어 다음부터 묻지 않습니다.</p>
+    </div>
+
+</body>
+</html>
