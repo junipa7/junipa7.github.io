@@ -1,0 +1,212 @@
+<mxGraphModel dx="1282" dy="1025" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+    <mxCell id="EE3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="[EE3] 계획 (ERP)" vertex="1">
+      <mxGeometry height="50" width="150" x="10" y="10" as="geometry" />
+    </mxCell>
+    <mxCell id="EE2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="[EE2] 물류 (AMHS)" vertex="1">
+      <mxGeometry height="50" width="150" x="490" y="10" as="geometry" />
+    </mxCell>
+    <mxCell id="EE1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="[EE1] 장비 (EQP)" vertex="1">
+      <mxGeometry height="50" width="150" x="10" y="160" as="geometry" />
+    </mxCell>
+    <mxCell id="EE4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="[EE4] 관리자/엔지니어" vertex="1">
+      <mxGeometry height="50" width="150" x="10" y="700" as="geometry" />
+    </mxCell>
+    <mxCell id="P1" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="1. 작업 지시 &amp;amp; 물류 동기화&lt;br&gt;(E94/E40)" vertex="1">
+      <mxGeometry height="80" width="130" x="270" y="70" as="geometry" />
+    </mxCell>
+    <mxCell id="P2" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="2. 실시간 장비 통신&lt;br&gt;파싱 엔진 (SECS/GEM)" vertex="1">
+      <mxGeometry height="80" width="130" x="20" y="250" as="geometry" />
+    </mxCell>
+    <mxCell id="P4" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="4. 제품 시간/병목 추적&lt;br&gt;(E168 Tracker)" vertex="1">
+      <mxGeometry height="80" width="130" x="25" y="360" as="geometry" />
+    </mxCell>
+    <mxCell id="P3" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="3. 설비 시간 모델링&lt;br&gt;(E10 Tracker)" vertex="1">
+      <mxGeometry height="80" width="130" x="450" y="360" as="geometry" />
+    </mxCell>
+    <mxCell id="P6" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="6. TCT 최적화&lt;br&gt;BDP 엔진" vertex="1">
+      <mxGeometry height="80" width="130" x="25" y="570" as="geometry" />
+    </mxCell>
+    <mxCell id="P5" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="5. OEE 및 RAM 산출&lt;br&gt;(E79 Calculator)" vertex="1">
+      <mxGeometry height="80" width="130" x="500" y="570" as="geometry" />
+    </mxCell>
+    <mxCell id="D2" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;left=0;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="[D2] 작업 관리 마스터&lt;br&gt;(TB_JOB_MASTER)" vertex="1">
+      <mxGeometry height="50" width="150" x="490" y="160" as="geometry" />
+    </mxCell>
+    <mxCell id="D1" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;left=0;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="[D1] 원시 이벤트 로그&lt;br&gt;(TB_EQP_EVENT_LOG)" vertex="1">
+      <mxGeometry height="50" width="150" x="240" y="310" as="geometry" />
+    </mxCell>
+    <mxCell id="D4" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;left=0;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="[D4] 제품 시간 이력&lt;br&gt;(TB_E168_PROD_TIME)" vertex="1">
+      <mxGeometry height="50" width="150" x="15" y="480" as="geometry" />
+    </mxCell>
+    <mxCell id="D3" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;left=0;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="[D3] 설비 상태 이력&lt;br&gt;(TB_E10_STATE_HIS)" vertex="1">
+      <mxGeometry height="50" width="150" x="440" y="480" as="geometry" />
+    </mxCell>
+    <mxCell id="D5" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;left=0;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="[D5] 기준 정보 마스터&lt;br&gt;(TB_RECIPE_MST)" vertex="1">
+      <mxGeometry height="50" width="150" x="230" y="500" as="geometry" />
+    </mxCell>
+    <mxCell id="D6" parent="1" style="html=1;dashed=0;whiteSpace=wrap;shape=partialRectangle;right=0;left=0;fillColor=none;strokeColor=#000000;fontStyle=1;fontColor=#000000;" value="[D6] OEE 집계 실적&lt;br&gt;(TB_OEE_RESULT)" vertex="1">
+      <mxGeometry height="50" width="150" x="490" y="700" as="geometry" />
+    </mxCell>
+    <mxCell id="E1" edge="1" parent="1" source="EE3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="P1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="310" y="35" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="E1_L" connectable="0" parent="E1" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="생산 오더" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E2" edge="1" parent="1" source="EE2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="P1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="360" y="35" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="E2_L" connectable="0" parent="E2" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="캐리어 도착 신호" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E3" edge="1" parent="1" source="P1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="EE1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E3_L" connectable="0" parent="E3" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="제어 명령 (E40/E94)" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E4" edge="1" parent="1" source="P1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="D2">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E4_L" connectable="0" parent="E4" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="작업/자재 등록" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E5" edge="1" parent="1" source="EE1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="P2">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E5_L" connectable="0" parent="E5" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="실시간 이벤트 (S6F11)" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E6" edge="1" parent="1" source="P2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="D1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E6_L" connectable="0" parent="E6" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="파싱 데이터 적재" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E7" edge="1" parent="1" source="D1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="P3">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E7_L" connectable="0" parent="E7" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="상태 변경 (CEID)" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E8" edge="1" parent="1" source="P3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="D3">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E8_L" connectable="0" parent="E8" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="시간 블록 산출" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E9" edge="1" parent="1" source="D1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="P4">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E9_L" connectable="0" parent="E9" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="이동/가공 이벤트" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E10" edge="1" parent="1" source="D2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="P4">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="585" y="270" />
+          <mxPoint x="140" y="270" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="E10_L" connectable="0" parent="E10" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="작업 매핑 정보" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E11" edge="1" parent="1" source="P4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="D4">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E11_L" connectable="0" parent="E11" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="APT/WPT 조각" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E12" edge="1" parent="1" source="D3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="P5">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E12_L" connectable="0" parent="E12" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="가동 시간 (분모)" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E13" edge="1" parent="1" source="D5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="P5">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="350" y="610" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="E13_L" connectable="0" parent="E13" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="TCT 마스터 (기준)" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E14" edge="1" parent="1" source="D2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="P5">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="620" y="390" />
+          <mxPoint x="620" y="390" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="E14_L" connectable="0" parent="E14" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="생산 실적 (분자)" vertex="1">
+      <mxGeometry relative="1" y="0.2" as="geometry">
+        <mxPoint as="offset" />
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="E15" edge="1" parent="1" source="P5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="D6">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E15_L" connectable="0" parent="E15" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="일일 KPI 기록" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E16" edge="1" parent="1" source="D6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="EE4">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="360" y="725" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="E16_L" connectable="0" parent="E16" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="OEE 대시보드 표출" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E17" edge="1" parent="1" source="D4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="P6">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E17_L" connectable="0" parent="E17" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="PPT (순수 가공 실적)" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E18" edge="1" parent="1" source="P6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="EE4">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="85" y="650" />
+          <mxPoint x="85" y="650" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="E18_L" connectable="0" parent="E18" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="TCT 업데이트 제안" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E19" edge="1" parent="1" source="EE4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="P6">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="190" y="710" />
+          <mxPoint x="190" y="630" />
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="E19_L" connectable="0" parent="E19" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="마스터 갱신 승인" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E20" edge="1" parent="1" source="P6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;curved=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#000000;" target="D5">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+    <mxCell id="E20_L" connectable="0" parent="E20" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=#000000;labelBackgroundColor=rgba(255,255,255,0.5);" value="신규 TCT 적용" vertex="1">
+      <mxGeometry relative="1" as="geometry" />
+    </mxCell>
+  </root>
+</mxGraphModel>
