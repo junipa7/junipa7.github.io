@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEMI E10 인터랙티브 마스터 가이드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Warm Neutrals & Functional Equipment State Colors -->
+    <!-- Application Structure Plan: 
+        이 가이드는 SEMI E10의 모든 핵심 지표(KPI)를 체계적으로 탐색할 수 있도록 구성되었습니다.
+        1. 시간 계층 구조: 상위 시간 개념이 하위 상태로 분해되는 논리 구조 학습.
+        2. 6대 상태 딥다이브: 각 상태의 정의와 세부 분류(Sub-states) 확인.
+        3. [업데이트] 전방위 KPI 대시보드: 
+           - 신뢰성(MTBF, MTBA, MTBI)
+           - 보전성(MTTR)
+           - 가용성(Equipment, Net Availability)
+           - 활용도(Operational, Asset Utilization)
+           총 8가지 지표의 공식과 실시간 계산 시뮬레이션 제공.
+        4. 실무 비즈니스 룰: 예외 상황 처리에 대한 가이드라인.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            background-color: #fafaf9;
+            color: #292524;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        .color-prd { background-color: #10b981; color: white; border-color: #059669; }
+        .color-sby { background-color: #f59e0b; color: white; border-color: #d97706; }
+        .color-eng { background-color: #3b82f6; color: white; border-color: #2563eb; }
+        .color-sdt { background-color: #8b5cf6; color: white; border-color: #7c3aed; }
+        .color-udt { background-color: #ef4444; color: white; border-color: #dc2626; }
+        .color-nst { background-color: #9ca3af; color: white; border-color: #6b7280; }
+
+        .text-prd { color: #10b981; }
+        .text-sby { color: #f59e0b; }
+        .text-eng { color: #3b82f6; }
+        .text-sdt { color: #8b5cf6; }
+        .text-udt { color: #ef4444; }
+        .text-nst { color: #9ca3af; }
+
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hierarchy-block {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .hierarchy-block:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn {
+            transition: all 0.2s ease;
+            opacity: 0.6;
+        }
+        .tab-btn.active {
+            opacity: 1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .kpi-card {
+            border-left-width: 4px;
+            transition: transform 0.2s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-stone-900 text-stone-50 py-12 shadow-md">
+        <div class="container mx-auto px-4 max-w-6xl">
+            <div class="inline-block bg-stone-700 text-xs font-bold px-3 py-1 rounded mb-3 tracking-widest uppercase">Interactive Standard Guide</div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">SEMI E10 마스터 가이드</h1>
+            <p class="text-stone-300 text-lg md:text-xl max-w-3xl leading-relaxed">
+                장비 성능 지표의 모든 것. 신뢰성(Reliability), 가용성(Availability), 보전성(Maintainability), 활용도(Utilization)를 정의하고 측정하는 글로벌 표준 해설서입니다.
+            </p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 max-w-6xl mt-12 space-y-16 pb-20">
+
+        <!-- Section 1: Time Hierarchy -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-stone-800 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">1</span>
+                    시간의 계층 구조 (Time Stack)
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">전체 시간이 어떻게 분해되는지 클릭하여 확인하세요.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 md:p-10">
+                <div class="space-y-4 text-center font-semibold text-stone-800">
+                    <div id="h-level-1" class="hierarchy-block bg-stone-800 text-white py-5 rounded-xl text-xl shadow-md border-b-4 border-stone-900" onclick="expandHierarchy(2)">
+                        Total Time (총 시간)
+                        <div class="text-xs font-normal text-stone-300 mt-1">클릭하여 세분화 ▼</div>
+                    </div>
+                    <div id="h-level-2" class="hidden flex-col md:flex-row gap-4 fade-in">
+                        <div class="hierarchy-block flex-[3] bg-stone-600 text-white py-5 rounded-xl shadow-sm border-b-4 border-stone-700" onclick="expandHierarchy(3)">
+                            Operations Time (운영 시간)
+                            <div class="text-xs font-normal text-stone-300 mt-1">클릭하여 세분화 ▼</div>
+                        </div>
+                        <div class="flex-[1] color-nst py-5 rounded-xl shadow-sm border-b-4 opacity-90 cursor-default">NST</div>
+                    </div>
+                    <div id="h-level-3" class="hidden flex-col md:flex-row gap-4 fade-in">
+                        <div class="hierarchy-block flex-[2] bg-teal-700 text-white py-4 rounded-xl shadow-sm border-b-4 border-teal-800" onclick="expandHierarchy(4)">
+                            Equipment Uptime (가동 시간)
+                        </div>
+                        <div class="hierarchy-block flex-[1] bg-rose-800 text-white py-4 rounded-xl shadow-sm border-b-4 border-rose-900" onclick="expandHierarchy(5)">
+                            Equipment Downtime (비가동 시간)
+                        </div>
+                        <div class="flex-[1] border-2 border-dashed border-stone-200 rounded-xl flex items-center justify-center text-stone-400 text-sm">NST 영역</div>
+                    </div>
+                    <div id="h-level-4" class="hidden flex-col md:flex-row gap-3 fade-in">
+                        <div class="flex-[2] flex gap-2">
+                            <div class="flex-1 color-prd py-4 rounded-lg shadow-sm border-b-4 cursor-default">PRD</div>
+                            <div class="flex-1 color-sby py-4 rounded-lg shadow-sm border-b-4 cursor-default">SBY</div>
+                            <div class="flex-1 color-eng py-4 rounded-lg shadow-sm border-b-4 cursor-default">ENG</div>
+                        </div>
+                        <div id="h-level-5" class="flex-[1] hidden flex gap-2 fade-in">
+                            <div class="flex-1 color-sdt py-4 rounded-lg shadow-sm border-b-4 cursor-default">SDT</div>
+                            <div class="flex-1 color-udt py-4 rounded-lg shadow-sm border-b-4 cursor-default">UDT</div>
+                        </div>
+                        <div id="h-level-5-placeholder" class="flex-[1] border-2 border-dashed border-stone-200 rounded-xl flex items-center justify-center text-stone-400 text-sm">Downtime 영역</div>
+                        <div class="flex-[1] border-2 border-dashed border-stone-200 rounded-xl flex items-center justify-center text-stone-400 text-sm">NST 영역</div>
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                    <button onclick="resetHierarchy()" class="text-sm text-stone-500 hover:text-stone-800 transition underline decoration-dotted">계층 구조 초기화</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 6 States Deep Dive -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-stone-800 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">2</span>
+                    6대 기본 상태와 세부 정의
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">상태 탭을 클릭하여 상세 작업 항목을 확인하세요.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                <div class="grid grid-cols-3 md:grid-cols-6 border-b border-stone-200 bg-stone-50">
+                    <button onclick="selectState('PRD')" id="tab-PRD" class="tab-btn active color-prd p-4 font-bold text-center border-b-4">PRD</button>
+                    <button onclick="selectState('SBY')" id="tab-SBY" class="tab-btn color-sby p-4 font-bold text-center border-b-4">SBY</button>
+                    <button onclick="selectState('ENG')" id="tab-ENG" class="tab-btn color-eng p-4 font-bold text-center border-b-4">ENG</button>
+                    <button onclick="selectState('SDT')" id="tab-SDT" class="tab-btn color-sdt p-4 font-bold text-center border-b-4">SDT</button>
+                    <button onclick="selectState('UDT')" id="tab-UDT" class="tab-btn color-udt p-4 font-bold text-center border-b-4">UDT</button>
+                    <button onclick="selectState('NST')" id="tab-NST" class="tab-btn color-nst p-4 font-bold text-center border-b-4">NST</button>
+                </div>
+                <div id="state-content-panel" class="p-6 md:p-8 min-h-[300px] bg-white"></div>
+            </div>
+        </section>
+
+        <!-- Section 3: Full KPI Dashboard -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-stone-800 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">3</span>
+                    전방위 장비 성능 지표 (Full KPIs)
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">가상 데이터 기반 계산 시뮬레이션 (Failures: 5회, Assists: 10회 가정)</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Column 1: Time Distribution Chart -->
+                <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-stone-200 p-6 flex flex-col items-center">
+                    <h3 class="text-lg font-bold text-stone-800 mb-6 w-full">주간 시간 분포 (168h)</h3>
+                    <div class="chart-container">
+                        <canvas id="fullKpiChart"></canvas>
+                    </div>
+                    <div class="mt-8 grid grid-cols-2 gap-x-6 gap-y-2 text-xs font-mono w-full">
+                        <div class="flex justify-between border-b pb-1"><span class="text-prd font-bold">PRD:</span> 100h</div>
+                        <div class="flex justify-between border-b pb-1"><span class="text-sby font-bold">SBY:</span> 20h</div>
+                        <div class="flex justify-between border-b pb-1"><span class="text-eng font-bold">ENG:</span> 10h</div>
+                        <div class="flex justify-between border-b pb-1"><span class="text-sdt font-bold">SDT:</span> 15h</div>
+                        <div class="flex justify-between border-b pb-1"><span class="text-udt font-bold">UDT:</span> 15h</div>
+                        <div class="flex justify-between border-b pb-1"><span class="text-nst font-bold">NST:</span> 8h</div>
+                    </div>
+                </div>
+
+                <!-- Column 2 & 3: KPI Metrics Grid -->
+                <div class="lg:col-span-2 grid md:grid-cols-2 gap-4">
+                    <!-- Reliability -->
+                    <div class="bg-blue-50/50 p-5 rounded-xl border border-blue-100 kpi-card border-l-blue-600">
+                        <div class="text-xs font-bold text-blue-600 uppercase mb-1">Reliability (신뢰성)</div>
+                        <h4 class="font-bold text-stone-800 mb-3">MTBF</h4>
+                        <div class="text-2xl font-mono font-bold text-blue-700">20.0h</div>
+                        <div class="text-[10px] text-stone-500 mt-2 bg-white/80 p-1.5 rounded font-mono">PRD (100) / Failures (5)</div>
+                        <p class="text-[11px] text-stone-600 mt-2">순수 생산 가동 중 발생하는 고장 간격</p>
+                    </div>
+
+                    <div class="bg-blue-50/50 p-5 rounded-xl border border-blue-100 kpi-card border-l-blue-600">
+                        <div class="text-xs font-bold text-blue-600 uppercase mb-1">Reliability (신뢰성)</div>
+                        <h4 class="font-bold text-stone-800 mb-3">MTBA</h4>
+                        <div class="text-2xl font-mono font-bold text-blue-700">13.0h</div>
+                        <div class="text-[10px] text-stone-500 mt-2 bg-white/80 p-1.5 rounded font-mono">Uptime (130) / Assists (10)</div>
+                        <p class="text-[11px] text-stone-600 mt-2">부품 교체 없는 단순 조치(Assist) 간격</p>
+                    </div>
+
+                    <div class="bg-blue-50/50 p-5 rounded-xl border border-blue-100 kpi-card border-l-blue-600">
+                        <div class="text-xs font-bold text-blue-600 uppercase mb-1">Reliability (신뢰성)</div>
+                        <h4 class="font-bold text-stone-800 mb-3">MTBI</h4>
+                        <div class="text-2xl font-mono font-bold text-blue-700">8.7h</div>
+                        <div class="text-[10px] text-stone-500 mt-2 bg-white/80 p-1.5 rounded font-mono">Uptime (130) / (5+10)</div>
+                        <p class="text-[11px] text-stone-600 mt-2">모든 중단(고장+어시스트)의 평균 간격</p>
+                    </div>
+
+                    <!-- Maintainability -->
+                    <div class="bg-red-50/50 p-5 rounded-xl border border-red-100 kpi-card border-l-red-600">
+                        <div class="text-xs font-bold text-red-600 uppercase mb-1">Maintainability (보전성)</div>
+                        <h4 class="font-bold text-stone-800 mb-3">MTTR</h4>
+                        <div class="text-2xl font-mono font-bold text-red-700">3.0h</div>
+                        <div class="text-[10px] text-stone-500 mt-2 bg-white/80 p-1.5 rounded font-mono">UDT (15) / Failures (5)</div>
+                        <p class="text-[11px] text-stone-600 mt-2">고장 발생 시 수리 및 복구에 걸리는 평균 시간</p>
+                    </div>
+
+                    <!-- Availability -->
+                    <div class="bg-teal-50/50 p-5 rounded-xl border border-teal-100 kpi-card border-l-teal-600">
+                        <div class="text-xs font-bold text-teal-600 uppercase mb-1">Availability (가용성)</div>
+                        <h4 class="font-bold text-stone-800 mb-3">Equipment Availability</h4>
+                        <div class="text-2xl font-mono font-bold text-teal-700">81.3%</div>
+                        <div class="text-[10px] text-stone-500 mt-2 bg-white/80 p-1.5 rounded font-mono">Uptime (130) / Ops Time (160)</div>
+                        <p class="text-[11px] text-stone-600 mt-2">전체 운영 시간 중 장비가 정상인 비율</p>
+                    </div>
+
+                    <div class="bg-teal-50/50 p-5 rounded-xl border border-teal-100 kpi-card border-l-teal-600">
+                        <div class="text-xs font-bold text-teal-600 uppercase mb-1">Availability (가용성)</div>
+                        <h4 class="font-bold text-stone-800 mb-3">Net Availability</h4>
+                        <div class="text-2xl font-mono font-bold text-teal-700">87.0%</div>
+                        <div class="text-[10px] text-stone-500 mt-2 bg-white/80 p-1.5 rounded font-mono">Uptime (130) / (Ops - SDT) (145)</div>
+                        <p class="text-[11px] text-stone-600 mt-2">계획 정비를 제외한 순수 운영 중 가용률</p>
+                    </div>
+
+                    <!-- Utilization -->
+                    <div class="bg-amber-50/50 p-5 rounded-xl border border-amber-100 kpi-card border-l-amber-600">
+                        <div class="text-xs font-bold text-amber-600 uppercase mb-1">Utilization (활용도)</div>
+                        <h4 class="font-bold text-stone-800 mb-3">Operational Utilization</h4>
+                        <div class="text-2xl font-mono font-bold text-amber-700">62.5%</div>
+                        <div class="text-[10px] text-stone-500 mt-2 bg-white/80 p-1.5 rounded font-mono">PRD (100) / Ops Time (160)</div>
+                        <p class="text-[11px] text-stone-600 mt-2">공장 운영 측면에서의 장비 활용 효율</p>
+                    </div>
+
+                    <div class="bg-amber-50/50 p-5 rounded-xl border border-amber-100 kpi-card border-l-amber-600">
+                        <div class="text-xs font-bold text-amber-600 uppercase mb-1">Utilization (활용도)</div>
+                        <h4 class="font-bold text-stone-800 mb-3">Asset Utilization</h4>
+                        <div class="text-2xl font-mono font-bold text-amber-700">59.5%</div>
+                        <div class="text-[10px] text-stone-500 mt-2 bg-white/80 p-1.5 rounded font-mono">PRD (100) / Total Time (168)</div>
+                        <p class="text-[11px] text-stone-600 mt-2">자산 투자 대비 실제 가치 창출 시간 비율</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Implementation & Rules -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-stone-800 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">4</span>
+                    실무 적용 및 비즈니스 룰
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">데이터 자동 수집 환경에서 우선순위 및 판단 기준</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-2 h-full bg-stone-800"></div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-4">복합 상태 우선순위 룰</h3>
+                    <ul class="space-y-3">
+                        <li class="bg-stone-50 p-3 rounded text-sm border border-stone-100">
+                            <span class="font-bold text-red-600 block mb-1">Rule A: 비가동 우선</span>
+                            대기(SBY) 중 정전/고장 발생 시 즉시 <strong>UDT</strong>로 전환.
+                        </li>
+                        <li class="bg-stone-50 p-3 rounded text-sm border border-stone-100">
+                            <span class="font-bold text-purple-600 block mb-1">Rule B: 계획 외 초과분</span>
+                            PM(SDT) 중 부품 파손으로 수리 연장 시, 초과분은 <strong>UDT</strong>로 기록.
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-4">Failure vs Assist 판정</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-[11px] text-left border-collapse">
+                            <thead class="bg-stone-100">
+                                <tr>
+                                    <th class="p-2 border-b">항목</th>
+                                    <th class="p-2 border-b text-red-600">Failure (UDT)</th>
+                                    <th class="p-2 border-b text-amber-600">Assist (Non-UDT)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="p-2 border-b font-bold">복구자</td><td class="p-2 border-b">전문 엔지니어</td><td class="p-2 border-b">오퍼레이터/자동</td></tr>
+                                <tr><td class="p-2 border-b font-bold">시간</td><td class="p-2 border-b">보통 6분 초과</td><td class="p-2 border-b">수 분 이내</td></tr>
+                                <tr><td class="p-2 border-b font-bold">검증</td><td class="p-2 border-b">더미 테스트 필수</td><td class="p-2 border-b">즉시 가동</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-900 text-stone-400 py-8 text-center text-sm">
+        <p>SEMI E10: Equipment Reliability, Availability, Maintainability and Utilization</p>
+    </footer>
+
+    <script>
+        function expandHierarchy(level) {
+            const el = document.getElementById(`h-level-${level}`);
+            if(el) {
+                el.classList.remove('hidden');
+                el.classList.add('flex');
+            }
+            if(level === 5) document.getElementById('h-level-5-placeholder').classList.add('hidden');
+        }
+
+        function resetHierarchy() {
+            [2, 3, 4, 5].forEach(lvl => {
+                const el = document.getElementById(`h-level-${lvl}`);
+                if(el) { el.classList.add('hidden'); el.classList.remove('flex'); }
+            });
+            document.getElementById('h-level-5-placeholder').classList.remove('hidden');
+        }
+
+        const stateData = {
+            'PRD': {
+                title: 'Productive Time', color: 'text-prd', bg: 'bg-emerald-50',
+                desc: '실제 가치를 창출하는 생산 시간. 정상 생산, 우회 생산, 재작업이 포함됩니다.',
+                subs: ['Regular Production', 'Workarounds', 'Rework']
+            },
+            'SBY': {
+                title: 'Standby Time', color: 'text-sby', bg: 'bg-amber-50',
+                desc: '정상 상태이나 외부 요인으로 대기하는 시간. 자재, 작업자, 호스트 대기 등.',
+                subs: ['No Product', 'No Operator', 'No Support Tool', 'No Host/CIM']
+            },
+            'ENG': {
+                title: 'Engineering Time', color: 'text-eng', bg: 'bg-blue-50',
+                desc: '공정 테스트나 장비 개선 실험 시간. 신규 레시피 셋업 등.',
+                subs: ['Process Experiments', 'Equipment Experiments', 'S/W Updates']
+            },
+            'SDT': {
+                title: 'Scheduled Downtime', color: 'text-sdt', bg: 'bg-purple-50',
+                desc: '계획된 유지보수 시간. 정기 PM, 소모품 교체, 기종 변경 등.',
+                subs: ['Preventive Maintenance', 'Change Consumables', 'Setup', 'Facilities']
+            },
+            'UDT': {
+                title: 'Unscheduled Downtime', color: 'text-udt', bg: 'bg-red-50',
+                desc: '돌발 고장 및 수리 시간. 신뢰성 평가의 핵심 감점 요인.',
+                subs: ['Repair', 'Maintenance Delay', 'Out of Spec']
+            },
+            'NST': {
+                title: 'Non-Scheduled Time', color: 'text-nst', bg: 'bg-gray-50',
+                desc: '운영 달력에서 제외된 시간. 공장 휴무, 설치/개조 기간.',
+                subs: ['Unworked Shifts', 'Installation/Modification']
+            }
+        };
+
+        function selectState(key) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${key}`).classList.add('active');
+            const data = stateData[key];
+            const panel = document.getElementById('state-content-panel');
+            panel.innerHTML = `
+                <div class="fade-in">
+                    <h3 class="text-2xl font-bold ${data.color} mb-3">${data.title}</h3>
+                    <p class="text-stone-700 text-lg mb-6">${data.desc}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        ${data.subs.map(s => `<div class="${data.bg} p-3 rounded border border-stone-100 text-sm font-bold text-stone-800">${s}</div>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            selectState('PRD');
+            const ctx = document.getElementById('fullKpiChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['PRD', 'SBY', 'ENG', 'SDT', 'UDT', 'NST'],
+                    datasets: [{
+                        data: [100, 20, 10, 15, 15, 8],
+                        backgroundColor: ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444', '#9ca3af'],
+                        borderWidth: 2, borderColor: '#ffffff', hoverOffset: 15
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '65%',
+                    plugins: { legend: { display: false } }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

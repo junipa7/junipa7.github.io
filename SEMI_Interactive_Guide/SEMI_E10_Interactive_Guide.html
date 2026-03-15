@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEMI E10 인터랙티브 마스터 가이드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Warm Neutrals & Functional Equipment State Colors -->
+    <!-- Application Structure Plan: 
+        이 SPA는 SEMI E10 표준을 직관적으로 체득할 수 있도록 4개의 주요 섹션으로 설계되었습니다. 
+        1. 시간 계층 구조 탐색기: 사용자가 직접 클릭하여 시간의 분할(Total -> Ops -> Uptime 등)을 시각적으로 전개하며 포함 관계를 이해합니다.
+        2. 6대 상태 딥다이브: 방대한 상태 정의와 세부 상태(Sub-states)를 탭(Tab) 형태로 구성하여 정보의 과부하를 막고 능동적인 탐색을 유도합니다.
+        3. 인터랙티브 KPI 대시보드: 가상의 168시간(1주) 데이터를 기반으로 Chart.js 도넛 차트를 제공하고, 이 시간 데이터가 MTBF, MTTR, 가용성(EA) 등의 핵심 지표 공식에 어떻게 대입되어 계산되는지 실시간으로 보여줍니다.
+        4. 실무 적용 가이드: 우선순위 룰과 Failure vs Assist 비교표를 카드 형태로 배치하여 현장 적용 시의 판단 기준을 명확히 제시합니다.
+        이러한 대시보드형 탐색 구조는 순차적인 텍스트 리딩보다 사용자의 몰입도와 개념 간의 상관관계 이해도를 극대화합니다.
+    -->
+    <!-- Visualization & Content Choices: 
+        - 시간 계층 구조 (Goal: Organize) -> HTML/Tailwind 중첩 flex/grid 블록 (JS로 show/hide) -> SVG 없이 순수 DOM 조작으로 트리 구조 표현.
+        - 6대 상태 세부 설명 (Goal: Inform) -> 동적 탭 및 설명 패널 (JS innerHTML 업데이트) -> 클릭 인터랙션을 통한 정보 분리.
+        - 시간 분포 및 KPI (Goal: Compare/Calculate) -> Chart.js Doughnut (Canvas) 및 동적 KPI 카드 -> 시각적 비율과 수식의 연동성 강조.
+        - 실무 규칙 비교 (Goal: Compare) -> 반응형 Grid 카드 및 Table 레이아웃 -> 명확한 대조를 통한 학습.
+        * CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. *
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body {
+            background-color: #fafaf9; /* stone-50 */
+            color: #292524; /* stone-800 */
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        /* Essential Chart Container Styles */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+
+        /* State Colors */
+        .color-prd { background-color: #10b981; color: white; border-color: #059669; } /* Emerald */
+        .color-sby { background-color: #f59e0b; color: white; border-color: #d97706; } /* Amber */
+        .color-eng { background-color: #3b82f6; color: white; border-color: #2563eb; } /* Blue */
+        .color-sdt { background-color: #8b5cf6; color: white; border-color: #7c3aed; } /* Purple */
+        .color-udt { background-color: #ef4444; color: white; border-color: #dc2626; } /* Red */
+        .color-nst { background-color: #9ca3af; color: white; border-color: #6b7280; } /* Gray */
+
+        .text-prd { color: #10b981; }
+        .text-sby { color: #f59e0b; }
+        .text-eng { color: #3b82f6; }
+        .text-sdt { color: #8b5cf6; }
+        .text-udt { color: #ef4444; }
+        .text-nst { color: #9ca3af; }
+
+        /* Animations */
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hierarchy-block {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .hierarchy-block:hover {
+            transform: scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn {
+            transition: all 0.2s ease;
+            opacity: 0.6;
+        }
+        .tab-btn.active {
+            opacity: 1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="bg-stone-900 text-stone-50 py-12 shadow-md">
+        <div class="container mx-auto px-4 max-w-6xl">
+            <div class="inline-block bg-stone-700 text-xs font-bold px-3 py-1 rounded mb-3 tracking-widest uppercase">Interactive Standard Guide</div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">SEMI E10 마스터 가이드</h1>
+            <p class="text-stone-300 text-lg md:text-xl max-w-3xl leading-relaxed">
+                반도체 장비의 신뢰성, 가용성, 보전성(RAM) 및 활용도를 측정하는 글로벌 공통 언어. 장비의 24시간을 현미경처럼 분석하는 프레임워크를 경험해 보세요.
+            </p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 max-w-6xl mt-12 space-y-16 pb-20">
+
+        <!-- Section 1: Time Hierarchy -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-stone-800 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">1</span>
+                    시간의 계층 구조 (Time Stack)
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">장비의 총 시간(Total Time)이 상호 배타적인 6대 상태로 쪼개지는 과정을 확인하세요. <strong>아래 블록을 클릭하여 하위 계층을 펼쳐보세요.</strong></p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 md:p-10">
+                <div class="space-y-4 text-center font-semibold text-stone-800">
+                    
+                    <!-- Level 1 -->
+                    <div id="h-level-1" class="hierarchy-block bg-stone-800 text-white py-5 rounded-xl text-xl shadow-md border-b-4 border-stone-900" onclick="expandHierarchy(2)">
+                        Total Time (총 시간)
+                        <div class="text-xs font-normal text-stone-300 mt-1">클릭하여 세분화 ▼</div>
+                    </div>
+
+                    <!-- Level 2 -->
+                    <div id="h-level-2" class="hidden flex-col md:flex-row gap-4 fade-in">
+                        <div class="hierarchy-block flex-[3] bg-stone-600 text-white py-5 rounded-xl shadow-sm border-b-4 border-stone-700" onclick="expandHierarchy(3)">
+                            Operations Time (운영 시간)
+                            <div class="text-xs font-normal text-stone-300 mt-1">클릭하여 세분화 ▼</div>
+                        </div>
+                        <div class="flex-[1] color-nst py-5 rounded-xl shadow-sm border-b-4 opacity-90 cursor-default">
+                            NST<br><span class="text-xs font-normal opacity-80">비계획 시간</span>
+                        </div>
+                    </div>
+
+                    <!-- Level 3 -->
+                    <div id="h-level-3" class="hidden flex-col md:flex-row gap-4 fade-in">
+                        <div class="hierarchy-block flex-[2] bg-teal-700 text-white py-4 rounded-xl shadow-sm border-b-4 border-teal-800" onclick="expandHierarchy(4)">
+                            Equipment Uptime (가동 시간)
+                            <div class="text-xs font-normal text-teal-200 mt-1">클릭하여 세분화 ▼</div>
+                        </div>
+                        <div class="hierarchy-block flex-[1] bg-rose-800 text-white py-4 rounded-xl shadow-sm border-b-4 border-rose-900" onclick="expandHierarchy(5)">
+                            Equipment Downtime (비가동 시간)
+                            <div class="text-xs font-normal text-rose-200 mt-1">클릭하여 세분화 ▼</div>
+                        </div>
+                        <div class="flex-[1] border-2 border-dashed border-stone-200 rounded-xl flex items-center justify-center text-stone-400 text-sm">NST 영역</div>
+                    </div>
+
+                    <!-- Level 4 & 5 (6 Basic States) -->
+                    <div id="h-level-4" class="hidden flex-col md:flex-row gap-3 fade-in">
+                        <div class="flex-[2] flex gap-2">
+                            <div class="flex-1 color-prd py-4 rounded-lg shadow-sm border-b-4 cursor-default text-lg">PRD<div class="text-xs font-normal">생산 시간</div></div>
+                            <div class="flex-1 color-sby py-4 rounded-lg shadow-sm border-b-4 cursor-default text-lg">SBY<div class="text-xs font-normal">대기 시간</div></div>
+                            <div class="flex-1 color-eng py-4 rounded-lg shadow-sm border-b-4 cursor-default text-lg">ENG<div class="text-xs font-normal">엔지니어링</div></div>
+                        </div>
+                        
+                        <div id="h-level-5" class="flex-[1] hidden flex gap-2 fade-in">
+                            <div class="flex-1 color-sdt py-4 rounded-lg shadow-sm border-b-4 cursor-default text-lg">SDT<div class="text-xs font-normal">계획된 비가동</div></div>
+                            <div class="flex-1 color-udt py-4 rounded-lg shadow-sm border-b-4 cursor-default text-lg">UDT<div class="text-xs font-normal">고장/비가동</div></div>
+                        </div>
+                        <div id="h-level-5-placeholder" class="flex-[1] border-2 border-dashed border-stone-200 rounded-xl flex items-center justify-center text-stone-400 text-sm">Downtime 영역</div>
+                        
+                        <div class="flex-[1] border-2 border-dashed border-stone-200 rounded-xl flex items-center justify-center text-stone-400 text-sm">NST 영역</div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-6">
+                    <button onclick="resetHierarchy()" class="text-sm text-stone-500 hover:text-stone-800 transition underline decoration-dotted">계층 구조 초기화</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: 6 States Deep Dive -->
+        <section class="fade-in" style="animation-delay: 0.1s;">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-stone-800 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">2</span>
+                    6대 기본 상태와 세부 상태 (Sub-states)
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">각 장비 상태의 정확한 정의와, 해당 상태에 속하는 세부 작업들을 탐색합니다.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                <div class="grid grid-cols-3 md:grid-cols-6 border-b border-stone-200 bg-stone-50">
+                    <button onclick="selectState('PRD')" id="tab-PRD" class="tab-btn active color-prd p-4 font-bold text-center border-b-4">PRD</button>
+                    <button onclick="selectState('SBY')" id="tab-SBY" class="tab-btn color-sby p-4 font-bold text-center border-b-4">SBY</button>
+                    <button onclick="selectState('ENG')" id="tab-ENG" class="tab-btn color-eng p-4 font-bold text-center border-b-4">ENG</button>
+                    <button onclick="selectState('SDT')" id="tab-SDT" class="tab-btn color-sdt p-4 font-bold text-center border-b-4">SDT</button>
+                    <button onclick="selectState('UDT')" id="tab-UDT" class="tab-btn color-udt p-4 font-bold text-center border-b-4">UDT</button>
+                    <button onclick="selectState('NST')" id="tab-NST" class="tab-btn color-nst p-4 font-bold text-center border-b-4">NST</button>
+                </div>
+
+                <div id="state-content-panel" class="p-6 md:p-8 min-h-[320px] bg-white">
+                    <!-- Content injected via JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: KPI & Formulas -->
+        <section class="fade-in" style="animation-delay: 0.2s;">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-stone-800 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">3</span>
+                    RAM 핵심 지표와 OEE 연계
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">가상의 주간(168시간) 데이터를 바탕으로 장비 성능 KPI가 어떻게 계산되는지 확인합니다.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Chart Area -->
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6">
+                    <h3 class="text-xl font-bold text-stone-800 mb-2">가상 시간 분포 (총 168시간)</h3>
+                    <p class="text-sm text-stone-500 mb-6">차트 조각에 마우스를 올리면 세부 시간을 확인할 수 있습니다.</p>
+                    <div class="chart-container">
+                        <canvas id="timeChart"></canvas>
+                    </div>
+                    
+                    <div class="mt-6 grid grid-cols-3 gap-2 text-center text-sm font-mono bg-stone-50 p-4 rounded-lg">
+                        <div><span class="text-prd font-bold">PRD:</span> 100h</div>
+                        <div><span class="text-sby font-bold">SBY:</span> 20h</div>
+                        <div><span class="text-eng font-bold">ENG:</span> 10h</div>
+                        <div><span class="text-sdt font-bold">SDT:</span> 15h</div>
+                        <div><span class="text-udt font-bold">UDT:</span> 15h</div>
+                        <div><span class="text-nst font-bold">NST:</span> 8h</div>
+                    </div>
+                </div>
+
+                <!-- KPI Calculation Area -->
+                <div class="flex flex-col space-y-4">
+                    <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 flex-1">
+                        <h3 class="text-lg font-bold text-stone-800 mb-4 border-b pb-2">신뢰성 및 보전성 (고장 횟수 = 5회 가정)</h3>
+                        <div class="space-y-5">
+                            <div>
+                                <div class="flex justify-between items-end mb-1">
+                                    <span class="font-bold text-stone-700">MTBF (평균 무고장 시간)</span>
+                                    <span class="font-mono text-lg text-blue-600 font-bold">20.0 시간</span>
+                                </div>
+                                <div class="text-xs text-stone-500 bg-stone-100 p-2 rounded">
+                                    <span class="font-mono">PRD (100h) / Failures (5)</span><br>
+                                    * 전체 가동 시간이 아닌 순수 생산(PRD) 시간 기준
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-end mb-1">
+                                    <span class="font-bold text-stone-700">MTTR (평균 수리 시간)</span>
+                                    <span class="font-mono text-lg text-red-600 font-bold">3.0 시간</span>
+                                </div>
+                                <div class="text-xs text-stone-500 bg-stone-100 p-2 rounded">
+                                    <span class="font-mono">UDT (15h) / Failures (5)</span><br>
+                                    * 고장 인지, 대기, 수리, 검증 완료까지의 총합
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 flex-1">
+                        <h3 class="text-lg font-bold text-stone-800 mb-4 border-b pb-2">가용성 및 활용도 (OEE 연계)</h3>
+                        <div class="space-y-5">
+                            <div>
+                                <div class="flex justify-between items-end mb-1">
+                                    <span class="font-bold text-stone-700">가용성 (Equipment Availability)</span>
+                                    <span class="font-mono text-lg text-teal-600 font-bold">81.3%</span>
+                                </div>
+                                <div class="text-xs text-stone-500 bg-stone-100 p-2 rounded relative group">
+                                    <span class="font-mono">(Uptime / Ops Time) * 100 = (130 / 160) * 100</span><br>
+                                    * 이 값이 SEMI E79 OEE 공식의 '가동률(A)'이 됩니다.
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-end mb-1">
+                                    <span class="font-bold text-stone-700">운영 활용도 (Operational Utilization)</span>
+                                    <span class="font-mono text-lg text-amber-600 font-bold">62.5%</span>
+                                </div>
+                                <div class="text-xs text-stone-500 bg-stone-100 p-2 rounded">
+                                    <span class="font-mono">(PRD / Ops Time) * 100 = (100 / 160) * 100</span><br>
+                                    * 가용성이 높아도 SBY가 길면 활용도는 떨어집니다.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Implementation Rules -->
+        <section class="fade-in" style="animation-delay: 0.3s;">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-stone-800 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">4</span>
+                    실무 적용 및 비즈니스 룰
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">데이터 자동 수집 환경에서 겪게 되는 애매한 상황들에 대한 표준 처리 가이드입니다.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                
+                <!-- Rule 1 -->
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-2 h-full bg-stone-800"></div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-4">복합 상태 (Overlapping States) 우선순위</h3>
+                    <p class="text-stone-600 text-sm mb-4">한 순간에 2개의 상태가 겹칠 때 어떤 상태로 기록해야 하는가?</p>
+                    <ul class="space-y-3">
+                        <li class="bg-stone-50 p-3 rounded text-sm border border-stone-100">
+                            <span class="font-bold text-red-600 block mb-1">예시 1: SBY 중 UDT 발생</span>
+                            자재를 기다리며 쉬고(SBY) 있었는데, 정전으로 장비가 꺼짐(UDT).<br>
+                            ➔ <strong>UDT (고장/오프라인이 대기보다 우선함)</strong>
+                        </li>
+                        <li class="bg-stone-50 p-3 rounded text-sm border border-stone-100">
+                            <span class="font-bold text-purple-600 block mb-1">예시 2: SDT 중 UDT 발생</span>
+                            계획된 예방정비(SDT) 중 엔지니어 실수로 부품이 파손되어 수리 연장.<br>
+                            ➔ <strong>원래 계획 시간까지는 SDT, 초과 시간부터는 UDT 전환</strong>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Rule 2 -->
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-2 h-full bg-blue-500"></div>
+                    <h3 class="text-xl font-bold text-stone-800 mb-4">Failure(고장) vs Assist(어시스트) 구분</h3>
+                    <p class="text-stone-600 text-sm mb-4">E10에서 가장 논란이 많으며 팹마다 기준이 다르나, 일반적인 가이드는 다음과 같습니다.</p>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left border-collapse">
+                            <thead class="bg-stone-100 text-stone-700">
+                                <tr>
+                                    <th class="p-2 border-b">구분</th>
+                                    <th class="p-2 border-b text-red-600">Failure (UDT 처리)</th>
+                                    <th class="p-2 border-b text-amber-600">Assist (단기 중단)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-stone-600">
+                                <tr>
+                                    <td class="p-2 border-b font-bold bg-stone-50">복구 주체</td>
+                                    <td class="p-2 border-b">전문 정비 엔지니어</td>
+                                    <td class="p-2 border-b">일반 오퍼레이터/자동 리셋</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2 border-b font-bold bg-stone-50">조치 내용</td>
+                                    <td class="p-2 border-b">부품 교체, 장비 분해</td>
+                                    <td class="p-2 border-b">버튼 클릭, 걸린 웨이퍼 빼기</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2 border-b font-bold bg-stone-50">소요 시간</td>
+                                    <td class="p-2 border-b">보통 6분(또는 10분) 초과</td>
+                                    <td class="p-2 border-b">수 분 이내에 복구 가능</td>
+                                </tr>
+                                <tr>
+                                    <td class="p-2 border-b font-bold bg-stone-50">영향도</td>
+                                    <td class="p-2 border-b">재가동 전 테스트 수반</td>
+                                    <td class="p-2 border-b">즉시 원래 작업 재개</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-900 text-stone-400 py-8 text-center text-sm">
+        <p>SEMI E10 Specification for Definition and Measurement of Equipment RAM and Utilization</p>
+        <p class="mt-2">데이터 자동 수집(SECS/GEM E30) 및 OEE(E79) 연계 표준</p>
+    </footer>
+
+    <script>
+        /* --- 1. Time Hierarchy Logic --- */
+        function expandHierarchy(level) {
+            const el = document.getElementById(`h-level-${level}`);
+            if(el) {
+                el.classList.remove('hidden');
+                el.classList.add('flex');
+            }
+            if(level === 5) {
+                document.getElementById('h-level-5-placeholder').classList.add('hidden');
+            }
+        }
+
+        function resetHierarchy() {
+            [2, 3, 4, 5].forEach(lvl => {
+                const el = document.getElementById(`h-level-${lvl}`);
+                if(el) {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                }
+            });
+            document.getElementById('h-level-5-placeholder').classList.remove('hidden');
+        }
+
+        /* --- 2. States Explorer Logic --- */
+        const stateData = {
+            'PRD': {
+                title: 'Productive Time (생산 시간)', color: 'text-prd', bg: 'bg-emerald-50',
+                desc: '장비가 가치를 창출하는 시간입니다. 단순히 웨이퍼가 들어있는 시간이 아니라, 정상적인 공정이 진행 중인 시간입니다.',
+                subs: [
+                    { name: 'Regular Production (정상 생산)', detail: '정상적인 양산 제품을 가공하는 시간' },
+                    { name: 'Workarounds (우회 생산)', detail: '일부 기능 고장 시 다른 방식으로 임시 생산 진행 (단, 속도 저하는 OEE Loss로 계산)' },
+                    { name: 'Rework (재작업)', detail: '이전 공정 불량으로 재가공. 설비 입장에선 PRD이나 공장 효율엔 마이너스 요소' }
+                ]
+            },
+            'SBY': {
+                title: 'Standby Time (대기 시간)', color: 'text-sby', bg: 'bg-amber-50',
+                desc: '장비는 문제가 없으나 외부 요인(공장 사정)으로 쉬고 있는 시간입니다. 장비 제조사(Supplier)의 책임이 없습니다.',
+                subs: [
+                    { name: 'No Product (자재 대기)', detail: '가공할 웨이퍼(WIP)가 도착하지 않아 대기하는 시간' },
+                    { name: 'No Operator (작업자 대기)', detail: '오퍼레이터가 없어 장비를 시작하지 못하는 시간' },
+                    { name: 'No Support Tool (지원 장비 대기)', detail: '물류 대차(OHT) 등 주변 인프라 대기 시간' },
+                    { name: 'No Host/CIM (통신 대기)', detail: 'MES/EAP 다운으로 작업 지시를 받지 못하는 시간' }
+                ]
+            },
+            'ENG': {
+                title: 'Engineering Time (엔지니어링 시간)', color: 'text-eng', bg: 'bg-blue-50',
+                desc: '정상 양산이 아닌, 공정 테스트와 장비 개선을 위해 시간을 투자하는 개념입니다.',
+                subs: [
+                    { name: 'Process Experiments (공정 실험)', detail: '새로운 레시피 조건을 잡기 위한 실험 진행' },
+                    { name: 'Equipment Experiments (장비 실험)', detail: '부품 변경 후 성능 테스트 시간' },
+                    { name: 'Software Updates (S/W 업데이트)', detail: '설비 제어 PC의 패치나 업데이트 시간' }
+                ]
+            },
+            'SDT': {
+                title: 'Scheduled Downtime (계획된 비가동)', color: 'text-sdt', bg: 'bg-purple-50',
+                desc: '장비 성능 유지를 위해 공장 스케줄에 미리 반영해 둔 의도적 정지 시간입니다.',
+                subs: [
+                    { name: 'Preventive Maintenance (PM)', detail: '주기적인 예방 정비 (일일/주간/월간)' },
+                    { name: 'Change Consumables (소모품 교체)', detail: '수명이 다한 부품, 케미컬, 가스 교체' },
+                    { name: 'Setup (기종/셋업 변경)', detail: 'A제품에서 B제품 생산을 위한 물리적 파츠 변경' },
+                    { name: 'Facilities-related (유틸리티 중단)', detail: '계획된 공장 전력 차단, 용수 공급 중단 등' }
+                ]
+            },
+            'UDT': {
+                title: 'Unscheduled Downtime (계획 안된 비가동)', color: 'text-udt', bg: 'bg-red-50',
+                desc: '돌발적인 고장으로 인한 정지로, 장비 신뢰성 평가에서 가장 큰 감점 요인입니다.',
+                subs: [
+                    { name: 'Repair (수리 시간)', detail: '실제 고장이 나 부품 교체 및 수리하는 시간' },
+                    { name: 'Maintenance Delay (정비 대기)', detail: '고장 났으나 엔지니어나 부품이 없어 방치된 시간 (별도 관리 필요)' },
+                    { name: 'Out of Spec (스펙 이탈)', detail: '장비는 도나 파티클 과다 발생 등으로 강제 정지 후 원인 파악 중인 시간' }
+                ]
+            },
+            'NST': {
+                title: 'Non-Scheduled Time (비계획 시간)', color: 'text-nst', bg: 'bg-gray-50',
+                desc: '공장 운영 달력(Operations Time)에서 아예 제외된 시간입니다.',
+                subs: [
+                    { name: 'Unworked Shifts (휴무 스킵)', detail: '명절 연휴 등 공장 전체가 셧다운 된 시간' },
+                    { name: 'Installation/Modification (설치/개조)', detail: '장비 초기 셋업 중이거나 대규모 개조를 위해 전원을 내린 상태' }
+                ]
+            }
+        };
+
+        function selectState(stateKey) {
+            // Update Tab visual
+            const keys = ['PRD', 'SBY', 'ENG', 'SDT', 'UDT', 'NST'];
+            keys.forEach(k => {
+                document.getElementById(`tab-${k}`).classList.remove('active');
+            });
+            document.getElementById(`tab-${stateKey}`).classList.add('active');
+
+            // Render Content
+            const data = stateData[stateKey];
+            const panel = document.getElementById('state-content-panel');
+            
+            let html = `
+                <div class="fade-in">
+                    <h3 class="text-2xl font-bold ${data.color} mb-3">${data.title}</h3>
+                    <p class="text-stone-700 text-lg mb-6">${data.desc}</p>
+                    <h4 class="font-bold text-stone-800 mb-4 border-b pb-2">주요 세부 상태 (Sub-states)</h4>
+                    <div class="grid md:grid-cols-2 gap-4">
+            `;
+            
+            data.subs.forEach(sub => {
+                html += `
+                    <div class="${data.bg} p-4 rounded-lg border border-stone-100">
+                        <div class="font-bold text-stone-800 mb-1">${sub.name}</div>
+                        <div class="text-sm text-stone-600 leading-snug">${sub.detail}</div>
+                    </div>
+                `;
+            });
+
+            html += `</div></div>`;
+            panel.innerHTML = html;
+        }
+
+        /* --- 3. Chart.js Initialization --- */
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize State Explorer with PRD
+            selectState('PRD');
+
+            // Initialize Chart
+            const ctx = document.getElementById('timeChart').getContext('2d');
+            
+            // Dummy Data representing 168 hours
+            const timeData = [100, 20, 10, 15, 15, 8]; 
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['PRD (생산)', 'SBY (대기)', 'ENG (엔지니어링)', 'SDT (계획정비)', 'UDT (고장)', 'NST (비계획)'],
+                    datasets: [{
+                        data: timeData,
+                        backgroundColor: [
+                            '#10b981', // PRD
+                            '#f59e0b', // SBY
+                            '#3b82f6', // ENG
+                            '#8b5cf6', // SDT
+                            '#ef4444', // UDT
+                            '#9ca3af'  // NST
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '55%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                font: { family: "'Pretendard', sans-serif", size: 12 },
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${context.parsed} 시간`;
+                                }
+                            },
+                            bodyFont: { family: "'Pretendard', sans-serif", size: 14 },
+                            padding: 12
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

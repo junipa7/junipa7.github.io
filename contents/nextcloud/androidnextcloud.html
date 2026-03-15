@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📱 Android 12 넥스트클라우드 마스터 가이드 (완벽 통합본)</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; }
+        .container { max-width: 900px; margin: 20px auto; padding: 30px; background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 8px; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; margin-top: 40px; }
+        h2 { color: #2980b9; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 30px; }
+        h3 { color: #16a085; }
+        .box { padding: 20px; margin-bottom: 25px; border-radius: 8px; border-left: 6px solid; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .box-title { font-weight: bold; display: block; margin-bottom: 12px; font-size: 1.2em; }
+        .box-primary { background-color: #e8f4fd; border-color: #3498db; }
+        .box-warning { background-color: #fff8e1; border-color: #f1c40f; }
+        .box-focus { background-color: #f3e5f5; border-color: #9b59b6; }
+        .box-danger { background-color: #ffebee; border-color: #e74c3c; }
+        .box-success { background-color: #e8f5e9; border-color: #2ecc71; }
+        .code-wrapper { background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 8px; position: relative; margin-bottom: 20px; overflow-x: auto; font-family: 'Consolas', monospace; }
+        .copy-btn { position: absolute; top: 10px; right: 10px; background: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; transition: 0.3s; }
+        .copy-btn:hover { background: #2980b9; }
+        .highlight-bg { background-color: #ffe0b2; font-weight: bold; padding: 2px 6px; border-radius: 4px; color: #e65100; }
+        ul, ol { margin-bottom: 20px; }
+        li { margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <div class="box box-primary" style="text-align: center;">
+        <h2 style="border: none; margin-top: 0;">📱 Android 12(Note 10+) 개인 클라우드 완벽 구축 가이드</h2>
+        <p class="mb-0"><strong>Caddy + PHP-FPM + MariaDB + Redis + HTTPS 완벽 적용 버전</strong></p>
+        <p style="font-size: 0.9em; color: #666;">수많은 시행착오와 트러블슈팅을 거쳐 완성된, 절대 실패하지 않는 무결점 아키텍처 문서입니다.</p>
+    </div>
+
+    <h1>[1편] 스마트폰 기초 공사 및 원격 제어(ADB/SSH) 환경 구축</h1>
+    
+    <div class="box box-focus">
+        <span class="box-title">💡 1편의 핵심 목표</span>
+        <p class="mb-0">스마트폰의 작은 화면에서 긴 리눅스 명령어를 치는 것은 오타의 주범이며 서버가 망가지는 가장 큰 원인입니다. 기기를 초기화한 후 가장 먼저 할 일은, <strong>노트북(PC)에서 스마트폰 화면을 제어하고(ADB) 편하게 명령어를 복사/붙여넣기 할 수 있는 원격 터미널(SSH)</strong>을 뚫는 것입니다.</p>
+    </div>
+
+    <h2>1. 기기 공장초기화 및 배터리 최적화 해제</h2>
+    <p>서버가 24시간 죽지 않도록 스마트폰의 기초 체력을 설정합니다.</p>
+    <ol>
+        <li>스마트폰 <strong>[설정] > [일반] > [초기화] > [기기 전체 초기화]</strong>를 진행하여 과거의 꼬인 데이터를 완전히 삭제합니다.</li>
+        <li>초기화 완료 후 집 안의 안정적인 와이파이에 연결합니다.</li>
+    </ol>
+    
+    <div class="box box-danger">
+        <span class="box-title">⚙️ 서버 생존을 위한 필수 설정 (★매우 중요)</span>
+        <ul class="mb-0">
+            <li><strong>화면 꺼짐 방지:</strong> [디스플레이] 설정에서 '화면 자동 꺼짐 시간'을 최대(10분)로 설정합니다.</li>
+            <li><strong>배터리 제한 해제:</strong> 안드로이드 OS는 화면이 꺼지면 백그라운드 앱을 강제로 죽입니다. Termux 앱을 설치한 직후, <strong>[설정] > [애플리케이션] > [Termux] > [배터리]</strong> 항목을 찾아 반드시 <strong><span class="highlight-bg">제한 없음</span></strong>으로 변경해야 서버가 24시간 구동됩니다.</li>
+        </ul>
+    </div>
+
+    <h2>2. 개발자 모드 및 무선 디버깅(ADB) 켜기</h2>
+    <p>노트북에서 스마트폰에 원격으로 앱을 깔거나 화면을 조작하기 위한 강력한 연결 통로(ADB)를 엽니다.</p>
+    <ol>
+        <li>스마트폰 <strong>[설정] > [휴대전화 정보] > [소프트웨어 정보]</strong>로 이동합니다.</li>
+        <li><strong>[빌드 번호]</strong>를 연속으로 7번 빠르게 터치하여 '개발자 모드가 켜졌습니다' 메시지를 띄웁니다.</li>
+        <li>다시 설정 첫 화면으로 돌아가 맨 아래 생긴 <strong>[개발자 옵션]</strong>으로 들어갑니다.</li>
+        <li><strong>[무선 디버깅]</strong> 항목을 찾아 스위치를 켭니다.</li>
+        <li>무선 디버깅 글자를 터치하여 들어가면 스마트폰의 <strong>IP 주소 및 포트 번호</strong>를 확인할 수 있습니다. (예: <code>192.168.0.15:43210</code>) 이 화면을 그대로 띄워둡니다.</li>
+    </ol>
+
+    <h2>3. 노트북(PC)에서 ADB로 스마트폰 연결하기</h2>
+    <p>이제 스마트폰은 충전기에 꽂아두고 편안하게 노트북 키보드 앞에 앉아 작업을 시작합니다.</p>
+    
+    <div class="box box-primary">
+        <span class="box-title">💻 PC에서 진행하는 ADB 연결</span>
+        <p>1) 구글 공식 홈페이지에서 <a href="https://developer.android.com/studio/releases/platform-tools" target="_blank">SDK Platform-Tools (ADB)</a>를 다운로드하여 노트북의 C드라이브(예: C:\adb)에 압축을 풉니다.</p>
+        <p>2) 명령 프롬프트(CMD)를 열고 압축을 푼 폴더로 이동한 뒤, 스마트폰 화면에서 본 IP와 포트로 페어링(짝짓기)을 요청합니다.</p>
+        <div class="code-wrapper">
+            <button class="copy-btn">복사</button>
+            <pre><code>cd C:\adb
+# 스마트폰 화면에 뜬 '기기 페어링 코드'를 누르고 나타난 IP와 포트 입력
+adb pair 192.168.0.15:43210
+
+# 페어링 완료 후, 실제 연결 (무선 디버깅 첫 화면의 IP와 포트 입력)
+adb connect 192.168.0.15:40123</code></pre>
+        </div>
+        <p class="mb-0">※ 연결에 성공했다면, 이제 PC에 <code>scrcpy</code> 같은 무료 미러링 프로그램을 깔아 스마트폰 화면을 PC 모니터에 띄워 마우스로 조작할 수 있습니다.</p>
+    </div>
+
+    <h2>4. Termux 설치 및 SSH 서버 개통 (PC 원격 터미널)</h2>
+    <p>본격적인 리눅스 서버 환경 구축을 위해 오직 오픈소스 버전의 Termux를 설치하고, PC에서 검은 화면(터미널)으로 명령어를 칠 수 있도록 SSH 통로를 뚫습니다.</p>
+    <ol>
+        <li>스마트폰 브라우저(또는 PC ADB 제어)를 통해 <a href="https://f-droid.org/" target="_blank">F-Droid 홈페이지</a>에 접속하여 앱을 설치합니다. <strong>(Google Play 스토어 버전은 절대 사용 금지!)</strong></li>
+        <li>F-Droid 안에서 <strong>Termux</strong>를 검색하여 설치하고 실행합니다.</li>
+        <li>스마트폰의 Termux 화면에 아래 명령어들을 직접 타이핑합니다.</li>
+    </ol>
+    
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 안드로이드 저장소 접근 권한 획득 (화면에 팝업이 뜨면 '허용' 클릭)
+termux-setup-storage
+
+# 시스템 전체 패키지 최신화 (중간에 Y/N이 나오면 Y 입력 후 엔터)
+pkg update && pkg upgrade -y
+
+# 원격 접속 프로그램(OpenSSH) 설치
+pkg install openssh -y
+
+# 접속에 사용할 비밀번호 설정 (원하는 비밀번호 두 번 입력, 화면에는 아무것도 안 보임)
+passwd
+
+# 내 스마트폰의 내부망 IP 주소 다시 한번 확인
+ifconfig
+
+# SSH 서버 시작
+sshd</code></pre>
+    </div>
+
+    <div class="box box-success">
+        <span class="box-title">💻 최종 단계: PC 터미널로 완벽 접속하기</span>
+        <p class="mb-0">PC의 CMD 창을 하나 더 열고, 방금 뚫어놓은 통로로 접속합니다. Termux의 기본 SSH 포트는 22가 아닌 <strong>8022</strong>입니다.</p>
+        <div class="code-wrapper" style="margin-top: 10px;">
+            <button class="copy-btn">복사</button>
+            <pre><code># 접속 명령어 형식: ssh -p 8022 [스마트폰 IP]
+ssh -p 8022 192.168.0.15</code></pre>
+        </div>
+        <p class="mb-0">처음 접속 시 <code>Are you sure you want to continue connecting?</code> 메시지가 나오면 <strong>yes</strong>를 치고, 아까 스마트폰에서 설정한 비밀번호를 넣습니다. 화면에 녹색 글씨의 <strong>Termux 프롬프트(~ $)</strong>가 나타나면 1편 성공입니다!</p>
+    </div>
+
+    <hr>
+
+    <h1>[2편] 무결점 SSL 인증서(HTTPS) 발급 및 평생 자동 갱신 구축</h1>
+    
+    <div class="box box-focus">
+        <span class="box-title">💡 2편의 핵심 목표</span>
+        <p class="mb-0">전 세계 어디서나 내 서버에 안전하게 접속하려면 자물쇠 마크(HTTPS)가 필수입니다. 하지만 안드로이드 환경의 특수성 때문에 수많은 의존성 에러가 발생합니다. 이 장에서는 우리가 겪었던 <strong>크론탭(cron) 누락, OpenSSL 경로 오류, ZeroSSL 이메일 인증 문제</strong>를 모두 회피하는 '가장 완벽한 정공법'으로 <code>acme.sh</code> 인증서를 세팅합니다.</p>
+    </div>
+
+    <h2>1. 인증서 자동 갱신을 위한 필수 패키지 설치 (에러 원천 차단)</h2>
+    <p>인증서 스크립트가 핑계를 대지 못하도록 실행에 필요한 모든 도구를 수동으로 완벽하게 깔아줍니다. PC의 터미널(SSH) 창에 마우스로 복사하여 붙여넣으세요.</p>
+    
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 1. 60일마다 알아서 인증서를 갱신해 줄 알람 시계(스케줄러) 패키지 설치
+pkg install cronie -y
+
+# 2. 스케줄러를 백그라운드에서 가동시킴
+crond
+
+# 3. 인증서 암호화 키를 생성할 때 필요한 '실제 실행 도구' 설치 (일반 openssl 패키지와 다름!)
+pkg install openssl-tool -y</code></pre>
+    </div>
+
+    <h2>2. acme.sh 스크립트 설치 및 환경 변수 강제 지정</h2>
+    <p>원격 설치 스크립트가 Termux의 폴더 구조를 착각하지 못하도록, 방금 설치한 <code>openssl</code>의 정확한 절대 경로를 멱살 잡아 지정해 줍니다.</p>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># ACME_OPENSSL_BIN 변수에 실행 파일 경로를 강제로 주입하여 완벽하게 설치
+curl https://get.acme.sh | ACME_OPENSSL_BIN=$PREFIX/bin/openssl sh
+
+# 설치된 스크립트 설정을 현재 터미널 창에 즉시 적용
+source ~/.bashrc</code></pre>
+    </div>
+    <p>화면에 초록색으로 <code>Install success!</code>가 뜨면 완벽하게 시스템에 정착한 것입니다.</p>
+
+    <h2>3. ZeroSSL 이메일 계정 필수 등록</h2>
+    <p>최근 <code>acme.sh</code>의 기본 인증 기관이 Let's Encrypt에서 ZeroSSL로 변경되었습니다. 이들은 인증서 만료 안내를 위해 최소 1회의 이메일 등록을 강제하므로, 이 단계를 건너뛰면 발급 에러가 발생합니다.</p>
+    
+    <div class="box box-warning">
+        <span class="box-title">⚠️ 이메일 주소 수정 필수</span>
+        <p class="mb-0">명령어 끝에 있는 <code>본인실제이메일@gmail.com</code>을 반드시 본인이 실제로 사용하는 이메일로 수정하여 실행하세요. (스팸 메일은 오지 않습니다.)</p>
+    </div>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 이메일을 등록하여 ZeroSSL 기본 계정 세팅 완료
+~/.acme.sh/acme.sh --register-account -m 본인실제이메일@gmail.com</code></pre>
+    </div>
+
+    <h2>4. DuckDNS 토큰 등록 및 대망의 SSL 인증서 발급</h2>
+    <p>사전에 가입한 DuckDNS 홈페이지에서 본인의 도메인(예: <code>본인의DNS계정.duckdns.org</code>)과 <strong>고유 Token 값</strong>을 확인합니다. 이를 스크립트에 넘겨주어 내가 해당 도메인의 진짜 주인임을 증명하고 인증서를 받습니다.</p>
+
+    <div class="box box-danger">
+        <span class="box-title">⚠️ 본인 정보로 완벽히 수정하여 입력!</span>
+        <p class="mb-0">토큰 값은 절대 외부에 노출되지 않도록 주의하며 아래 따옴표 안에 정확히 붙여넣습니다.</p>
+    </div>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 1. DuckDNS 토큰 시스템 등록
+export DuckDNS_Token="본인계정의 www.duckdns.org 에서 발행한 토큰"
+
+# 2. 가볍고 처리 속도가 빠른 ECC 방식의 인증서 발급 요청
+~/.acme.sh/acme.sh --issue --dns dns_duckdns -d 본인의DNS계정.duckdns.org --ecc</code></pre>
+    </div>
+    
+    <div class="box box-success">
+        <span class="box-title">✅ 발급 성공 확인</span>
+        <p class="mb-0">화면에 10초~1분가량의 통신 내역이 지나간 후, 초록색 글씨로 <strong><code>Cert success!</code></strong>가 출력되면 대성공입니다! 발급된 최고 보안 등급의 <code>fullchain.cer</code> 파일과 <code>.key</code> 파일은 <code>~/.acme.sh/본인의DNS계정.duckdns.org_ecc/</code> 폴더 안에 소중하게 보관됩니다.</p>
+    </div>
+
+    <h2>5. 인증서 평생 자동 갱신 확인 (수동 관리 면제)</h2>
+    <p>우리가 1단계에서 설치한 스케줄러(crond) 덕분에, 인증서 만료 30일 전이 되면 시스템이 알아서 DuckDNS와 통신하여 인증서를 새것으로 교체해 줍니다. 제대로 알람이 맞춰졌는지 터미널에서 확인해 봅니다.</p>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 맞춰진 스케줄러(알람) 목록 확인
+crontab -l</code></pre>
+    </div>
+    <p>화면에 <code>acme.sh --cron ...</code> 이라는 문구가 출력된다면, 인증서 유지보수에 대해서는 평생 신경을 끄셔도 좋습니다!</p>
+<hr>
+    <h1>[3편] Nextcloud 엔진 및 데이터베이스 자동 구축 스크립트 (끝판왕)</h1>
+    
+    <div class="box box-primary">
+        <span class="box-title">💡 3편의 핵심 목표</span>
+        <p class="mb-0">인증서가 준비되었으니 이제 진짜 서버의 심장을 뛰게 할 차례입니다. <strong>Caddy(웹서버) + PHP-FPM(엔진) + MariaDB(데이터베이스) + Redis(메모리 캐시)</strong>를 한 번에 설치하고, 포트 충돌(80번 포트 권한 거부 에러)을 완벽하게 우회하는 맞춤형 마스터 스크립트를 실행합니다.</p>
+    </div>
+
+    <h2>1. 마스터 스크립트 생성 및 완벽한 코드 주입</h2>
+    <p>오타로 인한 <code>Dependency Hell(의존성 지옥)</code>을 막기 위해, 모든 설정 과정을 단일 스크립트 파일에 담아 한 번에 실행합니다. PC 원격 터미널(SSH)에서 빈 파일을 열고 아래 코드를 그대로 붙여넣습니다.</p>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 1. 스크립트를 작성할 빈 편집기 열기
+nano full-setup.sh</code></pre>
+    </div>
+
+    <div class="box box-danger">
+        <span class="box-title">⚠️ 매우 중요: 코드 복사 전 확인!</span>
+        <p class="mb-0">아래 코드는 사용자님의 <strong><code>본인의DNS계정.duckdns.org</code></strong> 환경에 완벽하게 맞춰져 있습니다. 단, <code>ADMIN_EMAIL</code> 변수만 본인이 실제로 사용하는 이메일로 수정한 뒤 터미널에 붙여넣으세요.</p>
+    </div>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code>#!/data/data/com.termux/files/usr/bin/bash
+set -e
+
+# =================================================
+# [0] 사용자 설정 변수 (본인의DNS계정 환경 맞춤)
+# =================================================
+DOMAIN_NAME="본인의DNS계정.duckdns.org"
+ADMIN_EMAIL="본인이메일@gmail.com"
+HTTP_PORT="58080"
+HTTPS_PORT="58443"
+
+echo "================================================="
+echo " 1. Nextcloud 엔진 및 패키지 설치"
+echo "================================================="
+pkg install -y php php-fpm php-gd php-redis caddy mariadb redis curl wget unzip termux-api
+
+CERT_FILE="$HOME/.acme.sh/${DOMAIN_NAME}_ecc/fullchain.cer"
+KEY_FILE="$HOME/.acme.sh/${DOMAIN_NAME}_ecc/${DOMAIN_NAME}.key"
+
+echo "================================================="
+echo " 2. Nextcloud 본체 다운로드 및 배치"
+echo "================================================="
+mkdir -p $PREFIX/etc/caddy
+mkdir -p $PREFIX/share/caddy
+mkdir -p $HOME/nextcloud-data
+
+cd $HOME
+wget https://download.nextcloud.com/server/releases/latest.zip
+unzip -q latest.zip -d $PREFIX/share/caddy/
+mv $PREFIX/share/caddy/nextcloud/* $PREFIX/share/caddy/ || true
+rm -rf $PREFIX/share/caddy/nextcloud latest.zip
+
+echo "================================================="
+echo " 3. PHP 성능 튜닝 및 Caddy 웹서버 포트 우회"
+echo "================================================="
+# PHP-FPM 내부 통신 포트 활성화 및 메모리 1GB 할당
+sed -i 's|^listen = .*|listen = 127.0.0.1:9000|' $PREFIX/etc/php-fpm.d/www.conf
+cat &lt;&lt;EOF &gt;&gt; $PREFIX/etc/php.ini
+memory_limit = 1024M
+upload_max_filesize = 10G
+post_max_size = 10G
+max_execution_time = 3600
+opcache.enable=1
+opcache.memory_consumption=256
+EOF
+
+# Caddyfile 생성 (글로벌 옵션으로 80번 포트 강제 점유 방지)
+cat &lt;&lt;EOF &gt; $PREFIX/etc/caddy/Caddyfile
+{
+    http_port $HTTP_PORT
+    https_port $HTTPS_PORT
+}
+http://$DOMAIN_NAME:$HTTP_PORT {
+    redir https://$DOMAIN_NAME:$HTTPS_PORT{uri}
+}
+https://$DOMAIN_NAME:$HTTPS_PORT {
+    root * $PREFIX/share/caddy
+    tls $CERT_FILE $KEY_FILE
+    php_fastcgi 127.0.0.1:9000
+    file_server
+    encode gzip
+    header Strict-Transport-Security "max-age=15552000;"
+}
+EOF
+
+echo "================================================="
+echo " 4. MariaDB 무결점 초기화 및 자동 부팅 스크립트"
+echo "================================================="
+# 기존 데이터가 꼬이지 않도록 검사 후 DB 초기화
+if [ ! -d "$PREFIX/var/lib/mysql" ] || [ -z "$(ls -A $PREFIX/var/lib/mysql)" ]; then
+    mariadb-install-db --datadir=$PREFIX/var/lib/mysql
+fi
+mariadbd-safe --datadir=$PREFIX/var/lib/mysql &gt;/dev/null 2&gt;&amp;1 &amp;
+sleep 5
+
+# Nextcloud 전용 DB 및 계정 생성
+mariadb -e "CREATE DATABASE IF NOT EXISTS nextcloud;"
+mariadb -e "CREATE USER IF NOT EXISTS '본인이 사용할DB계정'@'localhost' IDENTIFIED BY '본인이사용할DB패스워드';"
+mariadb -e "GRANT ALL PRIVILEGES ON nextcloud.* TO '본인이 사용할DB계정'@'localhost';"
+mariadb -e "FLUSH PRIVILEGES;"
+
+# 스마트폰 재부팅 시 24시간 자동 생존을 위한 스크립트 작성
+mkdir -p ~/.termux/boot
+cat &lt;&lt;EOF &gt; ~/.termux/boot/start-nextcloud.sh
+#!/data/data/com.termux/files/usr/bin/bash
+termux-wake-lock
+crond
+mariadbd-safe --datadir=\$PREFIX/var/lib/mysql &gt;/dev/null &amp;
+sleep 5
+php-fpm
+redis-server --daemonize yes
+caddy run --config \$PREFIX/etc/caddy/Caddyfile &gt;/dev/null &amp;
+EOF
+chmod +x ~/.termux/boot/start-nextcloud.sh
+
+echo "================================================="
+echo " 마스터 설정 완료! 서버 시스템을 최종 가동합니다."
+echo "================================================="
+
+# 서비스 즉시 실행
+redis-server --daemonize yes
+php-fpm || true
+pkill caddy || true
+caddy run --config $PREFIX/etc/caddy/Caddyfile &gt;/dev/null 2&gt;&amp;1 &amp;</code></pre>
+    </div>
+
+    <h2>2. 스크립트 저장 및 마법 실행</h2>
+    <p>편집기에 내용을 모두 붙여넣었다면 <strong><code>Ctrl + O</code> ➡️ <code>Enter</code> ➡️ <code>Ctrl + X</code></strong>를 순서대로 눌러 저장하고 빠져나옵니다. 이제 대망의 실행 명령어를 입력합니다.</p>
+
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code>bash full-setup.sh</code></pre>
+    </div>
+
+    <div class="box box-success">
+        <span class="box-title">✅ 내부 구축 성공!</span>
+        <p class="mb-0">수많은 문자가 스크롤되며 단 1~2분 만에 복잡한 서버 아키텍처가 완벽하게 완성됩니다. 이제 서버 프로그램은 스마트폰 내부에서 <code>58443</code> 포트를 활짝 열고 사용자님의 접속을 기다리고 있습니다.</p>
+    </div>
+
+    <hr>
+
+    <h1>[4편] ipTIME 공유기 외부 접속(포트포워딩) 및 NAT 루프백</h1>
+    
+    <div class="box box-focus">
+        <span class="box-title">💡 4편의 핵심 목표</span>
+        <p class="mb-0">서버가 켜졌지만, 밖에서 이 서버로 찾아오려면 집 입구를 지키고 있는 <strong>ipTIME 공유기가 길을 열어주어야 합니다.</strong> 또한 스마트폰의 IP 주소가 바뀌어 길을 잃지 않도록 <strong>내부 IP를 영구적으로 고정</strong>하는 작업을 진행합니다.</p>
+    </div>
+
+    <h2>1. 스마트폰(Note 10+) IP 주소 영구 고정</h2>
+    <p>스마트폰이 와이파이를 껐다 켤 때마다 IP 주소가 바뀌면 포트포워딩 규칙이 무용지물이 됩니다. 이를 방지하기 위한 필수 작업입니다.</p>
+    <ol>
+        <li>노트북 웹 브라우저 주소창에 <strong><code>192.168.0.1</code></strong>을 입력하여 ipTIME 관리자 페이지에 접속 및 로그인합니다.</li>
+        <li><strong>[고급 설정] ➡️ [네트워크 관리] ➡️ [내부 네트워크 설정]</strong> 메뉴로 들어갑니다.</li>
+        <li>우측 하단의 <strong>'사용 중인 IP 주소 정보'</strong> 목록에서 서버로 구동 중인 스마트폰의 IP 주소를 찾습니다.</li>
+        <li>해당 기기 앞의 <strong>[체크박스]</strong>를 누르고, 바로 위의 <strong>[➕ 등록] (또는 수동 등록)</strong> 버튼을 클릭합니다.</li>
+    </ol>
+
+    <h2>2. 포트포워딩(Port Forwarding) 규칙 추가</h2>
+    <p>외부(LTE)에서 <code>본인의DNS계정.duckdns.org:58443</code>을 치고 들어오는 신호를 스마트폰(Note 10+)으로 정확히 배달해 주는 핵심 규칙입니다.</p>
+
+    <div class="box box-warning">
+        <span class="box-title">⚠️ 포트 번호 일치 확인</span>
+        <p class="mb-0">내부 포트와 외부 포트를 <strong>반드시 58443으로 동일하게</strong> 맞춰야 HTTPS 보안 암호화가 깨지지 않습니다.</p>
+    </div>
+
+    <ol>
+        <li><strong>[고급 설정] ➡️ [NAT/라우터 관리] ➡️ [포트포워드 설정]</strong> 메뉴로 이동합니다.</li>
+        <li>화면 하단의 새 규칙 추가 창에 아래와 같이 정확하게 입력합니다.</li>
+    </ol>
+
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: left;">
+        <thead>
+            <tr style="background-color: #f2f2f2; border-bottom: 2px solid #ddd;">
+                <th style="padding: 10px; border: 1px solid #ddd;">항목</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">입력할 내용</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #ddd;"><strong>규칙이름</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;">Nextcloud_HTTPS (자유롭게 입력)</td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #ddd;"><strong>내부 IP주소</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;"><strong>방금 1단계에서 고정한 스마트폰의 IP 주소</strong></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #ddd;"><strong>프로토콜</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;"><strong>TCP</strong></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #ddd;"><strong>외부 포트</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;"><span class="highlight-bg">58443</span> ~ <span class="highlight-bg">58443</span></td>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #ddd;"><strong>내부 포트</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;"><span class="highlight-bg">58443</span> ~ <span class="highlight-bg">58443</span></td>
+            </tr>
+        </tbody>
+    </table>
+    <p>모두 입력했다면 <strong>[적용]</strong> 버튼을 누르고 우측 상단의 <strong>[저장]</strong> 아이콘을 클릭합니다.</p>
+
+    <h2>3. 대망의 최종 접속 테스트 및 NAT 루프백 주의사항</h2>
+    <p>모든 설정이 끝났습니다! 이제 브라우저 주소창에 <strong><code>https://본인의DNS계정.duckdns.org:58443</code></strong>을 입력하여 접속합니다.</p>
+
+    <div class="box box-danger">
+        <span class="box-title">🛑 NAT Loopback 에러 주의 (사이트 연결 거부)</span>
+        <p class="mb-0">스마트폰이 집 안의 와이파이(ipTIME 공유기)에 연결된 상태에서 외부 도메인 주소로 접속을 시도하면, 공유기가 "집에서 나갔던 신호가 다시 자기 자신(집)으로 되돌아오네?"라며 해킹으로 간주하고 연결을 거부하는 <strong>NAT 루프백 미지원 현상</strong>이 흔하게 발생합니다.</p>
+        <p style="margin-top: 10px;"><strong>[가장 확실한 테스트 방법]</strong><br>스마트폰의 와이파이를 끄고 <strong>오직 LTE/5G 데이터 모드</strong>인 상태에서 브라우저를 열어 접속하세요. 자물쇠 마크와 함께 초기 설정 화면이 뜨면 공유기 포트포워딩이 완벽하게 길을 뚫어준 것입니다!</p>
+    </div>
+
+    <div class="box box-primary text-center">
+        <h3 style="color: #004a99; margin-top: 0;">🎉 축하합니다! 개인 클라우드 마스터에 등극하셨습니다!</h3>
+        <p class="mb-0">1편부터 4편까지 그 험난한 트러블슈팅의 여정을 모두 이겨내고, 기업급 보안과 자동화를 갖춘 나만의 무제한 클라우드를 완성하셨습니다. 이제 노트북 탐색기나 스마트폰 앱을 연동하여 평생 유지비 없는 완벽한 디지털 라이프를 누려보세요!</p>
+    </div>
+</div>
+</body>
+</html>
+
