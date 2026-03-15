@@ -7,7 +7,7 @@
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; }
         .container { max-width: 900px; margin: 20px auto; padding: 30px; background-color: #fff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-radius: 8px; }
-        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; margin-top: 40px; }
+        h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; margin-top: 50px; }
         h2 { color: #2980b9; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 30px; }
         h3 { color: #16a085; }
         .box { padding: 20px; margin-bottom: 25px; border-radius: 8px; border-left: 6px solid; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -21,8 +21,9 @@
         .copy-btn { position: absolute; top: 10px; right: 10px; background: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; transition: 0.3s; }
         .copy-btn:hover { background: #2980b9; }
         .highlight-bg { background-color: #ffe0b2; font-weight: bold; padding: 2px 6px; border-radius: 4px; color: #e65100; }
-        ul, ol { margin-bottom: 20px; }
+        ul, ol { margin-bottom: 20px; padding-left: 20px; }
         li { margin-bottom: 8px; }
+        hr { border: 0; border-top: 2px dashed #ccc; margin: 40px 0; }
     </style>
 </head>
 <body>
@@ -179,11 +180,6 @@ source ~/.bashrc</code></pre>
     <h2>4. DuckDNS 토큰 등록 및 대망의 SSL 인증서 발급</h2>
     <p>사전에 가입한 DuckDNS 홈페이지에서 본인의 도메인(예: <code>본인의DNS계정.duckdns.org</code>)과 <strong>고유 Token 값</strong>을 확인합니다. 이를 스크립트에 넘겨주어 내가 해당 도메인의 진짜 주인임을 증명하고 인증서를 받습니다.</p>
 
-    <div class="box box-danger">
-        <span class="box-title">⚠️ 본인 정보로 완벽히 수정하여 입력!</span>
-        <p class="mb-0">토큰 값은 절대 외부에 노출되지 않도록 주의하며 아래 따옴표 안에 정확히 붙여넣습니다.</p>
-    </div>
-
     <div class="code-wrapper">
         <button class="copy-btn">복사</button>
         <pre><code># 1. DuckDNS 토큰 시스템 등록
@@ -198,16 +194,8 @@ export DuckDNS_Token="본인계정의 www.duckdns.org 에서 발행한 토큰"
         <p class="mb-0">화면에 10초~1분가량의 통신 내역이 지나간 후, 초록색 글씨로 <strong><code>Cert success!</code></strong>가 출력되면 대성공입니다! 발급된 최고 보안 등급의 <code>fullchain.cer</code> 파일과 <code>.key</code> 파일은 <code>~/.acme.sh/본인의DNS계정.duckdns.org_ecc/</code> 폴더 안에 소중하게 보관됩니다.</p>
     </div>
 
-    <h2>5. 인증서 평생 자동 갱신 확인 (수동 관리 면제)</h2>
-    <p>우리가 1단계에서 설치한 스케줄러(crond) 덕분에, 인증서 만료 30일 전이 되면 시스템이 알아서 DuckDNS와 통신하여 인증서를 새것으로 교체해 줍니다. 제대로 알람이 맞춰졌는지 터미널에서 확인해 봅니다.</p>
+    <hr>
 
-    <div class="code-wrapper">
-        <button class="copy-btn">복사</button>
-        <pre><code># 맞춰진 스케줄러(알람) 목록 확인
-crontab -l</code></pre>
-    </div>
-    <p>화면에 <code>acme.sh --cron ...</code> 이라는 문구가 출력된다면, 인증서 유지보수에 대해서는 평생 신경을 끄셔도 좋습니다!</p>
-<hr>
     <h1>[3편] Nextcloud 엔진 및 데이터베이스 자동 구축 스크립트 (끝판왕)</h1>
     
     <div class="box box-primary">
@@ -266,7 +254,7 @@ rm -rf $PREFIX/share/caddy/nextcloud latest.zip
 echo "================================================="
 echo " 3. PHP 성능 튜닝 및 Caddy 웹서버 포트 우회"
 echo "================================================="
-# PHP-FPM 내부 통신 포트 활성화 및 메모리 1GB 할당
+# PHP-FPM 내부 통신 포트 활성화 및 기본 메모리 설정
 sed -i 's|^listen = .*|listen = 127.0.0.1:9000|' $PREFIX/etc/php-fpm.d/www.conf
 cat &lt;&lt;EOF &gt;&gt; $PREFIX/etc/php.ini
 memory_limit = 1024M
@@ -297,57 +285,33 @@ https://$DOMAIN_NAME:$HTTPS_PORT {
 EOF
 
 echo "================================================="
-echo " 4. MariaDB 무결점 초기화 및 자동 부팅 스크립트"
+echo " 4. MariaDB 무결점 초기화 및 계정 세팅"
 echo "================================================="
-# 기존 데이터가 꼬이지 않도록 검사 후 DB 초기화
 if [ ! -d "$PREFIX/var/lib/mysql" ] || [ -z "$(ls -A $PREFIX/var/lib/mysql)" ]; then
     mariadb-install-db --datadir=$PREFIX/var/lib/mysql
 fi
 mariadbd-safe --datadir=$PREFIX/var/lib/mysql &gt;/dev/null 2&gt;&amp;1 &amp;
 sleep 5
 
-# Nextcloud 전용 DB 및 계정 생성
 mariadb -e "CREATE DATABASE IF NOT EXISTS nextcloud;"
 mariadb -e "CREATE USER IF NOT EXISTS '본인이 사용할DB계정'@'localhost' IDENTIFIED BY '본인이사용할DB패스워드';"
 mariadb -e "GRANT ALL PRIVILEGES ON nextcloud.* TO '본인이 사용할DB계정'@'localhost';"
 mariadb -e "FLUSH PRIVILEGES;"
 
-# 스마트폰 재부팅 시 24시간 자동 생존을 위한 스크립트 작성
-mkdir -p ~/.termux/boot
-cat &lt;&lt;EOF &gt; ~/.termux/boot/start-nextcloud.sh
-#!/data/data/com.termux/files/usr/bin/bash
-termux-wake-lock
-crond
-mariadbd-safe --datadir=\$PREFIX/var/lib/mysql &gt;/dev/null &amp;
-sleep 5
-php-fpm
-redis-server --daemonize yes
-caddy run --config \$PREFIX/etc/caddy/Caddyfile &gt;/dev/null &amp;
-EOF
-chmod +x ~/.termux/boot/start-nextcloud.sh
-
 echo "================================================="
 echo " 마스터 설정 완료! 서버 시스템을 최종 가동합니다."
 echo "================================================="
-
-# 서비스 즉시 실행
 redis-server --daemonize yes
 php-fpm || true
 pkill caddy || true
 caddy run --config $PREFIX/etc/caddy/Caddyfile &gt;/dev/null 2&gt;&amp;1 &amp;</code></pre>
     </div>
 
-    <h2>2. 스크립트 저장 및 마법 실행</h2>
-    <p>편집기에 내용을 모두 붙여넣었다면 <strong><code>Ctrl + O</code> ➡️ <code>Enter</code> ➡️ <code>Ctrl + X</code></strong>를 순서대로 눌러 저장하고 빠져나옵니다. 이제 대망의 실행 명령어를 입력합니다.</p>
-
+    <h2>2. 스크립트 실행 및 결과 확인</h2>
+    <p>저장(`Ctrl+O`, `Enter`, `Ctrl+X`) 후 아래 명령어로 실행합니다.</p>
     <div class="code-wrapper">
         <button class="copy-btn">복사</button>
         <pre><code>bash full-setup.sh</code></pre>
-    </div>
-
-    <div class="box box-success">
-        <span class="box-title">✅ 내부 구축 성공!</span>
-        <p class="mb-0">수많은 문자가 스크롤되며 단 1~2분 만에 복잡한 서버 아키텍처가 완벽하게 완성됩니다. 이제 서버 프로그램은 스마트폰 내부에서 <code>58443</code> 포트를 활짝 열고 사용자님의 접속을 기다리고 있습니다.</p>
     </div>
 
     <hr>
@@ -356,30 +320,14 @@ caddy run --config $PREFIX/etc/caddy/Caddyfile &gt;/dev/null 2&gt;&amp;1 &amp;</
     
     <div class="box box-focus">
         <span class="box-title">💡 4편의 핵심 목표</span>
-        <p class="mb-0">서버가 켜졌지만, 밖에서 이 서버로 찾아오려면 집 입구를 지키고 있는 <strong>ipTIME 공유기가 길을 열어주어야 합니다.</strong> 또한 스마트폰의 IP 주소가 바뀌어 길을 잃지 않도록 <strong>내부 IP를 영구적으로 고정</strong>하는 작업을 진행합니다.</p>
+        <p class="mb-0">서버가 켜졌지만, 밖에서 이 서버로 찾아오려면 집 입구를 지키고 있는 <strong>ipTIME 공유기가 길을 열어주어야 합니다.</strong> 내부 IP를 영구적으로 고정하고 외부 접속을 허용합니다.</p>
     </div>
 
     <h2>1. 스마트폰(Note 10+) IP 주소 영구 고정</h2>
-    <p>스마트폰이 와이파이를 껐다 켤 때마다 IP 주소가 바뀌면 포트포워딩 규칙이 무용지물이 됩니다. 이를 방지하기 위한 필수 작업입니다.</p>
-    <ol>
-        <li>노트북 웹 브라우저 주소창에 <strong><code>192.168.0.1</code></strong>을 입력하여 ipTIME 관리자 페이지에 접속 및 로그인합니다.</li>
-        <li><strong>[고급 설정] ➡️ [네트워크 관리] ➡️ [내부 네트워크 설정]</strong> 메뉴로 들어갑니다.</li>
-        <li>우측 하단의 <strong>'사용 중인 IP 주소 정보'</strong> 목록에서 서버로 구동 중인 스마트폰의 IP 주소를 찾습니다.</li>
-        <li>해당 기기 앞의 <strong>[체크박스]</strong>를 누르고, 바로 위의 <strong>[➕ 등록] (또는 수동 등록)</strong> 버튼을 클릭합니다.</li>
-    </ol>
+    <p>공유기 관리페이지(`192.168.0.1`) ➡️ [고급 설정] ➡️ [네트워크 관리] ➡️ [내부 네트워크 설정]에서 스마트폰의 IP 주소를 체크 후 수동 등록합니다.</p>
 
     <h2>2. 포트포워딩(Port Forwarding) 규칙 추가</h2>
-    <p>외부(LTE)에서 <code>본인의DNS계정.duckdns.org:58443</code>을 치고 들어오는 신호를 스마트폰(Note 10+)으로 정확히 배달해 주는 핵심 규칙입니다.</p>
-
-    <div class="box box-warning">
-        <span class="box-title">⚠️ 포트 번호 일치 확인</span>
-        <p class="mb-0">내부 포트와 외부 포트를 <strong>반드시 58443으로 동일하게</strong> 맞춰야 HTTPS 보안 암호화가 깨지지 않습니다.</p>
-    </div>
-
-    <ol>
-        <li><strong>[고급 설정] ➡️ [NAT/라우터 관리] ➡️ [포트포워드 설정]</strong> 메뉴로 이동합니다.</li>
-        <li>화면 하단의 새 규칙 추가 창에 아래와 같이 정확하게 입력합니다.</li>
-    </ol>
+    <p>[고급 설정] ➡️ [NAT/라우터 관리] ➡️ [포트포워드 설정]에 아래 규칙을 추가합니다.</p>
 
     <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; text-align: left;">
         <thead>
@@ -390,43 +338,269 @@ caddy run --config $PREFIX/etc/caddy/Caddyfile &gt;/dev/null 2&gt;&amp;1 &amp;</
         </thead>
         <tbody>
             <tr>
-                <td style="padding: 10px; border: 1px solid #ddd;"><strong>규칙이름</strong></td>
-                <td style="padding: 10px; border: 1px solid #ddd;">Nextcloud_HTTPS (자유롭게 입력)</td>
-            </tr>
-            <tr>
                 <td style="padding: 10px; border: 1px solid #ddd;"><strong>내부 IP주소</strong></td>
                 <td style="padding: 10px; border: 1px solid #ddd;"><strong>방금 1단계에서 고정한 스마트폰의 IP 주소</strong></td>
             </tr>
             <tr>
-                <td style="padding: 10px; border: 1px solid #ddd;"><strong>프로토콜</strong></td>
-                <td style="padding: 10px; border: 1px solid #ddd;"><strong>TCP</strong></td>
-            </tr>
-            <tr>
-                <td style="padding: 10px; border: 1px solid #ddd;"><strong>외부 포트</strong></td>
-                <td style="padding: 10px; border: 1px solid #ddd;"><span class="highlight-bg">58443</span> ~ <span class="highlight-bg">58443</span></td>
-            </tr>
-            <tr>
-                <td style="padding: 10px; border: 1px solid #ddd;"><strong>내부 포트</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;"><strong>외부 포트 / 내부 포트</strong></td>
                 <td style="padding: 10px; border: 1px solid #ddd;"><span class="highlight-bg">58443</span> ~ <span class="highlight-bg">58443</span></td>
             </tr>
         </tbody>
     </table>
-    <p>모두 입력했다면 <strong>[적용]</strong> 버튼을 누르고 우측 상단의 <strong>[저장]</strong> 아이콘을 클릭합니다.</p>
-
-    <h2>3. 대망의 최종 접속 테스트 및 NAT 루프백 주의사항</h2>
-    <p>모든 설정이 끝났습니다! 이제 브라우저 주소창에 <strong><code>https://본인의DNS계정.duckdns.org:58443</code></strong>을 입력하여 접속합니다.</p>
 
     <div class="box box-danger">
         <span class="box-title">🛑 NAT Loopback 에러 주의 (사이트 연결 거부)</span>
-        <p class="mb-0">스마트폰이 집 안의 와이파이(ipTIME 공유기)에 연결된 상태에서 외부 도메인 주소로 접속을 시도하면, 공유기가 "집에서 나갔던 신호가 다시 자기 자신(집)으로 되돌아오네?"라며 해킹으로 간주하고 연결을 거부하는 <strong>NAT 루프백 미지원 현상</strong>이 흔하게 발생합니다.</p>
-        <p style="margin-top: 10px;"><strong>[가장 확실한 테스트 방법]</strong><br>스마트폰의 와이파이를 끄고 <strong>오직 LTE/5G 데이터 모드</strong>인 상태에서 브라우저를 열어 접속하세요. 자물쇠 마크와 함께 초기 설정 화면이 뜨면 공유기 포트포워딩이 완벽하게 길을 뚫어준 것입니다!</p>
+        <p class="mb-0">스마트폰이 집 안의 와이파이(ipTIME 공유기)에 연결된 상태에서 외부 도메인 주소로 접속을 시도하면 연결이 거부됩니다. 테스트 시에는 반드시 와이파이를 끄고 <strong>오직 LTE/5G 데이터 모드</strong>에서 접속하세요.</p>
+    </div>
+
+    <hr>
+
+    <h1 id="sd-card-expansion">[5편] 안드로이드 서버 용량 무제한 확장 (SD 카드 외부 저장소 연동)</h1>
+    
+    <div class="box box-primary">
+        <span class="box-title">💡 5편의 핵심 목표</span>
+        <p class="mb-0">안드로이드의 엄격한 보안 정책을 뚫고 <strong>SD 카드</strong>를 넥스트클라우드의 '외부 저장소'로 마운트하여 대용량 파일 창고로 활용합니다.</p>
+    </div>
+
+    <h2>1. 넥스트클라우드 '외부 저장소' 기능 깨우기 & 고유 번호 알아내기</h2>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 관리자(occ) 명령어를 통해 외부 저장소 플러그인 켜기
+php $PREFIX/share/caddy/nextcloud/occ app:enable files_external
+
+# SD카드의 고유 주소(예: 0DCB-E5D5) 확인
+df -h</code></pre>
+    </div>
+
+    <h2>2. SD 카드 내부에 합법적인 전용 폴더 만들기</h2>
+    <p>오직 <strong>안드로이드가 공식적으로 허락한 해당 앱의 전용 데이터 구역</strong>에만 창고를 지어야 권한 에러(Permission denied)를 피할 수 있습니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># XXXX-XXXX 부분을 본인의 SD 카드 고유 번호로 변경
+mkdir -p /storage/XXXX-XXXX/Android/data/com.termux/files/sd_card</code></pre>
+    </div>
+
+    <h2>3. 웹 화면에서 대망의 SD 카드 최종 연결하기</h2>
+    <p>넥스트클라우드 웹 화면 ➡️ [프로필] ➡️ [관리자 설정] ➡️ [외부 저장소]에서 아래와 같이 입력합니다.</p>
+    <ul class="mb-0">
+        <li><strong>폴더 이름:</strong> <code>SD카드</code></li>
+        <li><strong>외부 저장소:</strong> <code>로컬 (Local)</code></li>
+        <li><strong>인증:</strong> <code>없음 (None)</code></li>
+        <li><strong>구성(경로):</strong> 👉 <strong><code><span class="highlight-bg">/storage/XXXX-XXXX/Android/data/com.termux/files/sd_card</span></code></strong></li>
+    </ul>
+    <p>우측 체크(✔️) 버튼을 눌러 <strong>🟢 초록색 동그라미</strong>가 뜨면 성공입니다.</p>
+
+    <hr>
+
+    <h1 id="dcim-photo-sync">[6편] 스마트폰 기본 갤러리(DCIM) 사진 완벽 연동 가이드</h1>
+    
+    <div class="box box-primary">
+        <span class="box-title">💡 6편의 핵심 목표</span>
+        <p class="mb-0">스마트폰 자체가 서버이기 때문에 누릴 수 있는 특권! 폰으로 찍은 사진을 복잡한 업로드 과정 없이 넥스트클라우드에서 실시간으로 확인합니다.</p>
+    </div>
+
+    <h2>방법 1. 사진을 이동하지 않고 '폴더만 연결'하기 (★가장 추천)</h2>
+    <p>웹 화면 ➡️ [관리자 설정] ➡️ [외부 저장소]에서 아래와 같이 입력합니다.</p>
+    <ul class="mb-0">
+        <li><strong>폴더 이름:</strong> <code>스마트폰 사진첩</code></li>
+        <li><strong>외부 저장소:</strong> <code>로컬 (Local)</code> / <strong>인증:</strong> <code>없음</code></li>
+        <li><strong>구성(경로):</strong> 👉 <strong><code><span class="highlight-bg">/storage/emulated/0/DCIM</span></code></strong></li>
+    </ul>
+
+    <h2>방법 2. 터미널에서 파일을 물리적으로 옮겼을 경우의 주의점</h2>
+    <div class="box box-danger">
+        <p class="mb-0">터미널(SSH)에서 <code>cp</code>나 <code>mv</code>로 파일을 직접 넥스트클라우드 폴더에 넣었다면, 반드시 아래 명령어로 데이터베이스를 새로고침(스캔)해야 웹 화면에 나타납니다.</p>
+    </div>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 시스템 전체 파일 강제 재스캔 명령어
+php $PREFIX/share/caddy/nextcloud/occ files:scan --all</code></pre>
+    </div>
+
+    <hr>
+
+    <h1 id="iptime-hdd-bridge">[7편] 루팅 없이 2TB+ 외장 하드 무제한 연동 (rclone WebDAV 브릿지)</h1>
+    
+    <div class="box box-primary">
+        <span class="box-title">💡 7편의 핵심 목표</span>
+        <p class="mb-0">공유기에 꽂힌 대용량 외장 하드를 서버에 연결하기 위해, 공유기의 <strong>FTP 서비스</strong>를 터미널 내에서 <strong>WebDAV</strong>로 실시간 번역하여 공급하는 '네트워크 브릿지' 기술을 적용합니다.</p>
+    </div>
+
+    <h2>1. 공유기 설정 및 Termux 통역사(rclone) 세팅</h2>
+    <p>ipTIME 공유기 관리자 페이지에서 <strong>[ipDISK/FTP 서비스]</strong>를 활성화(포트 21, UTF-8)합니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 1. rclone 설치
+pkg install rclone -y
+
+# 2. 연결 마법사 (n -> iptime -> ftp -> 192.168.0.1 -> admin -> 비번 입력 -> 엔터 -> q)
+rclone config</code></pre>
+    </div>
+
+    <h2>2. 보안 규칙 해제 및 브릿지 서버 가동</h2>
+    <p>넥스트클라우드는 보안상 자기 자신(127.0.0.1)으로의 접속을 차단합니다. 이를 먼저 허용해주어야 합니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># config.php 파일 수정 (마지막 부분에 추가)
+nano $PREFIX/share/caddy/nextcloud/config/config.php
+# 추가할 내용: 'allow_local_remote_servers' => true,
+
+# 통역사(브릿지) 서버 백그라운드 실행
+nohup rclone serve webdav iptime: --addr 127.0.0.1:8000 --user admin --pass 1234 > /dev/null 2>&1 &</code></pre>
+    </div>
+
+    <h2>3. 최종 연결</h2>
+    <p>웹 화면 ➡️ [외부 저장소]에서 <strong>WebDAV</strong>를 선택하고, URL에 <code>http://127.0.0.1:8000</code>, 계정 정보에 <code>admin / 1234</code>를 입력 후 저장합니다.</p>
+
+    <hr>
+
+    <h1 id="server-optimization">[8편] 서버 성능 및 보안 최적화 (경고 메시지 완벽 제거)</h1>
+    
+    <div class="box box-success">
+        <span class="box-title">🚀 8편의 핵심 목표</span>
+        <p class="mb-0">PHP 엔진 출력 한계, 보안 헤더 누락, DB 인덱스 부족 등 관리자 페이지에 뜨는 수많은 노란색/빨간색 경고들을 남김없이 제거하여 엔터프라이즈급 성능을 확보합니다.</p>
+    </div>
+
+    <h2>1. PHP 설정 파일(php.ini) 올바른 위치 지정 및 엔진 출력 강화</h2>
+    <p>Termux 환경에서는 간혹 PHP 설정 파일이 엉뚱한 곳에 있어 <code>(none)</code>으로 인식되는 경우가 있습니다. 이를 바로잡고 1GB 메모리와 OPcache를 튜닝합니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 1. 설정 폴더 생성 및 기존 파일 이동 (설정이 (none)으로 뜰 때 해결법)
+mkdir -p $PREFIX/etc/php
+mv $PREFIX/etc/php.ini $PREFIX/etc/php/php.ini 2>/dev/null || true
+
+# 2. php.ini 파일 수정
+nano $PREFIX/etc/php/php.ini
+
+# (아래 내용을 찾아 수정하거나 맨 끝에 추가)
+memory_limit = 1024M
+upload_max_filesize = 10G
+post_max_size = 10G
+max_execution_time = 3600
+opcache.enable=1
+opcache.memory_consumption=256
+opcache.interned_strings_buffer=16
+opcache.max_accelerated_files=10000
+opcache.revalidate_freq=1
+opcache.save_comments=1</code></pre>
+    </div>
+
+    <h2>2. 데이터베이스 정밀 수리 및 보안 헤더 추가</h2>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 1. 누락된 DB 인덱스 추가 및 MIME 마이그레이션
+php $PREFIX/share/caddy/nextcloud/occ db:add-missing-indices
+php $PREFIX/share/caddy/nextcloud/occ maintenance:repair --include-expensive
+
+# 2. config.php 파일에 역방향 프록시(Caddy) 신뢰 설정 추가
+nano $PREFIX/share/caddy/nextcloud/config/config.php
+
+# (마지막 ); 윗줄에 아래 세 줄 추가)
+'trusted_proxies' => ['127.0.0.1'],
+'forwarded_for_headers' => ['HTTP_X_FORWARDED_FOR'],
+'maintenance_window_start' => 1,
+
+# 3. 환경 변수 인식 오류 해결 (www.conf 파일 수정)
+nano $PREFIX/etc/php-fpm.d/www.conf
+# clear_env = no 의 주석(;)을 제거하여 활성화
+
+# ★ 모든 설정 후 프로세스 재시작 필수
+pkill php-fpm && php-fpm</code></pre>
+    </div>
+
+    <hr>
+
+    <h1 id="background-jobs">[9편] 시스템 자동 청소 및 배경 작업 (Cron 적용)</h1>
+    
+    <div class="box box-primary">
+        <span class="box-title">💡 9편의 핵심 목표</span>
+        <p class="mb-0">넥스트클라우드가 방문자 접속 시에만(AJAX) 찌꺼기를 청소하지 않고, 서버가 알아서 5분마다 백그라운드에서 최적화 작업을 수행하도록 시스템 스케줄러(Cron)를 연동합니다.</p>
+    </div>
+
+    <h2>1. 크론 스케줄러 설치 및 등록</h2>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 크론 패키지 설치
+pkg install cronie -y
+
+# 스케줄 편집기 열기
+crontab -e
+
+# 편집기에 아래 내용 붙여넣기 (5분마다 Nextcloud cron.php 실행)
+*/5 * * * * php /data/data/com.termux/files/usr/share/caddy/nextcloud/cron.php</code></pre>
+    </div>
+
+    <h2>2. 넥스트클라우드 설정 변경</h2>
+    <p>웹 화면 ➡️ <strong>[관리자 설정]</strong> ➡️ <strong>[기본 설정]</strong> (또는 배경 작업) ➡️ <strong>[Cron]</strong> 라디오 버튼을 선택합니다. 약 5분 뒤 초록색 불이 들어옵니다.</p>
+
+    <hr>
+
+    <h1 id="master-script">[10편] 서버 원클릭 가동 마스터 스크립트 (완결)</h1>
+    
+    <div class="box box-success">
+        <span class="box-title">🚀 10편의 핵심 목표</span>
+        <p class="mb-0">스마트폰을 껐다 켜거나 Termux가 종료되었을 때, <strong>MariaDB ➡️ PHP-FPM ➡️ Caddy ➡️ rclone 브릿지 ➡️ Cron 스케줄러</strong>를 순서대로 완벽하게 부팅시켜주는 원클릭 마스터 스크립트를 작성합니다.</p>
+    </div>
+
+    <h2>1. 마스터 스크립트 생성 (`start_server.sh`)</h2>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code>nano ~/start_server.sh</code></pre>
+    </div>
+
+    <p>아래 코드를 복사해서 붙여넣습니다.</p>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code>#!/data/data/com.termux/files/usr/bin/bash
+
+echo "🚀 HOONLINUX 서버 가동을 시작합니다..."
+
+# 1. MariaDB (데이터베이스)
+echo "📡 [1/5] MariaDB 가동 중..."
+mysqld_safe --datadir=$PREFIX/var/lib/mysql > /dev/null 2>&1 &
+sleep 3
+
+# 2. PHP-FPM (웹 엔진)
+echo "🐘 [2/5] PHP-FPM 가동 중..."
+php-fpm
+sleep 1
+
+# 3. Caddy (웹 서버)
+echo "🌐 [3/5] Caddy 웹 서버 가동 중..."
+nohup caddy run --config $PREFIX/share/caddy/Caddyfile --adapter caddyfile > /dev/null 2>&1 &
+sleep 1
+
+# 4. rclone (공유기 하드 브릿지)
+echo "💾 [4/5] 공유기 외장하드 연결 중 (rclone)..."
+pkill rclone > /dev/null 2>&1
+nohup rclone serve webdav iptime: --addr 127.0.0.1:8000 --user admin --pass 1234 > /dev/null 2>&1 &
+sleep 2
+
+# 5. Cron (배경 작업 스케줄러)
+echo "⏰ [5/5] Cron 자동화 시스템 가동 중..."
+pkill crond > /dev/null 2>&1
+crond
+
+echo "✅ 모든 서비스가 정상적으로 시작되었습니다!"
+echo "📍 주소: https://본인의DNS계정.duckdns.org:58443"
+echo "------------------------------------------"</code></pre>
+    </div>
+
+    <h2>2. 권한 부여 및 실행 방법</h2>
+    <div class="code-wrapper">
+        <button class="copy-btn">복사</button>
+        <pre><code># 실행 권한 부여
+chmod +x ~/start_server.sh
+
+# 앞으로 터미널을 켜면 아래 명령어 하나로 서버 전체가 켜집니다.
+./start_server.sh</code></pre>
     </div>
 
     <div class="box box-primary text-center">
-        <h3 style="color: #004a99; margin-top: 0;">🎉 축하합니다! 개인 클라우드 마스터에 등극하셨습니다!</h3>
-        <p class="mb-0">1편부터 4편까지 그 험난한 트러블슈팅의 여정을 모두 이겨내고, 기업급 보안과 자동화를 갖춘 나만의 무제한 클라우드를 완성하셨습니다. 이제 노트북 탐색기나 스마트폰 앱을 연동하여 평생 유지비 없는 완벽한 디지털 라이프를 누려보세요!</p>
+        <h3 style="color: #004a99; margin-top: 0;">🎉 위대한 여정의 끝, 완벽한 프라이빗 클라우드 완성을 축하합니다!</h3>
+        <p class="mb-0">배터리 최적화 해제부터 시작해, SSL 갱신 자동화, SD카드 및 DCIM 물리 연동, 공유기 FTP 하드 우회 마운트, 각종 엔진 최적화와 크론 스케줄링까지... 당신의 Note 10+는 이제 그 어떤 상용 클라우드 부럽지 않은 최강의 무소음/무전력 서버로 재탄생했습니다!</p>
     </div>
+
 </div>
 </body>
 </html>
-
