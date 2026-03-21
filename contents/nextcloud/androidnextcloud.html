@@ -155,10 +155,14 @@ pkg install openssl-tool -y</code></pre>
 
     <div class="code-wrapper">
         <button class="copy-btn">복사</button>
-        <pre><code># ACME_OPENSSL_BIN 변수에 실행 파일 경로를 강제로 주입하여 완벽하게 설치
+        <pre><code># 1. ACME_OPENSSL_BIN 변수에 실행 파일 경로를 강제로 주입하여 완벽하게 설치
 curl https://get.acme.sh | ACME_OPENSSL_BIN=$PREFIX/bin/openssl sh
 
-# 설치된 스크립트 설정을 현재 터미널 창에 즉시 적용
+# 2. acme.sh 경로 설정을 .bashrc에 기록
+echo 'export PATH="$HOME/.acme.sh:$PATH"' >> ~/.bashrc
+echo 'source ~/.acme.sh/acme.sh.env' >> ~/.bashrc
+
+# 3. 현재 세션에 바로 적용
 source ~/.bashrc</code></pre>
     </div>
     <p>화면에 초록색으로 <code>Install success!</code>가 뜨면 완벽하게 시스템에 정착한 것입니다.</p>
