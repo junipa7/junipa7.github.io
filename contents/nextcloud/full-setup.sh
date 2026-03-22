@@ -40,13 +40,20 @@ echo " 3. acme.sh 설치 및 SSL 인증서 발급"
 echo "================================================="
 # acme.sh 설치 (기존 파일 삭제 후 재설치로 꼬임 방지)
 [ -d "$HOME/.acme.sh" ] || curl https://get.acme.sh | ACME_OPENSSL_BIN=$PREFIX/bin/openssl sh
-source ~/.bashrc || true
+touch ~/.bashrc && source ~/.bashrc  || true
 
-# ZeroSSL 계정 등록 및 인증서 발급
+# ZeroSSL 계정 등록 및 인증서 발급  -- 7일 동안 5회 이상 받으면 에러발생 이때는 아래의 제한회피 사용
+#export DuckDNS_Token="$DUCKDNS_TOKEN"
+#~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+#~/.acme.sh/acme.sh --register-account -m $ADMIN_EMAIL --force
+#~/.acme.sh/acme.sh --issue --dns dns_duckdns -d $DOMAIN_NAME --ecc --force
+
+# ZeroSSL 사용으로 변경 (Let's Encrypt 제한 회피)
 export DuckDNS_Token="$DUCKDNS_TOKEN"
-~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+~/.acme.sh/acme.sh --set-default-ca --server zerossl
 ~/.acme.sh/acme.sh --register-account -m $ADMIN_EMAIL --force
 ~/.acme.sh/acme.sh --issue --dns dns_duckdns -d $DOMAIN_NAME --ecc --force
+
 
 echo "================================================="
 echo " 3. Nextcloud 본체 다운로드 및 배치"
@@ -130,11 +137,11 @@ mariadbd-safe --datadir=$PREFIX/var/lib/mysql >/dev/null 2>&1 &
 echo "데이터베이스가 시작될 때까지 5초 대기합니다..."
 sleep 5
 
-# DB 계정 생성
-mariadb -e "CREATE DATABASE IF NOT EXISTS $DB_NAME;"
-mariadb -e "CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';"
-mariadb -e "GRANT ALL PRIVILEGES ON nextcloud.* TO '$DB_USER'@'localhost';"
-mariadb -e "FLUSH PRIVILEGES;"
+# DB 계정 생성 (수정본)
+mariadb -u root -e "CREATE DATABASE IF NOT EXISTS \`$DB_NAME\`;"
+mariadb -u root -e "CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';"
+mariadb -u root -e "GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'localhost';"
+mariadb -u root -e "FLUSH PRIVILEGES;"
 
 echo "================================================="
 echo " 7. 부팅 자동화 설정"
@@ -144,6 +151,7 @@ mkdir -p ~/.termux/boot
 cat <<EOF > ~/.termux/boot/start-nextcloud.sh
 #!/data/data/com.termux/files/usr/bin/bash
 termux-wake-lock
+sshd
 crond
 mariadbd-safe --datadir=\$PREFIX/var/lib/mysql >/dev/null 2>&1 &
 sleep 5
