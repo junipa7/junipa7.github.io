@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 헤저드 Part 1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        h1, h2, h3 { color: #0f172a; }
+        p { color: #334155; line-height: 1.75; margin-bottom: 1.25rem; }
+        .image-container { margin: 2rem 0; text-align: center; }
+        img { border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-width: 100%; height: auto; display: inline-block; }
+        .caption { font-size: 0.875rem; color: #64748b; margin-top: 0.75rem; font-style: italic; }
+        .highlight-box { background-color: #f8fafc; border-left: 4px solid #3b82f6; padding: 1.5rem; border-radius: 0.375rem; margin: 2rem 0; }
+    </style>
+</head>
+<body class="bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200">
+        
+        <h1 class="text-4xl font-extrabold mb-8 text-center border-b pb-6">Part 1. 개념과 이론: 시스템 헤저드의 서막</h1>
+
+        <p class="text-lg">기업은 성장을 위해 끊임없이 새로운 시스템을 도입한다. ERP, MES, PLM 등 수많은 알파벳 약어들이 기업의 인프라를 채운다. 도입 초기, 이들은 서로 유기적으로 결합하여 놀라운 효율을 낼 것처럼 보인다. 하지만 시간이 지날수록 시스템들은 각자의 성벽을 높이 쌓고, 소통을 단절하며, 거대한 '비용의 괴물'로 변해간다. 우리는 이 파괴적인 현상을 <strong>'시스템 헤저드(System Hazard)'</strong>라 부른다. Part 1에서는 시스템 헤저드가 무엇이며, 왜 발생하는지 그 근본적인 개념과 기원을 추적한다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-blue-700">Chapter 1. 시스템 헤저드 개요: 유기적 결합의 붕괴와 시스템 이기주의</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>기업의 IT 환경에는 MES(제조실행시스템), PLM(제품수명주기관리), SCM(공급망관리) 등 목적이 다른 여러 시스템이 존재한다. 초기 설계 단계에서 이들은 하나의 거대한 유기체처럼 서로 데이터를 주고받으며 체계적으로 연계되도록 기획된다. 그러나 운영 단계에 접어들고 시간이 흐르면서, 각 시스템은 전체의 최적화보다는 '자신만의 안위'를 고집하기 시작한다. 나에게 직접적으로 필요하지 않은 데이터 가공이나 인터페이스 작업은 철저히 배제하며, 전사적 데이터 파이프라인을 단절시키는 현상, 이것이 바로 시스템 헤저드의 본질이다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80" alt="복잡하게 얽힌 시스템 케이블">
+            <p class="caption">▲ 얽히고설킨 채 소통이 단절된 서버 네트워크는 파편화된 기업 시스템의 현실을 그대로 보여준다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>시스템 헤저드는 <strong>'목적의 파편화'</strong>와 <strong>'시스템 이기주의'</strong>에서 기인한다. 시스템은 체계적인 단계를 거쳐 정보를 전달하고 가공해야 하는 릴레이 경주의 바통과 같다. 하지만 각 시스템을 운영하는 주체(부서 및 담당자)가 점차 자기 시스템의 안정성과 운영 편의성만을 최우선 목표로 삼게 되면서 문제가 발생한다. "그 데이터는 우리 시스템 로직에는 필요 없으니, 타 부서에서 알아서 만들어 쓰라"는 식의 배타적인 태도가 시스템 간의 연결고리를 녹슬게 만든다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: 끊어진 데이터 릴레이</h3>
+        <p>초기 공장 자동화 프로젝트에서는 설비 제어(EES)부터 제조 실행(MES), 그리고 경영 지표(KPI)까지 데이터가 물 흐르듯 이어지도록 설계되었다. 하지만 몇 년 후, 새로운 KPI 지표 산출을 위해 EES의 데이터 가공이 필요해졌다. EES 담당자는 "우리 시스템은 설비 최적화가 목적이지, 경영 지표를 위한 연산은 우리 소관이 아니다"라며 선을 긋는다. 결국 EES는 아무런 맥락(Context)이 없는 단순 원천 로그(Raw Data)만 상위 시스템으로 무작정 던져버린다. 상위 시스템은 억지로 이 데이터를 받아 처리하느라 덩치가 비정상적으로 커지고 속도는 느려진다. 처음의 유기적 결합은 온데간데없이 사라진 것이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p>시스템을 바라보는 패러다임을 '독립된 기능의 집합'에서 <strong>'연속된 가치 사슬(Value Chain)'</strong>로 바꿔야 한다. 시스템의 존재 이유는 그 자체로 완벽하게 동작하는 것이 아니라, 다음 단계의 시스템에 '가치 있는 정보'를 전달하는 데 있음을 명확히 해야 한다. 이를 위해 전사 아키텍처(EA) 관점에서의 지속적인 모니터링과 통제가 필요하다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">시스템 헤저드는 시간이 지날수록 유기적 연계가 무너지고 시스템이 고립되는 현상이다.</li>
+                <li class="mb-1">타 시스템을 위한 데이터 가공을 거부하는 '시스템 이기주의'가 근본 원인이다.</li>
+                <li class="mb-1">시스템의 목적을 단일 기능 수행에서 '가치 사슬 기여'로 재정의해야 한다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">우리 회사의 주요 시스템 중 타 시스템과 연계되지 않고 고립된 채(Silo) 독자적인 데이터베이스만 비대해지고 있는 시스템이 있는지 식별해 보라.</span></p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-blue-700">Chapter 2. 모랄 헤저드 vs 시스템 헤저드: 개인의 해이가 시스템의 해이로</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>경제학 용어인 '모랄 헤저드(Moral Hazard, 도덕적 해이)'는 정보의 비대칭성 상황에서 계약의 한쪽 당사자가 상대방의 이익을 침해하면서 자신의 이익을 극대화하는 행동을 말한다. IT 환경에서도 이와 완벽하게 동일한 현상이 발생한다. 데이터에 대한 책임을 회피하기 위해 관리자가 의도적으로 시스템을 수동적이고 무책임하게 운영하는 태도, 즉 개인의 도덕적 해이가 시스템의 구조적 해이인 '시스템 헤저드'로 전이되는 것이다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=800&q=80" alt="고립된 조직의 사일로">
+            <p class="caption">▲ 곡물을 따로 보관하는 사일로(Silo)처럼, 각 부서가 자신의 책임만 회피하며 고립되는 현상이 시스템 헤저드의 핵심이다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>시스템 담당자는 자신이 운영하는 시스템의 구조와 한계를 누구보다 잘 안다(정보의 비대칭성). 이들은 이 정보의 우위를 악용하여 방어적인 운영을 정당화한다. 중간(Middle) 레벨에 위치한 시스템 담당자가 데이터 정합성 검증이나 1차 가공 책임을 회피하기 위해, "상위 시스템에서 통제해 주지 않으면 우리는 모른다", "나는 그저 하위 시스템이 주는 대로 받고, 받은 대로 상위에 넘겨줄 뿐이다"라는 식의 태도로 일관하는 것이 대표적인 원인이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: "주는 대로 받고, 받은 대로 넘긴다"의 비극</h3>
+        <p>물류 시스템(중간 시스템)을 담당하는 A팀장은 현장의 창고 관리 시스템(하위)에서 올라오는 재고 데이터와 ERP(상위)로 넘겨야 하는 데이터 사이의 정합성을 맞춰야 하는 중요한 역할을 맡고 있다. 하지만 A팀장은 데이터 가공 중 발생할 수 있는 에러와 그에 따른 책임(페널티)을 피하고 싶어 한다.<br>
+        결국 A팀장은 시스템을 단순한 '파이프(Pipe)'로 전락시킨다. 하위 시스템에서 잘못된 데이터가 올라와도 검증(Validation)하지 않고 그대로 상위로 바이패스(Bypass) 시켜버린다. 경영진이 데이터 불일치를 지적하면, A팀장은 "우리 시스템은 로그상 하위에서 100을 받아서 상위로 100을 정확히 넘겼으니 아무 잘못이 없다"고 항변한다. 전형적인 모랄 헤저드가 시스템의 방관을 만들어낸 것이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p>중간 시스템은 단순한 '데이터 배달부(Messenger)'가 되어서는 안 된다. 데이터를 수신하는 순간, 해당 데이터의 정합성과 품질을 보증할 책임을 중간 시스템에 강제해야 한다. 상위 시스템이 하위 시스템을 직접 통제하는 구조를 넘어, 데이터 파이프라인의 각 노드(Node)가 자신의 구간에서 발생하는 데이터에 대한 오너십(Ownership)을 가지도록 KPI와 롤앤레스판서빌리티(R&R)를 명확히 규정해야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">시스템 헤저드는 담당자의 책임 회피(모랄 헤저드)가 시스템에 투영된 결과다.</li>
+                <li class="mb-1">"주는 대로 받고 넘긴다"는 방관자적 태도가 전사 데이터 품질을 무너뜨린다.</li>
+                <li class="mb-1">중간 시스템에 단순 전달이 아닌 '정합성 검증 및 가공 책임'을 부여해야 한다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">타 시스템에서 데이터를 받아 다른 시스템으로 전달하는 중계 성격의 시스템을 찾고, 해당 시스템 내부에 '데이터 정합성 검증(Validation) 로직'이 구현되어 있는지 점검하라.</span></p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-blue-700">Chapter 3. 핑계의 시작: "개발 비용과 일정"의 함정</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>그렇다면 왜 애초에 시스템들은 이렇게 이기적이고 파편화된 구조로 태어나는 것일까? 그 씨앗은 놀랍게도 시스템이 처음 만들어지는 '프로젝트 구축(Build)' 단계에서 뿌려진다. 시스템 아키텍처에는 '어떤 데이터가 어떻게 정의되어야 하는지'에 대한 엄격한 전사적 표준이 존재한다. 하지만 현장에서는 항상 "비용이 부족하다", "오픈 일정이 빠듯하다"는 변명과 함께 표준 절차가 무시되고, 독립적이고 기형적인 시스템이 탄생한다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=800&q=80" alt="끊어진 아키텍처 다리">
+            <p class="caption">▲ 예산과 일정을 핑계로 표준을 무시한 개발은 결국 이어지지 못하고 끊어진 다리처럼 막대한 기술 부채를 남긴다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>프로젝트 관리자(PM)와 현업 부서의 목표는 단기적인 '성공적 오픈(Go-live)'에 맞춰져 있다. 전사 표준 인터페이스를 따르고, 마스터 데이터 관리(MDM) 규정에 맞추어 연계 로직을 짜는 것은 시간과 비용이 많이 드는 작업이다. 따라서 이들은 가장 빠르고 저렴한 방식인 Point-to-Point(1:1 직접 연결) 개발이나, 전사 시스템을 통하지 않는 독자적인 로컬 DB 구축을 선택한다. 당장의 개발 비용은 절감될지 모르나, 이는 고스란히 막대한 '기술 부채(Technical Debt)'로 쌓여 훗날 장기적인 아키텍처 붕괴와 막대한 운영 비용을 초래한다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: 2주를 아끼려다 3년을 고통받다</h3>
+        <p>회사의 새로운 조립 라인을 위해 소규모 생산 관리 모듈을 신규 개발하는 프로젝트. 표준 절차에 따르면 이 모듈은 전사 ERP의 품목 기준 정보를 실시간으로 구독(Subscribe)하고, 전사 통합 인증(SSO)을 거쳐야 한다. 하지만 외주 개발사는 "표준 절차를 따르면 개발 비용이 2천만 원 더 들고, 일정도 2주 지연된다"고 보고한다.<br>
+        현업 부서장은 당장의 예산과 일정을 핑계로 이를 승인하고, 독립적인 로컬 코드 테이블을 가진 고립된 시스템을 만들어버린다. 3년 뒤, 회사의 전사 품목 코드 체계가 개편될 때 이 작은 시스템 하나 때문에 수개월의 마이그레이션 프로젝트가 추가로 발생하고, 다른 시스템들과 연결할 수 없는 거대한 '데이터 갈라파고스'가 되어버렸다. 단기적인 비용 절감이 장기적인 재앙을 부른 것이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p>새로운 개념이 발생하거나 시스템이 필요할 때, 현업 부서나 개발자가 임의로 그것을 만들게 방치해서는 안 된다. 조직 내에 <strong>'시스템 아키텍처 운영 위원회(EA Board)'</strong> 또는 강력한 <strong>'시스템 기획 조직'</strong>이 존재해야 한다. 이들은 프로젝트의 예산이나 일정에 휘둘리지 않고 전사적 관점에서 각 시스템의 할 일과 역할을 분배하고 통제해야 한다. 아키텍처 위원회의 승인 없는 독립 개발(Shadow IT)은 원천적으로 예산 집행이 불가능하도록 프로세스를 통제해야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">예산과 일정을 핑계로 전사 표준을 우회하는 것이 시스템 파편화의 시작이다.</li>
+                <li class="mb-1">단기적인 개발 비용 절감은 막대한 장기적 기술 부채와 운영 리스크로 돌아온다.</li>
+                <li class="mb-1">강력한 권한을 가진 시스템 기획/아키텍처 위원회가 룰(Rule)과 역할을 강제해야 한다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">최근 2년 내에 구축된 신규 시스템들의 '아키텍처 리뷰(Architecture Review) 통과 비율'을 확인하고, "예산/일정 부족"을 사유로 예외 처리(Bypass)된 프로젝트들이 현재 어떤 부작용을 겪고 있는지 추적해 보라.</span></p>
+        </div>
+
+    </div>
+</body>
+</html>

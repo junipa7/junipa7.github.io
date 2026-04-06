@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 헤저드 Part 5: 해결 전략</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Sand & Deep Trust (Cream, Slate-700, Teal-600) -->
+    <!-- Application Structure Plan: 
+         시스템 헤저드의 '치료법'을 제안하는 파트인 만큼, 사용자가 직접 해결책을 선택하고 결과를 시각적으로 확인하는 '솔루션 대시보드' 구조를 채택했습니다. 
+         단순 텍스트 나열이 아니라, [데이터 패러다임 -> 거버넌스 체계 -> 기술적 정책 -> 통합 KPI] 순서로 사용자의 사고 흐름을 유도하며, 
+         각 단계마다 'Before(헤저드)'와 'After(해결)'를 즉각적으로 비교할 수 있는 인터랙티브 토글과 시뮬레이션 차트를 배치했습니다. 
+         이 구조는 독자가 '왜 이 전략이 필요한가'를 넘어 '어떻게 변화하는가'를 직관적으로 깨닫게 하기 위함입니다. -->
+    <!-- Visualization & Content Choices: 
+         1. Paradigm Shift (Ch 14) -> Goal: Compare -> Interactive Toggle -> 데이터가 정보로 변하는 '정제 과정' 시각화.
+         2. EA Board (Ch 15) -> Goal: Organize -> HTML/CSS 기반의 'Control Tower' 도식 -> 강력한 통제 주체를 시각적으로 표현.
+         3. Storage Policy (Ch 16) -> Goal: Organize -> Drag-and-Drop 스타일의 분류 카드 -> Data Lake와 RDBMS의 용도 구분 학습.
+         4. Integrated KPI (Ch 17) -> Goal: Change -> Chart.js를 이용한 '협업 지수' 시뮬레이션 -> 전략 적용 시 시스템 성과 변화 체감.
+         * NO SVG/Mermaid 사용: 유니코드와 Tailwind CSS 스타일링만으로 모든 도식 구현. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 320px;
+            max-height: 400px;
+        }
+        .before-after-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .solution-active {
+            border-color: #0d9488; /* Teal-600 */
+            background-color: #f0fdfa;
+        }
+        .hazard-active {
+            border-color: #e11d48; /* Rose-600 */
+            background-color: #fff1f2;
+        }
+    </style>
+</head>
+<body class="bg-[#fdfbf7] text-slate-800 font-sans leading-relaxed">
+
+    <!-- Header Section -->
+    <header class="bg-slate-900 text-white py-12 shadow-xl border-b-4 border-teal-600">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">
+                Part 5. 해결 전략: 아키텍처와 거버넌스의 재건
+            </h1>
+            <p class="text-xl text-slate-300 max-w-3xl mx-auto">
+                시스템 헤저드를 끊어내는 4가지 핵심 마스터 플랜.<br>
+                이제 방관을 멈추고 전사 최적화를 위한 '통제'를 시작해야 합니다.
+            </p>
+        </div>
+    </header>
+
+    <!-- Section Intro -->
+    <section class="max-w-5xl mx-auto px-6 pt-12 pb-8">
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+            <h2 class="text-2xl font-bold mb-4 text-teal-700">📌 해결을 위한 여정의 시작</h2>
+            <p class="text-slate-600">
+                지난 파트에서 우리는 시스템 헤저드가 어떻게 비용을 폭발시키고 데이터를 오염시키는지 확인했습니다. Part 5에서는 이를 바로잡기 위한 <strong>네 가지 실무 전략</strong>을 다룹니다. 각 전략은 단순히 기술적인 패치를 넘어, 데이터가 발생하는 시점부터 소멸하는 시점까지의 전 생애주기를 통제하고 부서 간의 이기주의를 제도적으로 억제하는 방법을 제시합니다.
+            </p>
+        </div>
+    </section>
+
+    <!-- Chapter 14: Paradigm Shift (Interactive) -->
+    <section id="chapter14" class="max-w-5xl mx-auto px-6 py-8">
+        <div class="bg-white p-8 rounded-2xl shadow-md border border-slate-200">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <span class="bg-teal-100 text-teal-700 w-10 h-10 rounded-full flex items-center justify-center mr-3">14</span>
+                데이터 중심 설계 원칙: Data에서 Information으로
+            </h2>
+            <p class="text-slate-600 mb-8">
+                해결의 첫걸음은 데이터의 '성질'을 바꾸는 것입니다. 하위 시스템에서 맥락 없는 원천 데이터(Raw Data)를 무작정 던지는 행위를 금지하고, 데이터 발생지에서 경영적 의미가 부여된 '정보(Information)'로 가공하여 상위로 전달하는 <strong>Shift-Left(전방 배치 가공)</strong> 전략이 핵심입니다.
+            </p>
+
+            <!-- Interactive Toggle Comparison -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="space-y-6">
+                    <h3 class="font-bold text-lg text-slate-700">시뮬레이션: 데이터 정제 프로세스</h3>
+                    <div id="paradigm-card" class="before-after-card p-6 rounded-xl border-2 hazard-active">
+                        <div id="paradigm-status" class="text-brand-accent font-bold mb-2">🚨 현재: 데이터 투척형 (Dumping)</div>
+                        <div class="flex items-center justify-between bg-white p-4 rounded border border-slate-200">
+                            <span class="text-sm font-mono text-slate-500">EES/TC 로우 데이터</span>
+                            <span class="text-2xl">➔</span>
+                            <span class="text-sm font-bold text-rose-600">수억 건의 쓰레기 적재</span>
+                        </div>
+                        <p id="paradigm-desc" class="text-xs text-slate-500 mt-4 italic">상위 시스템은 의미를 찾기 위해 매번 무거운 연산을 수행해야 합니다.</p>
+                    </div>
+                    <button onclick="toggleParadigm()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-6 rounded-lg shadow transition">
+                        전략 적용: 정보 중심(Information-Centric) 전환
+                    </button>
+                </div>
+                <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                    <h3 class="font-bold text-lg mb-4 text-center">전략 포인트</h3>
+                    <ul class="space-y-4 text-sm text-slate-600">
+                        <li class="flex items-start">
+                            <span class="text-teal-600 mr-2">✔</span>
+                            <strong>1차 가공 책임제:</strong> 데이터 발생지(Source)에서 기준 정보(ST 등) 결합을 완료함.
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-teal-600 mr-2">✔</span>
+                            <strong>인터페이스 다이어트:</strong> Raw Data가 아닌 정제된 '실적 요약'만 상위로 전달.
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-teal-600 mr-2">✔</span>
+                            <strong>부하의 분산:</strong> 상위의 연산 폭발을 하위 시스템의 가벼운 전처리로 해결.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chapter 15 & 16: Governance & Storage (Diagram approach) -->
+    <section id="chapter15-16" class="max-w-5xl mx-auto px-6 py-8">
+        <div class="bg-white p-8 rounded-2xl shadow-md border border-slate-200">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <span class="bg-teal-100 text-teal-700 w-10 h-10 rounded-full flex items-center justify-center mr-3">15</span>
+                표준 아키텍처와 저장소 정책: 컨트롤 타워의 재건
+            </h2>
+            <p class="text-slate-600 mb-8">
+                새로운 개념이 발생할 때마다 임의로 시스템을 만드는 '무법지대'를 끝내야 합니다. 강력한 <strong>아키텍처 운영 위원회(EA Board)</strong>가 역할을 배분하고, 데이터의 성격에 맞춰 <strong>Data Lake</strong>와 <strong>RDBMS</strong>의 경계를 명확히 획정해야 합니다.
+            </p>
+
+            <!-- Visual Diagram of EA Board -->
+            <div class="relative p-8 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-300">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Left: Request -->
+                    <div class="flex flex-col items-center justify-center space-y-4">
+                        <div class="bg-white p-4 rounded-lg shadow text-sm font-bold border border-slate-200 w-full text-center">현업 요구사항 / 신규 시스템</div>
+                        <div class="text-slate-400">➔</div>
+                    </div>
+                    <!-- Center: Control Tower -->
+                    <div class="bg-teal-700 text-white p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center">
+                        <span class="text-3xl mb-2">🏛️</span>
+                        <h4 class="font-bold text-lg">아키텍처 운영 위원회<br>(EA Board)</h4>
+                        <p class="text-[10px] mt-2 opacity-80">표준 심의 / 역할 분배 / 예산 통제</p>
+                    </div>
+                    <!-- Right: Policy Decisions -->
+                    <div class="flex flex-col space-y-4">
+                        <div class="bg-white p-3 rounded border-l-4 border-blue-500 text-xs shadow-sm">
+                            <strong>Data Lake:</strong> 대용량 로그, Raw Data 보관
+                        </div>
+                        <div class="bg-white p-3 rounded border-l-4 border-emerald-500 text-xs shadow-sm">
+                            <strong>RDBMS:</strong> 실시간 집계, 이상 현상 감지
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                <div class="p-4 bg-teal-50 rounded-lg">
+                    <h4 class="font-bold text-teal-800 mb-2">💡 Chapter 16: 저장소 정책 요약</h4>
+                    <p class="text-teal-700">비싼 RDBMS에 로그를 쌓는 것은 돈을 버리는 짓입니다. 정책적으로 로그성 데이터는 Data Lake로, 즉각적 액션이 필요한 데이터는 RDBMS로 철저히 격리하십시오.</p>
+                </div>
+                <div class="p-4 bg-blue-50 rounded-lg">
+                    <h4 class="font-bold text-blue-800 mb-2">💡 Chapter 15: 기획의 통제력</h4>
+                    <p class="text-blue-700">개발자가 임의로 테이블을 파는 것을 금지하십시오. 기획 조직이 "이 데이터는 MES의 책임이다"라고 명확히 선언하고 역할을 배정해야 합니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chapter 17: KPI & Simulation (Chart.js) -->
+    <section id="chapter17" class="max-w-5xl mx-auto px-6 py-8 pb-20">
+        <div class="bg-white p-8 rounded-2xl shadow-md border border-slate-200">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <span class="bg-teal-100 text-teal-700 w-10 h-10 rounded-full flex items-center justify-center mr-3">17</span>
+                KPI 통합 설계 전략: 공동의 책임을 묻다
+            </h2>
+            <p class="text-slate-600 mb-8">
+                사람을 움직이는 것은 결국 지표입니다. 개별 시스템 가동률만 보는 낡은 KPI를 버리고, <strong>'타 시스템에 제공하는 데이터 품질'</strong>과 <strong>'인터페이스 유연성'</strong>을 평가 지표에 통합하여 시스템 이기주의를 제도적으로 파괴해야 합니다.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div class="chart-container bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <canvas id="kpiChart"></canvas>
+                </div>
+                <div class="flex flex-col justify-center space-y-6">
+                    <h3 class="font-bold text-xl text-slate-700">전략 적용 후 성과 예측</h3>
+                    <p class="text-sm text-slate-500">
+                        통합 KPI 설계 전략을 적용하면, 시스템 간 '협업 밀도'가 높아지며 전사 운영 효율(OEE 등)이 비약적으로 상승하고, 반대로 책임 회피로 인한 '사각지대 업무 로스'는 급격히 감소합니다.
+                    </p>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between text-sm p-3 bg-white rounded border border-slate-200">
+                            <span>시스템 협업 밀도</span>
+                            <span class="text-teal-600 font-bold">▲ 75% 상승</span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm p-3 bg-white rounded border border-slate-200">
+                            <span>데이터 정합성 에러</span>
+                            <span class="text-rose-600 font-bold">▼ 85% 감소</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Summary -->
+    <footer class="bg-slate-100 py-10 border-t border-slate-300">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h3 class="text-xl font-bold mb-4 text-slate-700">Part 5 핵심 정리</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 text-sm">
+                <div class="p-4 bg-white rounded shadow-sm">
+                    <span class="font-bold text-teal-600 block mb-1">Shift-Left</span>
+                    데이터 발생지 가공 책임
+                </div>
+                <div class="p-4 bg-white rounded shadow-sm">
+                    <span class="font-bold text-teal-600 block mb-1">EA Board</span>
+                    강력한 중앙 통제권 확보
+                </div>
+                <div class="p-4 bg-white rounded shadow-sm">
+                    <span class="font-bold text-teal-600 block mb-1">Shared KPI</span>
+                    협업 기반 성과 평가 체계
+                </div>
+            </div>
+            <p class="font-bold text-slate-800">
+                💡 실무 적용 포인트: <span class="font-normal">현재 운영 중인 시스템들의 데이터 오너(Data Owner)를 지정하고, 그들의 KPI에 '데이터 신뢰도 제공 수준'을 20% 이상 반영하도록 협의를 시작하십시오.</span>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripting Interaction -->
+    <script>
+        let isOptimized = false;
+
+        function toggleParadigm() {
+            const card = document.getElementById('paradigm-card');
+            const status = document.getElementById('paradigm-status');
+            const desc = document.getElementById('paradigm-desc');
+            
+            isOptimized = !isOptimized;
+            
+            if (isOptimized) {
+                card.classList.replace('hazard-active', 'solution-active');
+                status.innerText = "🛡️ 해결: 정보 중심 설계 (Shift-Left)";
+                status.classList.replace('text-brand-accent', 'text-teal-600');
+                desc.innerText = "상위 시스템은 이미 정제된 '정보'만 받아 즉시 화면에 뿌립니다. 서버 부하가 사라집니다.";
+            } else {
+                card.classList.replace('solution-active', 'hazard-active');
+                status.innerText = "🚨 현재: 데이터 투척형 (Dumping)";
+                status.classList.replace('text-teal-600', 'text-brand-accent');
+                desc.innerText = "상위 시스템은 의미를 찾기 위해 매번 무거운 연산을 수행해야 합니다.";
+            }
+        }
+
+        // Chart.js implementation
+        window.onload = function() {
+            const ctx = document.getElementById('kpiChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['가동률', '데이터 품질', '협업 유연성', '인프라 효율', '장애 대응력'],
+                    datasets: [{
+                        label: '헤저드 상태 (기존)',
+                        data: [90, 40, 20, 30, 50],
+                        borderColor: '#e11d48',
+                        backgroundColor: 'rgba(225, 29, 72, 0.2)',
+                        borderWidth: 2
+                    }, {
+                        label: '전략 적용 (개선)',
+                        data: [95, 90, 85, 80, 90],
+                        borderColor: '#0d9488',
+                        backgroundColor: 'rgba(13, 148, 136, 0.2)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+                    },
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100,
+                            ticks: { display: false },
+                            pointLabels: { font: { size: 11, weight: 'bold' } }
+                        }
+                    }
+                }
+            });
+        };
+    </script>
+</body>
+</html>

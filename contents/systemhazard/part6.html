@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 헤저드 Part 6: 실행 방법론</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Professional Slate & Sage (Slate-900, Sage-600, Amber-50) -->
+    <!-- Application Structure Plan: 
+         사용자의 요청에 따라 버튼 기반의 탭 구조를 폐기하고, 위에서 아래로 흐르는 선형적 스크롤 구조(Linear Scrolling)로 재설계했습니다.
+         1. Flow: 진단 -> 설계 -> 전환 -> 운영 순서로 정보가 자연스럽게 연결되도록 배치.
+         2. Visuals: 스크롤 도중 시각적 피로를 줄이기 위해 각 챕터마다 배경색과 레이아웃에 변주를 줌.
+         3. Charts: 모든 차트는 페이지 로드 시 한꺼번에 렌더링되어 사용자가 멈춤 없이 데이터를 확인할 수 있음.
+         이 구조는 앞선 파트들과의 일관성을 유지하며, '실행 방법론'이라는 긴 호흡의 내용을 끝까지 몰입해서 읽기에 가장 적합합니다. -->
+    <!-- Visualization & Content Choices: 
+         - Ch 18 (진단): 레이더 차트를 통해 현재 상태를 시각화.
+         - Ch 19 (설계): 계층별 역할을 보여주는 카드형 아키텍처 도식.
+         - Ch 20 (전환): 3단계 로드맵 카드.
+         - Ch 21 (운영): 개선 지표를 보여주는 막대 차트.
+         * NO SVG/Mermaid 사용: Tailwind CSS와 HTML/CSS 스타일링만 사용. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 450px;
+        }
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+            margin: 4rem 0;
+        }
+        .chapter-badge {
+            display: inline-block;
+            background-color: #059669;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body class="bg-[#fcfaf7] text-slate-900 font-sans leading-relaxed">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white py-20 shadow-2xl border-b-8 border-emerald-600">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 tracking-tighter">
+                Part 6. 실행 방법론: 변화를 위한 실천 전략
+            </h1>
+            <p class="text-xl text-slate-400 max-w-3xl mx-auto">
+                진단부터 설계, 전환, 그리고 지속 가능한 운영까지.<br>
+                시스템 헤저드를 종식시키기 위한 구체적인 액션 플랜을 제안합니다.
+            </p>
+        </div>
+    </header>
+
+    <!-- Intro Section -->
+    <section class="max-w-5xl mx-auto px-6 py-16">
+        <div class="bg-white p-10 rounded-3xl shadow-sm border border-slate-200">
+            <h2 class="text-2xl font-bold mb-4 text-emerald-800">🏁 실행의 시작</h2>
+            <p class="text-slate-600 text-lg">
+                전략(Strategy)이 나침반이라면, 방법론(Methodology)은 신발의 끈을 묶는 것과 같습니다. Part 6에서는 우리 조직의 현재 위치를 객관적으로 측정하고, 리스크 없이 표준 아키텍처로 넘어가기 위한 단계별 이행 가이드를 다룹니다. 특히 <strong>'기술적 부채 상환'</strong>과 <strong>'지속 가능한 거버넌스'</strong>를 동시에 확보하는 데 초점을 맞춥니다.
+            </p>
+        </div>
+    </section>
+
+    <!-- Chapter 18: Diagnosis -->
+    <section id="chapter18" class="max-w-5xl mx-auto px-6 py-12">
+        <div class="chapter-badge">Chapter 18</div>
+        <h2 class="text-3xl font-bold mb-8 text-slate-800 border-l-4 border-emerald-600 pl-4">진단 방법론: 우리 시스템은 얼마나 병들어 있는가?</h2>
+        
+        <div class="bg-white p-8 rounded-3xl shadow-lg border border-slate-200">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <p class="text-slate-600">
+                        치료를 위해서는 정확한 검진이 선행되어야 합니다. 데이터 흐름의 단절 구간, 중복 적재의 심각성, 그리고 조직의 책임 회피 수준을 5개 영역으로 수치화하여 <strong>아키텍처 성숙도</strong>를 진단합니다.
+                    </p>
+                    <div class="bg-slate-50 p-6 rounded-xl border border-slate-200">
+                        <h4 class="font-bold mb-4 text-emerald-800 underline decoration-2 underline-offset-4">영역별 핵심 체크포인트</h4>
+                        <ul class="text-sm space-y-4">
+                            <li class="flex items-start">
+                                <span class="w-5 h-5 bg-emerald-600 text-white rounded-full flex items-center justify-center text-[10px] mr-3 mt-0.5 shrink-0">1</span>
+                                <span class="text-slate-700 font-medium">데이터 오너십(Ownership)이 명확한가?</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="w-5 h-5 bg-emerald-600 text-white rounded-full flex items-center justify-center text-[10px] mr-3 mt-0.5 shrink-0">2</span>
+                                <span class="text-slate-700 font-medium">Raw Data의 상위 이관 비율이 30% 미만인가?</span>
+                            </li>
+                            <li class="flex items-start">
+                                <span class="w-5 h-5 bg-emerald-600 text-white rounded-full flex items-center justify-center text-[10px] mr-3 mt-0.5 shrink-0">3</span>
+                                <span class="text-slate-700 font-medium">표준 인터페이스 준수율이 80% 이상인가?</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="chart-container bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                    <canvas id="diagnosisChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- Chapter 19: Design -->
+    <section id="chapter19" class="max-w-5xl mx-auto px-6 py-12">
+        <div class="chapter-badge">Chapter 19</div>
+        <h2 class="text-3xl font-bold mb-8 text-slate-800 border-l-4 border-emerald-600 pl-4">To-Be 설계 방법: 데이터 중심 표준 설계</h2>
+        
+        <div class="bg-white p-10 rounded-3xl shadow-lg border border-slate-200">
+            <p class="text-slate-600 mb-10 text-lg">
+                To-Be 설계의 핵심은 시스템 간 <strong>'계층적 역할(Layered Role)'</strong>을 재정립하는 것입니다. 하위 시스템은 수집과 정제를, 중간 시스템은 가공과 통합을, 상위 시스템은 분석과 소비를 담당하는 수직적 질서를 아키텍처로 고착시킵니다.
+            </p>
+
+            <div class="space-y-6">
+                <!-- Layer 3 -->
+                <div class="p-8 bg-emerald-50 border-2 border-emerald-200 rounded-3xl shadow-sm hover:shadow-md transition-shadow">
+                    <div class="flex items-center mb-4">
+                        <span class="bg-emerald-600 text-white text-xs px-2 py-1 rounded mr-3">Layer 3</span>
+                        <h4 class="font-bold text-emerald-900 text-xl">Consumption (KPI/BI)</h4>
+                    </div>
+                    <p class="text-slate-700">결과 데이터 소비 및 의사결정 시각화. <strong>자체 연산 및 복잡한 가공을 전면 금지하는 원칙</strong>을 적용하여 성능과 신뢰성을 확보합니다.</p>
+                </div>
+                <!-- Connector -->
+                <div class="flex justify-center text-slate-400 font-bold text-xl py-2">
+                    <span class="animate-bounce">↓</span> 표준 API / 데이터 허브 연동 <span class="animate-bounce">↓</span>
+                </div>
+                <!-- Layer 2 -->
+                <div class="p-8 bg-slate-100 border-2 border-slate-300 rounded-3xl shadow-sm relative overflow-hidden">
+                    <div class="absolute right-0 top-0 bg-amber-500 text-white text-[10px] font-bold px-4 py-1 rounded-bl-xl shadow-sm">핵심 통제 구간 (Bottleneck Control)</div>
+                    <div class="flex items-center mb-4">
+                        <span class="bg-slate-700 text-white text-xs px-2 py-1 rounded mr-3">Layer 2</span>
+                        <h4 class="font-bold text-slate-900 text-xl">Processing (MES/ERP/Middleware)</h4>
+                    </div>
+                    <p class="text-slate-700">마스터 정보 결합 및 전사 정합성 검증. <strong>전사 표준 코드(MDM) 강제 매핑 및 비즈니스 로직 적용 구간</strong>으로 데이터의 의미를 확정합니다.</p>
+                </div>
+                <!-- Connector -->
+                <div class="flex justify-center text-slate-400 font-bold text-xl py-2">
+                    <span class="animate-bounce">↓</span> 실시간 스트리밍 / 원천 로그 수집 <span class="animate-bounce">↓</span>
+                </div>
+                <!-- Layer 1 -->
+                <div class="p-8 bg-blue-50 border-2 border-blue-200 rounded-3xl shadow-sm">
+                    <div class="flex items-center mb-4">
+                        <span class="bg-blue-600 text-white text-xs px-2 py-1 rounded mr-3">Layer 1</span>
+                        <h4 class="font-bold text-blue-900 text-xl">Source (EES/TC/Sensors)</h4>
+                    </div>
+                    <p class="text-slate-700">원천 데이터 생성 및 1차 노이즈 필터링. <strong>대용량 Raw Log는 보관 즉시 저비용 저장소(Data Lake)로 분리</strong>하여 상위 시스템 부하를 차단합니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- Chapter 20: Transition -->
+    <section id="chapter20" class="max-w-6xl mx-auto px-6 py-12">
+        <div class="chapter-badge">Chapter 20</div>
+        <h2 class="text-3xl font-bold mb-8 text-slate-800 border-l-4 border-emerald-600 pl-4">단계별 전환 전략: 빅뱅은 없다</h2>
+        <p class="text-slate-600 mb-10 text-lg max-w-4xl">운영 중인 거대 공장을 멈추지 않고 낡은 아키텍처를 교체하기 위한 3단계 점진적 전환 로드맵입니다.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Phase 1 -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden flex flex-col">
+                <div class="bg-slate-800 text-white text-center py-4 font-bold tracking-widest text-sm">PHASE 1: PILOT</div>
+                <div class="p-8 flex-1">
+                    <h4 class="font-bold text-xl mb-4 text-slate-800">데이터 가시성 확보</h4>
+                    <ul class="text-sm space-y-3 text-slate-600 mb-8">
+                        <li class="flex items-center"><span class="text-emerald-500 mr-2">●</span> 핵심 KPI 1종 선정 (OEE 등)</li>
+                        <li class="flex items-center"><span class="text-emerald-500 mr-2">●</span> 엔드-투-엔드 데이터 흐름 전수 조사</li>
+                        <li class="flex items-center"><span class="text-emerald-500 mr-2">●</span> 시스템별 중복 적재 현황 파악</li>
+                    </ul>
+                    <div class="mt-auto bg-slate-50 border border-slate-200 p-3 rounded-xl">
+                        <span class="block text-[10px] text-slate-400 uppercase font-bold">Key Target</span>
+                        <span class="text-sm font-bold text-slate-700">헤저드 지표 20% 즉시 개선</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Phase 2 -->
+            <div class="bg-white rounded-3xl border-2 border-emerald-500 shadow-xl overflow-hidden flex flex-col transform md:scale-105 z-10">
+                <div class="bg-emerald-600 text-white text-center py-4 font-bold tracking-widest text-sm">PHASE 2: SCALE-UP</div>
+                <div class="p-8 flex-1">
+                    <h4 class="font-bold text-xl mb-4 text-emerald-800">거버넌스 시스템화</h4>
+                    <ul class="text-sm space-y-3 text-slate-600 mb-8">
+                        <li class="flex items-center"><span class="text-emerald-500 mr-2">●</span> 공통 데이터 허브/API Gateway 배포</li>
+                        <li class="flex items-center"><span class="text-emerald-500 mr-2">●</span> 시스템별 1차 가공 로직 단계적 이관</li>
+                        <li class="flex items-center"><span class="text-emerald-500 mr-2">●</span> 아키텍처 위원회 정기 심의 프로세스 가동</li>
+                    </ul>
+                    <div class="mt-auto bg-emerald-50 border border-emerald-100 p-3 rounded-xl text-center">
+                        <span class="block text-[10px] text-emerald-400 uppercase font-bold">Key Target</span>
+                        <span class="text-sm font-bold text-emerald-700">인프라 운영 비용 15% 절감</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Phase 3 -->
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden flex flex-col">
+                <div class="bg-blue-600 text-white text-center py-4 font-bold tracking-widest text-sm">PHASE 3: OPTIMIZATION</div>
+                <div class="p-8 flex-1">
+                    <h4 class="font-bold text-xl mb-4 text-blue-900">지속 가능 체계 완성</h4>
+                    <ul class="text-sm space-y-3 text-slate-600 mb-8">
+                        <li class="flex items-center"><span class="text-blue-500 mr-2">●</span> 실시간 스트리밍 분석 알고리즘 적용</li>
+                        <li class="flex items-center"><span class="text-blue-500 mr-2">●</span> Shared KPI 기반 부서 성과 연계</li>
+                        <li class="flex items-center"><span class="text-blue-500 mr-2">●</span> 자가 치유형 데이터 정합성 모니터링</li>
+                    </ul>
+                    <div class="mt-auto bg-blue-50 border border-blue-100 p-3 rounded-xl">
+                        <span class="block text-[10px] text-blue-400 uppercase font-bold">Key Target</span>
+                        <span class="text-sm font-bold text-blue-700">전사 데이터 신뢰도 99.9% 달성</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- Chapter 21: Governance -->
+    <section id="chapter21" class="max-w-5xl mx-auto px-6 py-12 pb-24">
+        <div class="chapter-badge">Chapter 21</div>
+        <h2 class="text-3xl font-bold mb-8 text-slate-800 border-l-4 border-emerald-600 pl-4">운영 및 개선 체계: 헌법은 지켜질 때 의미가 있다</h2>
+        
+        <div class="bg-white p-10 rounded-3xl shadow-lg border border-slate-200">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8">
+                    <p class="text-slate-600 text-lg">
+                        설계와 전환이 끝났다고 방심해서는 안 됩니다. 시스템은 관리가 소홀해지면 다시 무질서한 엔트로피가 증가하여 헤저드 상태로 회귀하려는 본성이 있습니다. 이를 막기 위해 <strong>'아키텍처 모니터링 대시보드'</strong>를 상시 가동해야 합니다.
+                    </p>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="p-6 bg-slate-900 text-white rounded-3xl text-center shadow-lg">
+                            <span class="block text-3xl font-extrabold mb-1">98.5%</span>
+                            <span class="text-xs opacity-60 font-bold uppercase tracking-widest">표준 인터페이스 준수율</span>
+                        </div>
+                        <div class="p-6 bg-emerald-600 text-white rounded-3xl text-center shadow-lg">
+                            <span class="block text-3xl font-extrabold mb-1">12ms</span>
+                            <span class="text-xs opacity-60 font-bold uppercase tracking-widest">데이터 연계 지연 평균</span>
+                        </div>
+                    </div>
+                    <div class="p-6 bg-amber-50 rounded-2xl border border-amber-100 text-sm text-amber-900 italic">
+                        "진정한 아키텍처의 성공은 문서에 있는 것이 아니라, 매일 아침 전송되는 정합성 리포트의 수치에 있습니다."
+                    </div>
+                </div>
+                <div class="chart-container bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                    <canvas id="operationChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer Summary -->
+    <footer class="bg-slate-100 py-20 border-t border-slate-300">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h3 class="text-2xl font-bold mb-10 text-slate-700 underline decoration-emerald-500 decoration-4 underline-offset-8">Part 6 실행 지침 요약</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div class="p-8 bg-white rounded-3xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <span class="text-4xl block mb-4">🔭</span>
+                    <h4 class="font-bold text-lg mb-3">객관적 진단</h4>
+                    <p class="text-sm text-slate-500">내부 역량을 냉정하게 측정하고 격차(Gap)를 인정하는 것부터 시작하십시오.</p>
+                </div>
+                <div class="p-8 bg-white rounded-3xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <span class="text-4xl block mb-4">🎯</span>
+                    <h4 class="font-bold text-lg mb-3">작은 성공의 확산</h4>
+                    <p class="text-sm text-slate-500">처음부터 전체를 바꾸려 하지 말고 Pilot 성공 체험을 먼저 만드십시오.</p>
+                </div>
+                <div class="p-8 bg-white rounded-3xl shadow-sm border border-slate-200 hover:shadow-md transition">
+                    <span class="text-4xl block mb-4">🛠️</span>
+                    <h4 class="font-bold text-lg mb-3">시스템에 의한 통제</h4>
+                    <p class="text-sm text-slate-500">사람의 선의가 아닌, 승인 없이는 개발 불가능한 프로세스를 구축하십시오.</p>
+                </div>
+            </div>
+            <div class="bg-slate-900 text-white p-8 rounded-3xl shadow-2xl">
+                <p class="font-bold text-xl">
+                    💡 실무 적용 포인트
+                </p>
+                <p class="mt-4 text-slate-300">
+                    다음 분기 IT 기획 회의 시, 전사 시스템의 '데이터 중복률'과 '중간 시스템 가공 비중'을 Agenda로 상정하여 진단을 시작하십시오.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript For Charts -->
+    <script>
+        window.onload = function() {
+            // Diagnosis Radar Chart
+            const ctxDiag = document.getElementById('diagnosisChart').getContext('2d');
+            new Chart(ctxDiag, {
+                type: 'radar',
+                data: {
+                    labels: ['데이터 오너십', '인터페이스 표준화', '가공 책임 이행', '아키텍처 통제력', '인프라 효율성'],
+                    datasets: [{
+                        label: '헤저드 상태 (현재)',
+                        data: [35, 20, 15, 25, 45],
+                        borderColor: '#e11d48',
+                        backgroundColor: 'rgba(225, 29, 72, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#e11d48'
+                    }, {
+                        label: '목표 수준 (To-Be)',
+                        data: [90, 85, 95, 90, 80],
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.2)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#059669'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100,
+                            ticks: { display: false },
+                            pointLabels: { font: { size: 11, weight: 'bold' }, color: '#475569' },
+                            grid: { color: '#e2e8f0' }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 15, font: { size: 12, weight: '600' }, padding: 20 } }
+                    }
+                }
+            });
+
+            // Operation Health Chart (Bar)
+            const ctxOp = document.getElementById('operationChart').getContext('2d');
+            new Chart(ctxOp, {
+                type: 'bar',
+                data: {
+                    labels: ['도입 전', '1단계', '2단계', '최종'],
+                    datasets: [{
+                        label: '데이터 중복량 (TB)',
+                        data: [100, 75, 35, 12],
+                        backgroundColor: '#94a3b8',
+                        borderRadius: 8
+                    }, {
+                        label: '데이터 정합성 지수',
+                        data: [38, 62, 88, 99],
+                        backgroundColor: '#059669',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            max: 120,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { font: { size: 10 } }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11, weight: '600' }, padding: 15 } }
+                    }
+                }
+            });
+        };
+    </script>
+</body>
+</html>

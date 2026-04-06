@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 헤저드 Part 3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        h1, h2, h3 { color: #0f172a; }
+        p { color: #334155; line-height: 1.75; margin-bottom: 1.25rem; }
+        .image-container { margin: 2rem 0; text-align: center; }
+        img { border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-width: 100%; height: auto; display: inline-block; }
+        .caption { font-size: 0.875rem; color: #64748b; margin-top: 0.75rem; font-style: italic; }
+        .highlight-box { background-color: #f8fafc; border-left: 4px solid #10b981; padding: 1.5rem; border-radius: 0.375rem; margin: 2rem 0; }
+    </style>
+</head>
+<body class="bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200">
+        
+        <h1 class="text-4xl font-extrabold mb-8 text-center border-b pb-6">Part 3. 주요 유형과 현장 사례</h1>
+
+        <p class="text-lg">앞선 장에서 우리는 시스템 헤저드가 발생하는 근본적인 메커니즘을 살펴보았다. 그렇다면 이러한 병폐는 실제 현장에서 어떤 모습으로 나타날까? 시스템 헤저드는 획일적으로 발생하지 않으며, 조직의 권력 구조와 기술 성숙도에 따라 다양한 '변이'를 일으킨다. Part 3에서는 시스템 헤저드의 3대 악성 유형을 정의하고, 제조 및 IT 현장에서 벌어지는 생생하고 치명적인 실패 사례들을 해부한다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 7 -->
+        <h2 class="text-2xl font-bold mb-6 text-emerald-700">Chapter 7. 시스템 헤저드 3대 유형 분류: 적을 알고 나를 알기</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>우리 회사에 잠재된 시스템 헤저드를 치료하려면, 우선 그 증상을 명확히 분류(Typology)해야 한다. 어떤 부서는 일은 떠넘기고 생색을 내는 반면, 어떤 부서는 아예 담장을 높게 치고 소통을 거절한다. 증상에 따라 질병의 원인이 다르듯, 헤저드의 양상에 따라 처방과 아키텍처 전략도 완전히 달라져야 한다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1505330622200-1d5fa30b8e67?auto=format&fit=crop&w=800&q=80" alt="갈림길의 표지판">
+            <p class="caption">▲ 시스템 헤저드는 부서의 권력과 기술적 성향에 따라 각기 다른 방향으로 발현된다. 정확한 진단 없이는 올바른 처방을 내릴 수 없다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석 및 유형</h3>
+        <p>시스템 헤저드의 발현 형태는 주로 두 가지 축, <strong>'데이터 책임 회피 성향'</strong>과 <strong>'시스템의 폐쇄성'</strong>에 의해 결정되며, 이는 다음의 3대 유형으로 나뉜다.</p>
+        <ul class="list-disc pl-5 mb-4 text-slate-700">
+            <li class="mb-2"><strong>데이터 투척형 (Data Dumping):</strong> 가장 흔한 핑퐁 게임의 전형이다. 1차 가공과 맥락(Context) 부여를 귀찮아하며, 아무런 정제 없이 원천 데이터만 타 시스템으로 밀어버린다.</li>
+            <li class="mb-2"><strong>장벽 구축형 (Barrier/Silo):</strong> 변화를 두려워하여 전사 표준 동기화를 거부하고 자신들만의 로컬 시스템(갈라파고스)을 고집하는 형태다.</li>
+            <li class="mb-2"><strong>병목 유발형 (Bottleneck):</strong> 핵심 데이터를 쥐고 있는 시스템이 기술적 한계를 무기로 연동을 제한(예: 실시간 API 불가, 야간 배치만 허용)하여 전체 파이프라인의 속도를 저하시킨다.</li>
+        </ul>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">시스템 헤저드는 '데이터 투척, 장벽 구축, 병목 유발'의 3대 유형으로 나타난다.</li>
+                <li class="mb-1">유형에 따라 프로세스 개선, 거버넌스 통제, 아키텍처 투자 등 맞춤형 처방이 필요하다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">과거 1년간 가장 많이 발생한 인터페이스 마찰 사례를 나열하고, 이 중 어느 유형에 가장 많이 해당하는지 우리 조직의 '헤저드 체질'을 분석해 보라.</span></p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 8 -->
+        <h2 class="text-2xl font-bold mb-6 text-emerald-700">Chapter 8. [제조 사례 1] 잃어버린 기준 정보: 무책임한 EES와 과부하 걸린 KPI</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>경영진의 올바른 의사결정을 위해서는 현장의 설비가 내뿜는 단순한 '신호(Signal)'가 아니라, 경영학적 의미가 부여된 '정보(Information)'가 필요하다. 그러나 전형적인 <strong>'데이터 투척형'</strong> 헤저드가 발생하면, 현장 시스템은 정보 가공을 거부하고 날 것의 데이터를 상위로 던져버려 전체 시스템을 마비시킨다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1584905380598-a15d7c3bc5e9?auto=format&fit=crop&w=800&q=80" alt="정제되지 않고 쏟아지는 데이터">
+            <p class="caption">▲ 필터링 없이 무작정 쏟아지는 원천 데이터(Raw Data)는 상위 시스템의 파이프를 막아버리는 독이 된다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석 및 사례 설명</h3>
+        <p>경영 지표(KPI) 시스템에서 설비의 효율성을 분석하기 위해 'Standard Time(표준 가동 시간)' 대비 실제 '설비 Event Data'의 비교가 필요해졌다. 정상적인 구조라면 데이터를 생성하는 하위 시스템(MOS, EES 등)이 이 두 가지 데이터를 결합하여 1차 가공된 실적 데이터를 올려야 한다.</p>
+        <p>그러나 EES 담당자는 방어막을 친다. <strong>"EES나 MOS는 설비의 제어와 로깅이 목적입니다. KPI에서나 쓰는 Standard Time을 우리 시스템에서 왜 관리하고 가공합니까?"</strong> 결국 EES는 기준 정보를 매핑하는 책임을 거부하고, 수억 건에 달하는 설비의 Event Data(원천 로그)를 매일 그대로 KPI 시스템으로 투척해 버린다. KPI 시스템은 알아서 산출하라며 말이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 파급 효과와 해결 방법</h3>
+        <p>이 결과는 처참하다. 똑같은 테라바이트급 데이터가 하위와 상위 시스템 양쪽에 이중으로 존재하게 된다. KPI 시스템은 가벼운 지표 하나를 띄우기 위해 수억 건의 로그를 Standard Time과 자체적으로 매핑하느라 덩치가 기형적으로 커지고, 쿼리 속도는 바닥을 친다.<br>
+        이를 해결하려면 하위 시스템이 단순히 '데이터를 던지는 곳'이라는 인식을 버려야 한다. 전사 아키텍처 위원회의 강제를 통해, EES 단에서 Standard Time 기준 정보를 내재화하고 1차 연산을 수행하여 정제된 <strong>실적 데이터(Raw가 아닌 Processed Data)</strong>만 상위로 올리도록 아키텍처를 뜯어고쳐야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">"우리 시스템에 불필요한 기준 정보는 관리하지 않는다"는 것이 투척형 헤저드의 전형이다.</li>
+                <li class="mb-1">Raw Data의 무분별한 이관은 상위 시스템의 이중 적재와 막대한 성능 저하를 초래한다.</li>
+                <li class="mb-1">데이터 발생지(Source)에서 1차 가공을 수행하는 'Shift-Left' 책임제가 필수적이다.</li>
+            </ul>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 9 -->
+        <h2 class="text-2xl font-bold mb-6 text-emerald-700">Chapter 9. [제조 사례 2] 실시간 OEE 전환의 좌절: 사일로가 낳은 비효율</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>제조업의 생산성 관리(OEE, 설비종합효율)는 과거 일(Daily) 단위 실적 집계에서 벗어나, 실시간(Real-time)으로 이상 현상을 발견하고 즉각 조치하는 기능 고도화로 넘어가고 있다. 그러나 이 원대한 목표는 '장벽 구축형' 시스템 헤저드 앞에서 무참히 박살 난다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1565514020179-026b92b84bb6?auto=format&fit=crop&w=800&q=80" alt="맞물리지 않는 톱니바퀴">
+            <p class="caption">▲ 개별 시스템들이 서로 맞물려 돌아가는 유기적 연결망을 거부하면, 전사적 고도화 프로젝트는 불가능해진다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석 및 사례 설명</h3>
+        <p>실시간 OEE 체계를 구축하려면, 공장 내 수백 대의 설비 데이터가 유기적으로 하나로 연결되어 표준화된 상태 정보를 중앙으로 쏘아 주어야 한다. 그러나 설비 시스템 담당자들은 각자의 로컬 규격을 고집하며 중앙 데이터 플랫폼과의 실시간 유기적 동기화를 거부한다. 전사 아키텍처의 강제력이 없으니 시스템 간의 파편화는 계속 유지된다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 파급 효과와 해결 방법</h3>
+        <p>시스템이 유기적으로 연결되지 않은 상태, 즉 <strong>'데이터가 성숙하지 않은 상태'</strong>에서 경영진의 실시간 고도화 지시는 떨어졌다. 어떻게 될까? 통합 플랫폼에서의 중앙 처리가 불가능하므로, 결국 <strong>각각의 설비별로 모니터링 기능을 따로따로 개발하여 별개로 운영</strong>하는 끔찍한 비효율이 발생한다. 전사 통합 시스템을 만들 예산을 개별 설비의 로컬 화면을 만드는데 다 낭비해 버린 것이다.<br>
+        실시간 분석 고도화 이전에, 하위 시스템들을 강제로 유기적인 파이프라인으로 편입시키는 '데이터 표준화 및 성숙도 향상 작업'이 무조건 선행되어야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">시스템 간의 유기적 연결(데이터 성숙도) 없이 고급 기능 구현은 불가능하다.</li>
+                <li class="mb-1">연결을 거부하는 사일로(Silo)는 결국 '개별 설비별 독자 개발'이라는 최악의 비용 낭비를 낳는다.</li>
+                <li class="mb-1">전사 통합 실시간 체계 구축을 위해, 하위 시스템의 표준 준수와 연계를 아키텍처로 강제하라.</li>
+            </ul>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 10 -->
+        <h2 class="text-2xl font-bold mb-6 text-emerald-700">Chapter 10. [기술 사례] 고급 알고리즘 적용 불가: 최하단 데이터의 반란</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>최근 기업들은 초대용량 데이터(Big Data)를 실시간으로 처리하고 예측 모델을 만들기 위해 Chan 알고리즘, KLL 엔진과 같은 최첨단 스트리밍 분석 기술을 도입하고자 한다. 그러나 이 화려한 AI/빅데이터 프로젝트들은 뜻밖에도 시스템 계층의 가장 밑바닥(Bottom)에서 발생하는 '이기주의' 때문에 시작조차 하지 못하고 죽어버린다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80" alt="반도체 기판과 끊어진 회로">
+            <p class="caption">▲ 아무리 뛰어난 AI 두뇌를 가졌어도, 신경망의 끝단(최하위 시스템)에서 데이터를 만들어주지 않으면 무용지물이 된다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석 및 사례 설명</h3>
+        <p>Chan 알고리즘이나 KLL 엔진 같은 고급 분석기가 제대로 동작하려면, 단순히 배치로 넘어오는 데이터로는 불가능하다. <strong>현장의 최전선에 있는 TC(Tool Control)와 EES 단에서부터 실시간 스트리밍 포맷으로 가공된 데이터가 쉴 새 없이 만들어져 올라와야 한다.</strong></p>
+        <p>하지만 헤저드에 빠진 TC/EES 담당 부서는 이를 단칼에 거절한다. <strong>"우리는 설비를 제어하는 부서입니다. 그런 복잡한 알고리즘용 데이터 생성을 TC 단에 올리면 부하가 생깁니다. 우리 부서의 평가지표나 운영에는 전혀 필요 없는 작업이니 할 수 없습니다."</strong></p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 파급 효과와 해결 방법</h3>
+        <p>가장 밑단에서 "자기는 필요 없다"고 선언하며 데이터 생성을 거부해 버리면, 상위에서 아무리 수십억을 들여 빅데이터 플랫폼을 구성해 놓아도 구현 자체가 원천적으로 불가능해진다. 전사적인 디지털 혁신이 말단 시스템의 이기주의 하나에 셧다운 되는 것이다.<br>
+        이를 돌파하기 위해서는 최하단 TC/EES를 <strong>'단순 설비 제어기'가 아니라 '전사 AI 플랫폼의 데이터 공급 전초기지'로 역할을 재정의</strong>해야 한다. 시스템 기획 조직의 강력한 탑다운(Top-down) 통제를 통해 데이터 생성 의무를 할당하고, 이를 거부할 수 없는 아키텍처 거버넌스를 구축해야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">고급 알고리즘(Chan, KLL 등)의 성공은 최하단 시스템(TC/EES)의 데이터 생성 능력에 달려 있다.</li>
+                <li class="mb-1">"우리 부서에 필요 없다"는 말단 시스템의 거부는 전사 AI 프로젝트 전체를 무산시킨다.</li>
+                <li class="mb-1">하위 시스템을 전사 데이터 플랫폼의 핵심 공급자로 강제 편입시키는 탑다운 통제가 필요하다.</li>
+            </ul>
+        </div>
+
+    </div>
+</body>
+</html>

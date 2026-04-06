@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 헤저드: 도서 목차</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .part-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .part-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .scroll-smooth { scroll-behavior: smooth; }
+    </style>
+</head>
+<body class="bg-[#fcfaf7] text-slate-900 scroll-smooth">
+
+    <!-- Hero / Title -->
+    <header class="bg-slate-900 text-white py-20 border-b-8 border-blue-600">
+        <div class="max-w-5xl mx-auto px-6 text-center">
+            <h1 class="text-5xl font-black mb-6 tracking-tighter">시스템 헤저드 (SYSTEM HAZARD)</h1>
+            <p class="text-xl text-slate-400 font-medium italic">"유기적 결합의 붕괴에서 데이터 중심의 재건까지"</p>
+            <div class="mt-10 flex justify-center space-x-4 text-sm font-bold uppercase tracking-widest">
+                <span class="px-3 py-1 bg-blue-600 rounded">Total 7 Parts</span>
+                <span class="px-3 py-1 bg-slate-700 rounded">24 Chapters</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main TOC Grid -->
+    <main class="max-w-6xl mx-auto px-6 py-16">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            <!-- Part 1 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+                <div class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">Part 1</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">개념과 이론</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">유기적 결합의 붕괴와 시스템 이기주의의 탄생, 그리고 모랄 헤저드의 전이.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">01</span> 시스템 헤저드 개요</li>
+                    <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">02</span> 정의와 범위</li>
+                    <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">03</span> 모랄 헤저드 vs 시스템 헤저드</li>
+                </ul>
+            </div>
+
+            <!-- Part 2 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+                <div class="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-2">Part 2</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">발생 구조와 원인</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">데이터 책임의 실종과 아키텍처 통제력 상실, 사일로화된 KPI 분석.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-rose-500 mr-2 font-bold">04</span> 발생 메커니즘</li>
+                    <li class="flex items-start"><span class="text-rose-500 mr-2 font-bold">05</span> 데이터 관점 원인 분석</li>
+                    <li class="flex items-start"><span class="text-rose-500 mr-2 font-bold">06</span> 조직/프로세스 관점 분석</li>
+                    <li class="flex items-start"><span class="text-rose-500 mr-2 font-bold">07</span> 기술/아키텍처 관점 분석</li>
+                </ul>
+            </div>
+
+            <!-- Part 3 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+                <div class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Part 3</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">주요 유형과 사례</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">데이터 투척, 장벽 구축, 병목 유발 사례 및 제조/IT 현장 리포트.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-emerald-500 mr-2 font-bold">08</span> 시스템 헤저드 유형 분류</li>
+                    <li class="flex items-start"><span class="text-emerald-500 mr-2 font-bold">09</span> 제조 사례 (MES/EES/KPI)</li>
+                    <li class="flex items-start"><span class="text-emerald-500 mr-2 font-bold">10</span> IT 사례 (ERP/PLM)</li>
+                </ul>
+            </div>
+
+            <!-- Part 4 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+                <div class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-2">Part 4</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">영향과 리스크</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">보이지 않는 IT 비용의 폭발과 데이터 품질 붕괴, 조직 운영의 위기.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-amber-500 mr-2 font-bold">11</span> 비용 영향 분석</li>
+                    <li class="flex items-start"><span class="text-amber-500 mr-2 font-bold">12</span> 데이터 품질 영향</li>
+                    <li class="flex items-start"><span class="text-amber-500 mr-2 font-bold">13</span> 조직 운영 리스크</li>
+                </ul>
+            </div>
+
+            <!-- Part 5 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+                <div class="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-2">Part 5</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">해결 전략</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">데이터 중심 설계, 표준 아키텍처 및 거버넌스 재구축 로드맵.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-teal-500 mr-2 font-bold">14</span> 데이터 중심 설계 원칙</li>
+                    <li class="flex items-start"><span class="text-teal-500 mr-2 font-bold">15</span> 표준 아키텍처 설계</li>
+                    <li class="flex items-start"><span class="text-teal-500 mr-2 font-bold">16</span> 데이터 거버넌스 구축</li>
+                    <li class="flex items-start"><span class="text-teal-500 mr-2 font-bold">17</span> KPI 통합 설계 전략</li>
+                </ul>
+            </div>
+
+            <!-- Part 6 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+                <div class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-2">Part 6</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">실행 방법론</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">진단부터 To-Be 설계, 단계별 전환 및 지속적 운영 체계 수립.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-indigo-500 mr-2 font-bold">18</span> 진단 방법론</li>
+                    <li class="flex items-start"><span class="text-indigo-500 mr-2 font-bold">19</span> To-Be 설계 방법</li>
+                    <li class="flex items-start"><span class="text-indigo-500 mr-2 font-bold">20</span> 단계별 전환 전략</li>
+                    <li class="flex items-start"><span class="text-indigo-500 mr-2 font-bold">21</span> 운영 및 개선 체계</li>
+                </ul>
+            </div>
+
+            <!-- Part 7 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:col-span-2 lg:col-span-1">
+                <div class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2">Part 7</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">실무 적용</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">체크리스트 기반 자가 진단 및 생생한 현장 성공/실패 사례 연구.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-slate-500 mr-2 font-bold">22</span> 체크리스트 기반 진단</li>
+                    <li class="flex items-start"><span class="text-slate-500 mr-2 font-bold">23</span> 성공 사례</li>
+                    <li class="flex items-start"><span class="text-slate-500 mr-2 font-bold">24</span> 실패 사례</li>
+                </ul>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Author & Footer -->
+    <footer class="bg-slate-100 py-16 border-t border-slate-200">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h3 class="text-lg font-bold mb-4">About the Series</h3>
+            <p class="text-sm text-slate-600 leading-relaxed mb-8">
+                본 도서 시리즈는 현대 기업의 파편화된 IT 환경에서 발생하는 '시스템 헤저드' 현상을 심도 있게 조명하고,<br>
+                데이터 중심의 통합 아키텍처를 통해 전사적 효율성을 재건하기 위한 실무 지침서입니다.
+            </p>
+            <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                © 2026 Architecture Board. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

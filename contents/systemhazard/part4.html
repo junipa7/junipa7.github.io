@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 헤저드 Part 4</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        h1, h2, h3 { color: #0f172a; }
+        p { color: #334155; line-height: 1.75; margin-bottom: 1.25rem; }
+        .image-container { margin: 2rem 0; text-align: center; }
+        img { border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-width: 100%; height: auto; display: inline-block; }
+        .caption { font-size: 0.875rem; color: #64748b; margin-top: 0.75rem; font-style: italic; }
+        .highlight-box { background-color: #fff7ed; border-left: 4px solid #f97316; padding: 1.5rem; border-radius: 0.375rem; margin: 2rem 0; }
+    </style>
+</head>
+<body class="bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200">
+        
+        <h1 class="text-4xl font-extrabold mb-8 text-center border-b pb-6">Part 4. 영향과 리스크</h1>
+
+        <p class="text-lg">시스템 헤저드는 단순히 IT 부서의 업무 불편에 그치지 않는다. 이는 기업의 재무적 건전성을 갉아먹고, 데이터 기반 경영이라는 비전을 뿌리째 흔들며, 조직 구성원들 사이에 불신이라는 병을 퍼뜨린다. Part 4에서는 시스템 헤저드가 초래하는 파괴적인 결과들을 비용, 품질, 운영이라는 세 가지 관점에서 입체적으로 분석한다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 11 -->
+        <h2 class="text-2xl font-bold mb-6 text-orange-700">Chapter 11. 비용 영향 분석: 보이지 않는 밑 빠진 독</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>시스템 헤저드가 발생하면 기업은 눈에 보이지 않는 'IT 인프라 유지 비용'의 폭증을 경험한다. 특히 하위 시스템이 가공 책임을 회피하고 상위 시스템으로 데이터를 무작정 투척하는 구조에서는, 데이터의 가치보다 보관 및 처리 비용이 훨씬 커지는 역설적인 상황이 발생한다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=800&q=80" alt="타오르는 돈과 데이터">
+            <p class="caption">▲ 원칙 없는 데이터 적재와 중복 보관은 기업의 IT 예산을 무의미하게 태워버리는 주범이다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>가장 큰 원인은 <strong>데이터의 중복 적재</strong>와 <strong>인프라 정책의 부재</strong>다. 하위 시스템(EES/MOS)에서 처리해야 할 Raw Data가 상위 시스템(KPI)까지 그대로 올라오면, 동일한 데이터가 전사 시스템 곳곳에 이중, 삼중으로 존재하게 된다. 또한 대용량 로그는 <strong>Data Lake</strong>로, 실시간 집계는 <strong>RDBMS</strong>로 분리해야 하는 정책이 없으면, 비싼 RDBMS에 의미 없는 쓰레기 데이터를 가득 채우게 되어 라이선스 비용이 폭발한다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: 비대해진 시스템과 라이선스 폭탄</h3>
+        <p>EES 시스템에서 초 단위로 발생하는 설비 이벤트 데이터를 KPI 시스템이 그대로 받아 관리한다고 가정해 보자. KPI 시스템은 단순 지표 하나를 산출하기 위해 테라바이트급의 Raw Data를 보관해야 한다. 이를 위해 스토리지 증설은 물론, 방대한 데이터를 처리하기 위해 값비싼 고성능 RDBMS 라이선스를 추가 구매해야 한다.<br>
+        결국 데이터가 발생하는 최하단에서 걸러냈어야 할 '쓰레기'를 상단까지 끌고 오느라, 비즈니스 가치 창출과는 무관한 인프라 유지 비용에 매년 수억 원을 지출하게 되는 것이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p><strong>아키텍처 관점의 데이터 다이어트</strong>가 시급하다. 대용량 로그성 데이터는 저비용 저장소인 Data Lake로 보내고, 상위 시스템에는 가공된 '정보'만 전달하는 정책을 수립해야 한다. 또한 '데이터 중복 보관 비율'을 감사 항목에 넣어 인프라 낭비를 실시간으로 통제해야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">무책임한 데이터 투척은 스토리지와 RDBMS 라이선스 비용의 기하급수적 증가를 초래한다.</li>
+                <li class="mb-1">Data Lake와 RDBMS의 명확한 역할 분리 정책이 없으면 인프라 효율성은 최악으로 떨어진다.</li>
+                <li class="mb-1">중복 데이터를 색출하고 상위 시스템으로의 Raw Data 이관을 원천 차단해야 한다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">전사 DB 중 타 시스템으로부터 넘어온 Raw Data가 차지하는 비중(%)을 산출하여 비용 낭비 규모를 리포트하라.</span></p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 12 -->
+        <h2 class="text-2xl font-bold mb-6 text-orange-700">Chapter 12. 데이터 품질 영향: 가비지 인 가비지 아웃 (GIGO)</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>비용보다 무서운 것은 데이터의 신뢰성 붕괴다. <strong>"주는 대로 받고 받은 대로 넘겨준다"</strong>는 태도가 만연하면, 데이터 파이프라인의 중간 어디선가 발생한 오류가 정정되지 않은 채 최종 소비자인 경영진에게 전달된다. 결국 아무도 시스템의 수치를 믿지 않게 되는 <strong>'데이터 불신의 시대'</strong>가 도래한다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1590247813693-5541d1c609fd?auto=format&fit=crop&w=800&q=80" alt="흐릿한 시야와 망가진 나침반">
+            <p class="caption">▲ 정합성이 깨진 데이터는 경영진에게 망가진 나침반을 쥐여주는 것과 같다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>상위 시스템이 하위 시스템을 통제하여 데이터 신뢰성을 확보하도록 지속적으로 푸시(Push)해야 하지만, 중간 단계에서 이를 방관하기 때문이다. 정합성 검증 없이 데이터만 패스스루(Pass-through)하면, 말단에서 발생한 노이즈가 증폭되어 전체 결과값을 오염시킨다. 이는 전형적인 모랄 헤저드가 낳은 품질 저하다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: 수치가 맞지 않는 OEE 대시보드</h3>
+        <p>실시간 OEE(설비종합효율)를 집계하는 상황에서, 하위 시스템이 상태 코드(State Code)를 표준화하지 않고 제멋대로 쏜다고 가정하자. 중간 시스템인 MES는 이를 바로잡지 않고 그대로 KPI 시스템으로 넘긴다. 결과적으로 KPI 화면에는 가동 중인 설비가 비가동으로 뜨거나, 생산 수량이 실제와 다르게 표시된다.<br>
+        현업 사용자가 "데이터가 틀리다"고 지적하면, 담당자는 "하위에서 그렇게 왔다"는 말만 반복한다. 결국 경영진은 시스템을 끄고 다시 수기 엑셀 보고서를 찾게 된다. 수십억 원짜리 시스템이 엑셀 한 장보다 못한 대접을 받게 되는 순간이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p>데이터 파이프라인의 각 접점(Node)에서 <strong>정합성 체크포인트</strong>를 구축해야 한다. 기준 정보와 맞지 않는 데이터가 유입될 경우 즉시 에러를 발생시키고 해당 부서로 피드백하는 자동 검증 체계를 아키텍처 레벨에서 구현해야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">정합성 검증 없는 데이터 전달은 시스템 전체의 신뢰성을 무너뜨린다.</li>
+                <li class="mb-1">중간 시스템의 방관은 단순한 실수가 아니라 데이터 품질을 훼손하는 모랄 헤저드다.</li>
+                <li class="mb-1">상위 시스템의 강력한 통제와 하위 시스템의 책임 있는 가공이 수반되어야 한다.</li>
+            </ul>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 13 -->
+        <h2 class="text-2xl font-bold mb-6 text-orange-700">Chapter 13. 조직 운영 리스크: 사일로의 심화와 수작업의 부활</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>시스템 헤저드는 결국 사람이 하는 일을 늘린다. 시스템이 유기적으로 연결되지 않으면, 그 끊어진 틈을 사람이 메워야 하기 때문이다. 이는 조직 내에 '보이지 않는 수작업 부서'를 만들고, 부서 간의 책임 공방으로 인한 감정적 소모를 극대화한다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1454165833767-027ffea9e77b?auto=format&fit=crop&w=800&q=80" alt="서로 다른 곳을 보는 팀원들">
+            <p class="caption">▲ 시스템의 단절은 협업의 단절로 이어지며, 효율성을 떨어뜨리는 그림자 IT(수작업)를 양산한다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>시스템 아키텍처가 정보를 정의하지 않고 기능만을 정의했기 때문이다. 새로운 정보가 필요한 시점에 아키텍처 위원회가 역할을 분배하지 않으면, 각 부서는 자신의 시스템만을 지키기 위한 방어막(Silo)을 친다. 결과적으로 전사적인 데이터 흐름은 단절되고, 현업은 정보를 얻기 위해 각 시스템의 화면을 엑셀로 내려받아 다시 합치는 노가다를 반복하게 된다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: 인간 미들웨어가 된 현업 담당자</h3>
+        <p>실시간 이상 현상 발견과 조치가 필요한 고도화 업무. 하지만 시스템 간 데이터 연계가 막혀 있다. 현업 담당자는 매일 아침 출근하자마자 A 시스템에서 엑셀을 받고, B 시스템에서 로그를 받아 직접 VLOOKUP으로 데이터를 대조한다. 1시간이면 끝날 분석이 수동 작업 때문에 4시간이 걸린다.<br>
+        정작 중요한 조치는 업무 시간이 다 지나서야 이루어진다. 시스템이 고도화될수록 현업의 고통은 커지는 기현상이 벌어지는 것이다. 이것이 바로 시스템 헤저드가 초래하는 가장 무거운 <strong>조직 운영 리스크</strong>다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p>시스템을 개별 부서의 자산이 아닌 <strong>'전사 공용 인프라'</strong>로 재인식해야 한다. 부서 간의 성벽을 허물기 위해 공동의 데이터 목표(Shared Data KPI)를 부여하고, 수작업으로 인한 업무 로스를 비용으로 환산하여 경영진에 보고함으로써 아키텍처 개선의 동력을 확보해야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">시스템 단절은 현업의 엑셀 수작업(그림자 IT)을 부활시키는 주범이다.</li>
+                <li class="mb-1">정보 오너십이 없는 시스템 난립은 조직의 협업 능력을 저하시킨다.</li>
+                <li class="mb-1">수작업 로스를 정량화하여 아키텍처 위원회의 통제 명분으로 활용해야 한다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">현재 현업 부서에서 시스템 데이터를 엑셀로 내려받아 2차 가공하는 데 소요되는 인건비(M/H)를 산출해 보라.</span></p>
+        </div>
+
+    </div>
+</body>
+</html>
