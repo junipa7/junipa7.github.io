@@ -5,18 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>시스템 헤저드: 도서 목차</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
-        .part-card {
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .part-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        .scroll-smooth { scroll-behavior: smooth; }
-    </style>
 </head>
 <body class="bg-[#fcfaf7] text-slate-900 scroll-smooth">
 
@@ -38,7 +26,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             
             <!-- Part 1 -->
-            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col" onclick="if(window.loadContent) { loadContent('systemhazard/part1.html'); } else { location.href='part1.html'; }">
                 <div class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">Part 1</div>
                 <h2 class="text-xl font-bold mb-4 border-b pb-2">개념과 이론</h2>
                 <p class="text-xs text-slate-500 mb-6 leading-relaxed">유기적 결합의 붕괴와 시스템 이기주의의 탄생, 그리고 모랄 헤저드의 전이.</p>
@@ -50,7 +38,7 @@
             </div>
 
             <!-- Part 2 -->
-            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col" onclick="if(window.loadContent) { loadContent('systemhazard/part2.html'); } else { location.href='part2.html'; }">
                 <div class="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-2">Part 2</div>
                 <h2 class="text-xl font-bold mb-4 border-b pb-2">발생 구조와 원인</h2>
                 <p class="text-xs text-slate-500 mb-6 leading-relaxed">데이터 책임의 실종과 아키텍처 통제력 상실, 사일로화된 KPI 분석.</p>
@@ -63,7 +51,7 @@
             </div>
 
             <!-- Part 3 -->
-            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col" onclick="if(window.loadContent) { loadContent('systemhazard/part3.html'); } else { location.href='part3.html'; }">
                 <div class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Part 3</div>
                 <h2 class="text-xl font-bold mb-4 border-b pb-2">주요 유형과 사례</h2>
                 <p class="text-xs text-slate-500 mb-6 leading-relaxed">데이터 투척, 장벽 구축, 병목 유발 사례 및 제조/IT 현장 리포트.</p>
@@ -75,7 +63,7 @@
             </div>
 
             <!-- Part 4 -->
-            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col" onclick="if(window.loadContent) { loadContent('systemhazard/part4.html'); } else { location.href='part4.html'; }">
                 <div class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-2">Part 4</div>
                 <h2 class="text-xl font-bold mb-4 border-b pb-2">영향과 리스크</h2>
                 <p class="text-xs text-slate-500 mb-6 leading-relaxed">보이지 않는 IT 비용의 폭발과 데이터 품질 붕괴, 조직 운영의 위기.</p>
@@ -87,7 +75,7 @@
             </div>
 
             <!-- Part 5 -->
-            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col" onclick="if(window.loadContent) { loadContent('systemhazard/part5.html'); } else { location.href='part5.html'; }">
                 <div class="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-2">Part 5</div>
                 <h2 class="text-xl font-bold mb-4 border-b pb-2">해결 전략</h2>
                 <p class="text-xs text-slate-500 mb-6 leading-relaxed">데이터 중심 설계, 표준 아키텍처 및 거버넌스 재구축 로드맵.</p>
@@ -100,7 +88,7 @@
             </div>
 
             <!-- Part 6 -->
-            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col">
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col" onclick="if(window.loadContent) { loadContent('systemhazard/part6.html'); } else { location.href='part6.html'; }">
                 <div class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-2">Part 6</div>
                 <h2 class="text-xl font-bold mb-4 border-b pb-2">실행 방법론</h2>
                 <p class="text-xs text-slate-500 mb-6 leading-relaxed">진단부터 To-Be 설계, 단계별 전환 및 지속적 운영 체계 수립.</p>
@@ -113,7 +101,7 @@
             </div>
 
             <!-- Part 7 -->
-            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:col-span-2 lg:col-span-1">
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:col-span-2 lg:col-span-1" onclick="if(window.loadContent) { loadContent('systemhazard/part7.html'); } else { location.href='part7.html'; }">
                 <div class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2">Part 7</div>
                 <h2 class="text-xl font-bold mb-4 border-b pb-2">실무 적용</h2>
                 <p class="text-xs text-slate-500 mb-6 leading-relaxed">체크리스트 기반 자가 진단 및 생생한 현장 성공/실패 사례 연구.</p>
