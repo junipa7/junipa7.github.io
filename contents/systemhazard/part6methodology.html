@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 헤저드 Part 6</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200">
+        <h1 class="text-4xl font-extrabold mb-8 text-center border-b pb-6">Part 6. 실행 방법론: 변화를 위한 실천 전략</h1>
+
+        <p class="text-xl font-bold text-indigo-700 text-center mb-8">
+            "진단에서 설계, 그리고 지속 가능한 운영 체계로의 전환"
+        </p>
+
+        <p class="text-lg">전략이 지도라면, 방법론은 목적지까지 가는 나침반과 같습니다. 시스템 헤저드를 극복하기 위해서는 현재의 비효율을 객관적으로 측정하고, 리스크를 최소화하며 단계적으로 전환하는 정교한 실행 프로세스가 필요합니다. Part 6에서는 실무 현장에서 바로 적용 가능한 4단계 실행 방법론을 제시합니다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-indigo-700">Chapter 18. 진단 방법론: 우리 시스템은 얼마나 병들어 있는가?</h2>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">1. 아키텍처 성숙도 자가 진단</h3>
+        <p>변화의 시작은 현재의 위치를 인정하는 것부터입니다. 우리 조직의 시스템이 단순히 인터페이스로 얽혀 있는 '스파게티 아키텍처'인지, 아니면 표준 기반의 통합이 이루어진 상태인지를 진단해야 합니다. 특히 데이터의 중복 적재율과 '인간 미들웨어(수작업)'의 비중을 정량화하여 경영진에게 개선의 필요성을 환기시켜야 합니다.</p>
+
+        <div class="image-container my-8 text-center">
+            <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80" alt="정밀 진단과 데이터 시각화" class="rounded-xl shadow-md mx-auto w-full max-w-3xl">
+            <p class="caption text-sm text-slate-500 mt-3 italic">▲ [그림 6-1] 데이터 파이프라인의 단절 구간을 찾아내는 아키텍처 정밀 진단 (출처: Unsplash)</p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-indigo-700">Chapter 19. To-Be 설계 및 단계별 전환 전략</h2>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">1. 점진적 전환: "빅뱅은 없다"</h3>
+        <p>거대한 공장과 연동된 시스템을 한꺼번에 바꾸는 것은 불가능에 가깝습니다. 가장 데이터 품질이 낮고 비효율이 큰 영역(예: 실시간 OEE 집계 등)을 파일럿(Pilot)으로 선정하여 개선 성공 사례를 만드십시오. 이후 이를 바탕으로 전사 아키텍처로 확장하는 'Scale-up' 전략이 필수적입니다.</p>
+
+        <div class="flex flex-col gap-4 my-8">
+            <div class="flex items-start gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold">1</div>
+                <div class="text-slate-700"><strong>진단 및 타겟 선정:</strong> 데이터 중복이 가장 심한 KPI/보고서 영역 식별</div>
+            </div>
+            <div class="flex items-start gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold">2</div>
+                <div class="text-slate-700"><strong>표준 연계 설계:</strong> 하위 시스템(EES/TC) 가공 책임 부여 및 데이터 레이크 연동</div>
+            </div>
+            <div class="flex items-start gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold">3</div>
+                <div class="text-slate-700"><strong>파일럿 실행:</strong> 실시간 OEE 또는 이상 감지 알고리즘 적용</div>
+            </div>
+            <div class="flex items-start gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold">4</div>
+                <div class="text-slate-700"><strong>전사 확산:</strong> Shared KPI 적용 및 표준 가이드라인 정착</div>
+            </div>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-indigo-700">Chapter 21. 운영 및 개선 체계: 지속 가능한 거버넌스</h2>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">1. 아키텍처 모니터링 체계</h3>
+        <p>시스템은 관리가 소홀해지면 다시 무질서한 상태로 회귀하려는 본성이 있습니다. 이를 막기 위해 '데이터 정합성 모니터링 대시보드'를 상시 가동해야 합니다. 하위 시스템에서 보낸 정보와 상위에서 수신한 정보가 일치하는지, 지연 시간(Latency)은 허용 범위 내에 있는지를 실시간으로 감시해야 합니다.</p>
+
+        <div class="image-container my-8 text-center">
+            <img src="https://images.unsplash.com/photo-1551288049-bbda64626744?auto=format&fit=crop&w=800&q=80" alt="지속적인 운영 관리" class="rounded-xl shadow-md mx-auto w-full max-w-3xl">
+            <p class="caption text-sm text-slate-500 mt-3 italic">▲ [그림 6-2] 실시간 데이터 흐름 감시를 통한 아키텍처 건전성 유지 (출처: Unsplash)</p>
+        </div>
+
+        <div class="highlight-box bg-indigo-50 p-6 rounded-xl border-l-4 border-indigo-500 my-8">
+            <h3 class="text-lg font-bold mb-2 text-indigo-900">📌 Part 6 실행 지침 요약</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1"><strong>Diagnosis:</strong> 현재의 중복 적재와 수작업 비중을 정량적으로 측정하라.</li>
+                <li class="mb-1"><strong>Roadmap:</strong> 한꺼번에 바꾸려 하지 말고, 파일럿 성공 사례부터 단계적으로 확장하라.</li>
+                <li class="mb-1"><strong>Monitoring:</strong> 정합성 체크 자동화 프로세스를 구축하여 아키텍처의 엔트로피를 통제하라.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal text-indigo-700 underline">다음 분기 시스템 개선 Agenda에 '데이터 중복량 절감' 항목을 포함시키십시오.</span></p>
+        </div>
+    </div>
+</body>
+</html>
+</body>
+</html>

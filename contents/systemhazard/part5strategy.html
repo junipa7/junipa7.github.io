@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 헤저드 Part 5</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200">
+        <h1 class="text-4xl font-extrabold mb-8 text-center border-b pb-6">Part 5. 해결 전략: 아키텍처와 거버넌스의 재건</h1>
+
+        <p class="text-xl font-bold text-teal-700 text-center mb-8">
+            "기술 부채를 상환하고 유기적 결합을 복원하기 위한 전사적 로드맵"
+        </p>
+
+        <p class="text-lg">시스템 헤저드는 단순히 개발자 몇 명의 태만으로 발생하는 문제가 아닙니다. 이는 조직의 의사결정 체계와 데이터 철학이 부재할 때 나타나는 구조적 병폐입니다. Part 5에서는 이러한 병폐를 도려내고, 데이터를 '단순 적재물'에서 '비즈니스 정보'로 승격시키기 위한 네 가지 핵심 해결 전략을 심층적으로 다룹니다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-teal-700">Chapter 14. 데이터 중심 설계 원칙: Data에서 Information으로</h2>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">1. 문제 정의: 의미 없는 데이터의 홍수</h3>
+        <p>현장의 설비 제어 시스템(EES)이나 모니터링 시스템(MOS)에서 발생하는 로그는 그 자체로는 로우 데이터(Raw Data)입니다. 이 데이터가 상위의 KPI 시스템까지 원형 그대로 투척되는 현상은 시스템 헤저드의 전형입니다. 이 과정에서 맥락(Context)이 유실되고, 상위 시스템은 데이터 정제를 위해 테라바이트급의 불필요한 연산을 반복해야 합니다.</p>
+
+        <div class="image-container my-8 text-center">
+            <img src="https://images.unsplash.com/photo-1551288049-bbda64626744?auto=format&fit=crop&w=800&q=80" alt="정제된 데이터의 흐름" class="rounded-xl shadow-md mx-auto w-full max-w-3xl">
+            <p class="caption text-sm text-slate-500 mt-3 italic">▲ [그림 5-1] 원천 데이터가 기준 정보와 결합되어 유의미한 '정보'로 변하는 정제 프로세스 (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 해결 방법: Shift-Left와 1차 가공 책임제</h3>
+        <p>해결책은 명확합니다. 데이터를 가장 잘 아는 시스템(Origin)이 가공의 책임도 함께 지는 **'Shift-Left'** 전략입니다. KPI 시스템에서 Standard Time을 활용한다면, 하위 시스템은 단순히 이벤트 로그만 보낼 것이 아니라, 자체적으로 Standard Time 기준 정보를 동기화하여 '가동/비가동 여부'나 '표준 대비 실적'을 1차로 가공해 올려야 합니다.</p>
+        <p>이렇게 가공된 정보(Information)가 전달될 때, 상위 시스템은 가벼워지고 전사 데이터 정합성은 획기적으로 향상됩니다. 시스템 간의 대화는 'Raw 로그'가 아닌 '비즈니스 실적' 단위로 이루어져야 합니다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-teal-700">Chapter 15. 표준 아키텍처 설계와 기획의 통제력</h2>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">1. 문제 정의: 비용을 핑계로 한 표준화 회피</h3>
+        <p>신규 프로젝트 시 "개발 비용 절감"과 "촉박한 일정"은 언제나 표준 아키텍처를 우회하는 단골 핑계가 됩니다. 이로 인해 전사 표준을 무시한 독립 개발이 횡행하게 되고, 이는 결국 장기적으로 시스템 간 연결이 불가능한 '데이터 갈라파고스'를 형성합니다.</p>
+
+        <div class="image-container my-8 text-center">
+            <img src="https://images.unsplash.com/photo-1454165833767-027ffea9e77b?auto=format&fit=crop&w=800&q=80" alt="시스템 아키텍처 기획 회의" class="rounded-xl shadow-md mx-auto w-full max-w-3xl">
+            <p class="caption text-sm text-slate-500 mt-3 italic">▲ [그림 5-2] 시스템 아키텍처 운영 위원회를 통한 전사적 역할 분배 (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 해결 방법: 아키텍처 운영 위원회(EA Board)의 통제</h3>
+        <p>새로운 비즈니스 개념이 발생했을 때, 필요한 곳에서 임의로 시스템을 만들게 방치해서는 안 됩니다. **'시스템 아키텍처 운영 위원회'** 혹은 **'시스템 기획 조직'**이 강력한 통제권을 가지고 전사 관점에서 할 일과 역할을 분배해야 합니다. 위원회는 단순히 기술적 검토를 넘어, "어느 시스템이 어떤 데이터를 생산하고 책임질 것인가"를 정의하는 헌법적 역할을 수행해야 합니다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-teal-700">Chapter 16. 저장소 정책 수립: Data Lake vs RDBMS</h2>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">1. 기술적 방향성: 목적에 맞는 인프라 활용</h3>
+        <p>모든 데이터를 비싼 관계형 데이터베이스(RDBMS)에 쏟아붓는 것은 비용과 성능 모두에서 재앙을 부릅니다. 일단위 집계를 위한 설비 로그(Log)와 같은 대용량 데이터는 확장성이 뛰어나고 저렴한 **데이터 레이크(Data Lake)**를 활용해야 합니다.</p>
+        <p>반면, 실시간 이상 현상 감지나 즉각적인 조치가 필요한 고도화 기능은 고성능 **RDBMS**를 활용하는 정책적 분리가 필요합니다. 이러한 저장소 분리 원칙이 확립될 때, 비로소 시스템은 유기적으로 연결되면서도 각자의 성능을 최대로 발휘할 수 있습니다.</p>
+
+        <div class="highlight-box bg-teal-50 p-6 rounded-xl border-l-4 border-teal-500 my-8">
+            <h3 class="text-lg font-bold mb-2 text-teal-900">🏆 Part 5 핵심 요약</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1"><strong>Shift-Left:</strong> 데이터 발생지(Origin)에서 1차 가공 및 기준 정보 결합을 완수하라.</li>
+                <li class="mb-1"><strong>Governance:</strong> 아키텍처 운영 위원회의 승인 없는 임의 개발 및 로컬 테이블 생성을 통제하라.</li>
+                <li class="mb-1"><strong>Infrastructure:</strong> 로그성 대용량 데이터는 Data Lake로, 실시간 정보는 RDBMS로 분리 보관하라.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">인터페이스 명세서에 단순히 데이터 항목만 적지 말고, '가공 책임 시스템'과 '데이터 오너십'을 명시하십시오.</span></p>
+        </div>
+    </div>
+</body>
+</html>
+</body>
+</html>

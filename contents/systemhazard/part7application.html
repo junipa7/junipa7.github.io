@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 헤저드 Part 7</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200">
+        <h1 class="text-4xl font-extrabold mb-8 text-center border-b pb-6">Part 7. 실무 적용: 현장의 변화를 이끄는 마지막 열쇠</h1>
+
+        <p class="text-xl font-bold text-amber-700 text-center mb-8">
+            "실패의 교훈과 성공의 패턴: 내일 당장 실행해야 할 리스트"
+        </p>
+
+        <p class="text-lg">이론은 현장에서 증명될 때 비로소 가치를 지닙니다. 시스템 헤저드의 개념과 해결 전략을 모두 이해했다면, 이제 우리 시스템의 거울을 들여다볼 시간입니다. Part 7에서는 당신의 조직을 진단할 수 있는 체크리스트와, 현장의 생생한 성공 및 실패 사례를 통해 실무적 통찰력을 완성합니다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-amber-700">Chapter 22. 체크리스트 기반 진단: 우리 조직의 위험 지수 측정</h2>
+
+        <p>다음 체크리스트는 당신의 조직이 얼마나 깊은 '시스템 헤저드'의 늪에 빠져 있는지 측정하는 척도입니다. 5개 이상의 항목에 해당된다면, 이미 시스템 아키텍처는 심각하게 오염된 상태입니다.</p>
+
+        <div class="bg-amber-50 p-8 rounded-xl border border-amber-200 my-8">
+            <h3 class="text-xl font-bold mb-6 text-amber-900">🔍 아키텍처 건전성 체크리스트</h3>
+            <div class="flex items-center gap-3 mb-3 text-lg"><input type="checkbox" class="w-5 h-5 rounded border-amber-600 text-amber-600 focus:ring-amber-500"> <span class="text-slate-700">동일한 데이터가 여러 시스템에 중복으로 존재하며, 값이 서로 다르다.</span></div>
+            <div class="flex items-center gap-3 mb-3 text-lg"><input type="checkbox" class="w-5 h-5 rounded border-amber-600 text-amber-600 focus:ring-amber-500"> <span class="text-slate-700">하위 시스템은 원천 로그만 던져주고, 상위 시스템이 모든 가공을 떠안는다.</span></div>
+            <div class="flex items-center gap-3 mb-3 text-lg"><input type="checkbox" class="w-5 h-5 rounded border-amber-600 text-amber-600 focus:ring-amber-500"> <span class="text-slate-700">표준 아키텍처 위원회의 심의를 거치지 않은 '독립 개발 시스템'이 존재한다.</span></div>
+            <div class="flex items-center gap-3 mb-3 text-lg"><input type="checkbox" class="w-5 h-5 rounded border-amber-600 text-amber-600 focus:ring-amber-500"> <span class="text-slate-700">현업 담당자들이 정보를 얻기 위해 여러 시스템에서 엑셀을 받아 수작업으로 합친다.</span></div>
+            <div class="flex items-center gap-3 mb-3 text-lg"><input type="checkbox" class="w-5 h-5 rounded border-amber-600 text-amber-600 focus:ring-amber-500"> <span class="text-slate-700">데이터 레이크와 RDBMS의 구분 없이 모든 데이터를 DB에 무작정 쌓는다.</span></div>
+            <div class="flex items-center gap-3 text-lg"><input type="checkbox" class="w-5 h-5 rounded border-amber-600 text-amber-600 focus:ring-amber-500"> <span class="text-slate-700">특정 부서가 "우리 시스템에 필요 없다"는 이유로 전사 통합 데이터 생성을 거부한다.</span></div>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-amber-700">Chapter 23. 성공과 실패의 갈림길: 현장 리포트</h2>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-8 mb-8 border-t-8 border-t-emerald-600 shadow-sm mt-8">
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase mb-4 bg-emerald-100 text-emerald-800">Success Case</span>
+            <h3 class="text-xl font-bold mb-3 mt-0 text-slate-800">반도체 A사: 고급 알고리즘 도입 성공기</h3>
+            <p class="text-slate-700 mb-2">초대용량 데이터를 실시간으로 분석하기 위해 Chan 알고리즘과 KLL 엔진을 도입하려던 A사. 초기에는 TC와 EES 단에서 데이터 생성을 거부하여 좌절되었습니다. 하지만 아키텍처 위원회가 개입하여 최하단 시스템을 '데이터 공급 전초기지'로 재정의하고, Shift-Left 가공 로직을 강제했습니다.</p>
+            <p class="text-slate-700"><strong>결과:</strong> 실시간 OEE 집계가 가능해졌으며, 이상 현상 감지 속도가 이전 대비 400% 향상되었습니다.</p>
+        </div>
+
+        <div class="image-container my-8 text-center">
+            <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80" alt="성공적인 협업" class="rounded-xl shadow-md mx-auto w-full max-w-3xl">
+            <p class="caption text-sm text-slate-500 mt-3 italic">▲ [그림 7-1] 부서 이기주의를 타파하고 공동의 데이터를 지켜낸 성공적인 협업 모델 (출처: Unsplash)</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-8 mb-8 border-t-8 border-t-red-600 shadow-sm mt-8">
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase mb-4 bg-red-100 text-red-800">Failure Case</span>
+            <h3 class="text-xl font-bold mb-3 mt-0 text-slate-800">부품사 B사: "주는 대로 받고, 받은 대로 넘긴다"의 비극</h3>
+            <p class="text-slate-700 mb-2">중간 레벨의 시스템 담당자들이 데이터 검증 책임을 회피하며 '바이패스(Bypass)' 정책을 고수했습니다. 하위에서 올라온 에러 데이터가 정제 없이 KPI 시스템까지 전달되었고, 경영진은 매일 아침 수치가 틀린 대시보드를 마주해야 했습니다.</p>
+            <p class="text-slate-700"><strong>결과:</strong> 시스템 불신으로 인해 '엑셀 수작업 부서'가 신설되었고, 시스템은 테라바이트급의 '데이터 쓰레기통'으로 전락했습니다.</p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <div class="highlight-box bg-amber-50 p-6 rounded-xl border-l-4 border-amber-500 my-8">
+            <h3 class="text-lg font-bold mb-2 text-amber-900 mt-0">📘 집필을 마치며: 시스템은 의지입니다</h3>
+            <p class="mb-0 italic text-amber-900">"가장 훌륭한 시스템은 혼자 잘 돌아가는 시스템이 아니라, 다른 시스템을 위해 가장 고품질의 정보를 적시에 공급해 주는 시스템입니다. 시스템 헤저드를 극복하는 유일한 방법은 기술이 아니라, 부서 간의 벽을 허물고 전사 최적화를 추구하는 강력한 '아키텍처 의지'입니다."</p>
+        </div>
+
+        <p class="text-center text-slate-400 text-sm mt-10">© 2026 System Hazard Guide. All rights reserved.</p>
+    </div>
+</body>
+</html>
