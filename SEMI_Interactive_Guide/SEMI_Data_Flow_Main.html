@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SEMI 생산 데이터 흐름 Interactive Guide</title>
+  <style>
+    :root {
+      --ink: #17202a;
+      --muted: #667085;
+      --line: #d8dee8;
+      --panel: #ffffff;
+      --paper: #f6f8fb;
+      --teal: #127c7a;
+      --blue: #2864a8;
+      --orange: #b85c18;
+      --rose: #b13f5a;
+      --green: #517d2f;
+      --shadow: 0 16px 36px rgba(25, 35, 58, .10);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Arial, "Malgun Gothic", sans-serif;
+      line-height: 1.55;
+    }
+
+    header {
+      background: #101826;
+      color: #fff;
+      padding: 28px 28px 22px;
+      border-bottom: 5px solid #e8b34b;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(24px, 3vw, 38px);
+      letter-spacing: 0;
+    }
+
+    header p {
+      margin: 0;
+      max-width: 1120px;
+      color: #dbe3ef;
+      font-size: 15px;
+    }
+
+    main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 12px;
+      max-height: calc(100vh - 24px);
+      overflow: auto;
+      padding: 14px;
+    }
+
+    .search {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 10px 11px;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .group-title {
+      margin: 18px 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .std-button {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 70px minmax(0, 1fr);
+      gap: 8px;
+      padding: 10px;
+      margin: 6px 0;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      text-align: left;
+      cursor: pointer;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+
+    .std-button:hover,
+    .std-button.active {
+      transform: translateY(-1px);
+      border-color: var(--teal);
+      background: #f0fbfa;
+    }
+
+    .std-code {
+      font-weight: 800;
+      color: var(--teal);
+      white-space: nowrap;
+    }
+
+    .std-name {
+      font-size: 13px;
+      color: #344054;
+      overflow-wrap: anywhere;
+    }
+
+    .hero {
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+
+    .hero h2 {
+      margin: 0 0 10px;
+      font-size: 24px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #eef3f8;
+      color: #344054;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .section {
+      padding: 20px 22px;
+      margin-bottom: 18px;
+    }
+
+    .section h3 {
+      margin: 0 0 12px;
+      font-size: 19px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 13px;
+      background: #fff;
+    }
+
+    .metric strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #1d3557;
+      font-size: 14px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .diagram-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+    }
+
+    svg {
+      display: block;
+      min-width: 940px;
+      width: 100%;
+      height: auto;
+    }
+
+    .node rect {
+      fill: #fff;
+      stroke: #ccd6e2;
+      stroke-width: 1.4;
+      rx: 8;
+    }
+
+    .node text {
+      font-size: 13px;
+      fill: #182233;
+      font-weight: 700;
+      pointer-events: none;
+    }
+
+    .node small,
+    .tiny {
+      font-size: 11px;
+      fill: #667085;
+      font-weight: 400;
+    }
+
+    .click-node {
+      cursor: pointer;
+    }
+
+    .click-node:hover rect {
+      stroke: var(--teal);
+      stroke-width: 2.4;
+      fill: #f0fbfa;
+    }
+
+    .arrow {
+      stroke: #667085;
+      stroke-width: 1.6;
+      fill: none;
+      marker-end: url(#arrow);
+    }
+
+    .arrow.data { stroke: var(--blue); }
+    .arrow.control { stroke: var(--orange); }
+    .arrow.analytics { stroke: var(--green); }
+    .arrow.security { stroke: var(--rose); stroke-dasharray: 5 4; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 9px 10px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #eef3f8;
+      text-align: left;
+      color: #24364b;
+      font-weight: 800;
+    }
+
+    .detail-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: start;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 86px;
+      min-height: 38px;
+      border-radius: 7px;
+      background: #102033;
+      color: #fff;
+      font-weight: 800;
+      padding: 8px 12px;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .note {
+      border-left: 4px solid var(--orange);
+      background: #fff8ef;
+      padding: 12px 14px;
+      border-radius: 6px;
+      color: #4c3a25;
+      font-size: 13px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 18px;
+      height: 3px;
+      margin-right: 6px;
+      vertical-align: middle;
+      background: #667085;
+    }
+
+    .legend .data::before { background: var(--blue); }
+    .legend .control::before { background: var(--orange); }
+    .legend .analytics::before { background: var(--green); }
+    .legend .security::before { background: var(--rose); }
+
+    footer {
+      padding: 18px 22px 30px;
+      color: var(--muted);
+      font-size: 12px;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    a { color: #1f68b3; }
+
+    @media (max-width: 980px) {
+      main { padding: 12px; }
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; max-height: none; }
+      .grid, .two-col { grid-template-columns: 1fr; }
+      .detail-head { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SEMI 생산 데이터 흐름 Interactive Guide</h1>
+    <p>설비 Message 수집에서 TC/EAP, EES/APC/FDC, MOS/MES, 최상위 KPI 관리까지 이어지는 SEMI 표준 관계를 DFD와 개발용 테이블 구조로 정리한 메인 페이지입니다.</p>
+  </header>
+
+  <main class="layout">
+    <aside class="panel sidebar">
+      <input class="search" id="search" type="search" placeholder="표준/알고리즘 검색" />
+      <div id="nav"></div>
+    </aside>
+
+    <section>
+      <div class="panel hero">
+        <h2>장비 Message에서 KPI까지의 표준 흐름</h2>
+        <p>현장 설비의 이벤트, 알람, 상태, 레시피, Job, Carrier/Substrate 정보를 표준 메시지로 수집하고, TC/EAP가 제어·중계하며, EES/APC/FDC가 분석하고, MOS/MES가 생산 실행 문맥을 붙인 뒤 KPI 시스템이 OEE, 품질, 처리량, 이상 감지 지표로 집계합니다.</p>
+        <div class="chips">
+          <span class="chip">SECS/GEM</span>
+          <span class="chip">GEM300</span>
+          <span class="chip">EDA / Interface A</span>
+          <span class="chip">APC / FDC / EES</span>
+          <span class="chip">MOS / MES</span>
+          <span class="chip">Streaming KPI</span>
+        </div>
+      </div>
+
+      <div class="panel section">
+        <h3>전체 DFD</h3>
+        <div class="diagram-wrap">
+          <svg viewBox="0 0 1180 560" aria-label="SEMI 전체 데이터 흐름 DFD">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L0,6 L9,3 z" fill="#667085"></path>
+              </marker>
+            </defs>
+
+            <g class="node">
+              <rect x="30" y="55" width="170" height="84"></rect>
+              <text x="115" y="88" text-anchor="middle">설비 Controller</text>
+              <text class="tiny" x="115" y="112" text-anchor="middle">Sensor / PLC / Recipe</text>
+            </g>
+            <g class="node click-node" data-id="E5">
+              <rect x="250" y="45" width="170" height="54"></rect>
+              <text x="335" y="77" text-anchor="middle">E5 SECS-II</text>
+            </g>
+            <g class="node click-node" data-id="E37">
+              <rect x="250" y="120" width="170" height="54"></rect>
+              <text x="335" y="152" text-anchor="middle">E37 HSMS</text>
+            </g>
+            <g class="node click-node" data-id="E30">
+              <rect x="470" y="55" width="190" height="84"></rect>
+              <text x="565" y="88" text-anchor="middle">E30 GEM</text>
+              <text class="tiny" x="565" y="112" text-anchor="middle">Event / Alarm / RCMD</text>
+            </g>
+            <g class="node click-node" data-id="GEM300">
+              <rect x="710" y="55" width="180" height="84"></rect>
+              <text x="800" y="88" text-anchor="middle">GEM300</text>
+              <text class="tiny" x="800" y="112" text-anchor="middle">E40/E87/E90/E94</text>
+            </g>
+            <g class="node">
+              <rect x="950" y="55" width="180" height="84"></rect>
+              <text x="1040" y="88" text-anchor="middle">TC / EAP</text>
+              <text class="tiny" x="1040" y="112" text-anchor="middle">Tool Control</text>
+            </g>
+
+            <g class="node click-node" data-id="EDA">
+              <rect x="250" y="250" width="210" height="88"></rect>
+              <text x="355" y="282" text-anchor="middle">EDA / Interface A</text>
+              <text class="tiny" x="355" y="306" text-anchor="middle">E120/E125/E134/E164</text>
+            </g>
+            <g class="node">
+              <rect x="520" y="250" width="190" height="88"></rect>
+              <text x="615" y="282" text-anchor="middle">Message Collector</text>
+              <text class="tiny" x="615" y="306" text-anchor="middle">Raw / Context / Quality</text>
+            </g>
+            <g class="node">
+              <rect x="770" y="250" width="170" height="88"></rect>
+              <text x="855" y="282" text-anchor="middle">EES / APC / FDC</text>
+              <text class="tiny" x="855" y="306" text-anchor="middle">Analysis / Control</text>
+            </g>
+            <g class="node">
+              <rect x="990" y="250" width="150" height="88"></rect>
+              <text x="1065" y="282" text-anchor="middle">MOS / MES</text>
+              <text class="tiny" x="1065" y="306" text-anchor="middle">Lot / WIP / Dispatch</text>
+            </g>
+
+            <g class="node click-node" data-id="Chan">
+              <rect x="430" y="430" width="190" height="74"></rect>
+              <text x="525" y="462" text-anchor="middle">Chan 알고리즘</text>
+              <text class="tiny" x="525" y="486" text-anchor="middle">평균/분산 병합 집계</text>
+            </g>
+            <g class="node click-node" data-id="KLL">
+              <rect x="680" y="430" width="190" height="74"></rect>
+              <text x="775" y="462" text-anchor="middle">KLL Sketch</text>
+              <text class="tiny" x="775" y="486" text-anchor="middle">분위수 근사 집계</text>
+            </g>
+            <g class="node">
+              <rect x="930" y="420" width="190" height="94"></rect>
+              <text x="1025" y="456" text-anchor="middle">KPI 관리 시스템</text>
+              <text class="tiny" x="1025" y="480" text-anchor="middle">OEE / SPC / Alarm</text>
+            </g>
+
+            <path class="arrow data" d="M200 90 H250"></path>
+            <path class="arrow data" d="M420 72 H470"></path>
+            <path class="arrow control" d="M420 147 C450 147 450 108 470 108"></path>
+            <path class="arrow control" d="M660 97 H710"></path>
+            <path class="arrow control" d="M890 97 H950"></path>
+            <path class="arrow data" d="M200 120 C220 210 250 240 250 280"></path>
+            <path class="arrow data" d="M460 294 H520"></path>
+            <path class="arrow analytics" d="M710 294 H770"></path>
+            <path class="arrow control" d="M940 294 H990"></path>
+            <path class="arrow analytics" d="M615 338 C615 390 540 395 525 430"></path>
+            <path class="arrow analytics" d="M855 338 C855 388 790 397 775 430"></path>
+            <path class="arrow analytics" d="M870 468 H930"></path>
+            <path class="arrow analytics" d="M620 468 H680"></path>
+            <path class="arrow security" d="M1040 140 V250"></path>
+          </svg>
+        </div>
+        <div class="legend">
+          <span class="data">Data 수집</span>
+          <span class="control">Control/Command</span>
+          <span class="analytics">분석/집계</span>
+          <span class="security">보안/거버넌스</span>
+        </div>
+      </div>
+
+      <div class="panel section">
+        <h3>계층별 역할</h3>
+        <div class="grid">
+          <div class="metric"><strong>설비 Message 계층</strong><span>E5/E37/E30으로 CEID, SVID, ALID, PPID, Remote Command를 주고받습니다.</span></div>
+          <div class="metric"><strong>GEM300 실행 계층</strong><span>E40/E87/E90/E94가 Lot, Carrier, Substrate, Job 단위의 생산 문맥을 붙입니다.</span></div>
+          <div class="metric"><strong>EDA 수집 계층</strong><span>E120/E125/E134/E164가 고속, 다중 Client, Metadata 기반 수집을 제공합니다.</span></div>
+          <div class="metric"><strong>TC / EAP</strong><span>장비 제어, Recipe Download, Start/Stop, Interlock, Host Command를 담당합니다.</span></div>
+          <div class="metric"><strong>EES / APC / FDC</strong><span>Fault Detection, Run-to-Run Control, 모델 기반 분석, 설비 성능 추적을 담당합니다.</span></div>
+          <div class="metric"><strong>KPI 시스템</strong><span>OEE, MTBF/MTTR, Yield, Cycle Time, Alarm Pareto, 분위수 지표를 실시간 집계합니다.</span></div>
+        </div>
+      </div>
+
+      <div class="panel section" id="detail">
+        선택한 표준의 상세 내용이 여기에 표시됩니다.
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    참고: SEMI 표준 원문은 SEMI 공식 표준 문서 또는 SEMIViews에서 확인해야 합니다. 이 페이지는 개발/설계 검토를 위한 요약입니다.
+    공식 자료: <a href="https://www.semi.org/en/products-services/standards/information_and_control">SEMI Information & Control</a>,
+    <a href="https://www.semi.org/en/next-gen-semi-eda-standards">Next-Gen SEMI EDA Standards</a>,
+    <a href="https://www.semi.org/en/about/SEMI_Standards">SEMI Standards and Smart Manufacturing</a>.
+  </footer>
+
+  <script>
+    const standards = [
+      {
+        id: "E5", group: "SECS/GEM 기본", code: "SEMI E5", name: "SECS-II Message Content",
+        summary: "Stream/Function, List, Binary, ASCII, U/I/F 타입 등 SECS 메시지의 구조와 의미를 정의합니다.",
+        role: "장비 이벤트, 알람, 변수 조회, 레시피, Remote Command를 공통 메시지 언어로 표현합니다.",
+        dfd: ["Equipment Controller", "SECS-II Encoder/Decoder", "Host Message Broker", "TC/EAP"],
+        tables: [
+          ["secs_message_log", "message_id, direction, stream, function, wait_bit, system_bytes, raw_payload, parsed_json, event_time"],
+          ["secs_item_dictionary", "item_name, secs_type, length_rule, semantic_name, unit, owner_standard"],
+          ["secs_transaction", "transaction_id, request_message_id, reply_message_id, timeout_ms, status"]
+        ]
+      },
+      {
+        id: "E37", group: "SECS/GEM 기본", code: "SEMI E37", name: "HSMS Generic Services",
+        summary: "TCP/IP 기반으로 SECS-II Payload를 운반하는 세션, Select, Linktest, Separate, Timeout 규칙을 정의합니다.",
+        role: "Serial SECS-I 대신 Ethernet 기반 장비 통신 채널을 구성합니다.",
+        dfd: ["Equipment HSMS Passive", "TCP Session", "HSMS State Manager", "Host HSMS Active"],
+        tables: [
+          ["hsms_session", "session_id, equipment_id, ip, port, active_passive, selected_state, last_linktest_at"],
+          ["hsms_event_log", "session_id, control_message, direction, status, event_time"],
+          ["connection_health", "session_id, latency_ms, retry_count, disconnect_reason, measured_at"]
+        ]
+      },
+      {
+        id: "E30", group: "SECS/GEM 기본", code: "SEMI E30", name: "GEM",
+        summary: "제조 장비와 Host 사이의 공통 제어 모델입니다. Collection Event, Report, Alarm, Variable, Remote Command, Process Program 관리의 기본 틀을 제공합니다.",
+        role: "TC/EAP가 설비를 제어하고 상태를 수집하는 기본 계약입니다.",
+        dfd: ["Equipment GEM Service", "Event/Alarm/Variable", "TC/EAP", "MES Context Adapter"],
+        tables: [
+          ["gem_collection_event", "equipment_id, ceid, event_name, enabled, linked_report_id, description"],
+          ["gem_report_variable", "report_id, vid, variable_name, variable_type, unit, sample_rule"],
+          ["gem_alarm_history", "equipment_id, alid, alarm_text, set_clear, severity, occurred_at"],
+          ["gem_remote_command", "command_id, command_name, parameter_schema, allow_state, audit_rule"]
+        ]
+      },
+      {
+        id: "GEM300", group: "GEM300 생산 실행", code: "GEM300", name: "300mm Automation Set",
+        summary: "E39, E40, E87, E90, E94, E116, E142, E148, E157 등으로 Carrier, Substrate, Process Job, Control Job, 성능/시간 동기화까지 확장합니다.",
+        role: "Lot/Carrier/Wafer 단위의 자동화 생산 실행을 표준 객체와 상태 모델로 연결합니다.",
+        dfd: ["Carrier Arrival", "Carrier Mgmt", "Control Job", "Process Job", "Substrate Tracking", "MES/MOS"],
+        tables: [
+          ["carrier_state", "carrier_id, load_port_id, carrier_state, access_mode, slot_map_id, updated_at"],
+          ["control_job", "control_job_id, carrier_id, recipe_id, job_state, owner_system, created_at"],
+          ["process_job", "process_job_id, control_job_id, lot_id, wafer_list, recipe_id, state"],
+          ["substrate_trace", "substrate_id, carrier_id, slot_no, module_id, process_state, event_time"]
+        ]
+      },
+      {
+        id: "E39", group: "GEM300 생산 실행", code: "SEMI E39", name: "Object Services",
+        summary: "장비/생산 객체를 식별하고 상태, 속성, 서비스를 모델링하는 기반 개념을 제공합니다.",
+        role: "GEM300 객체 모델의 공통 기반으로 Carrier, Job, Substrate 같은 객체를 일관되게 다룹니다.",
+        dfd: ["Object Registry", "Attribute Service", "State Model", "Host Object Client"],
+        tables: [
+          ["semi_object", "object_id, object_type, parent_object_id, lifecycle_state, created_at"],
+          ["semi_object_attribute", "object_id, attr_name, attr_value, attr_type, updated_at"]
+        ]
+      },
+      {
+        id: "E40", group: "GEM300 생산 실행", code: "SEMI E40", name: "Processing Management",
+        summary: "Process Job 생성, 시작, 취소, 완료와 같은 처리 작업 관리를 정의합니다.",
+        role: "MES/MOS의 작업 지시를 설비 내부 처리 단위로 연결합니다.",
+        dfd: ["MES Work Order", "Process Job Manager", "Recipe Manager", "Equipment Module"],
+        tables: [
+          ["process_job", "process_job_id, lot_id, recipe_id, substrate_selection, job_state, start_time, end_time"],
+          ["process_job_event", "process_job_id, event_name, previous_state, next_state, event_time"]
+        ]
+      },
+      {
+        id: "E87", group: "GEM300 생산 실행", code: "SEMI E87", name: "Carrier Management",
+        summary: "Carrier ID, Load Port, Slot Map, Carrier State와 관련된 관리를 정의합니다.",
+        role: "AMHS/Load Port/장비 사이의 Carrier 처리 상태를 표준화합니다.",
+        dfd: ["AMHS", "Load Port", "Carrier Manager", "Slot Map", "MES"],
+        tables: [
+          ["carrier", "carrier_id, carrier_type, current_location, state, access_status"],
+          ["slot_map", "slot_map_id, carrier_id, slot_no, substrate_id, verified_flag"]
+        ]
+      },
+      {
+        id: "E90", group: "GEM300 생산 실행", code: "SEMI E90", name: "Substrate Tracking",
+        summary: "Wafer/Substrate의 위치, 이동, 처리 상태를 추적하는 모델입니다.",
+        role: "Carrier보다 더 세밀한 Wafer 단위 이력과 공정 문맥을 만듭니다.",
+        dfd: ["Carrier Slot", "Transfer Module", "Process Module", "Substrate History", "MES Trace"],
+        tables: [
+          ["substrate", "substrate_id, lot_id, carrier_id, slot_no, product_id, state"],
+          ["substrate_location_history", "substrate_id, from_location, to_location, move_reason, event_time"]
+        ]
+      },
+      {
+        id: "E94", group: "GEM300 생산 실행", code: "SEMI E94", name: "Control Job Management",
+        summary: "Control Job의 생성, 실행, 종료, 취소 상태 모델을 정의합니다.",
+        role: "여러 Carrier와 Process Job을 하나의 생산 제어 단위로 묶습니다.",
+        dfd: ["MOS Dispatch", "Control Job Manager", "Process Job Set", "Equipment Execution"],
+        tables: [
+          ["control_job", "control_job_id, job_name, carrier_set, process_job_set, state, priority"],
+          ["control_job_transition", "control_job_id, from_state, to_state, reason, event_time"]
+        ]
+      },
+      {
+        id: "E116", group: "분석/성능", code: "SEMI E116", name: "Equipment Performance Tracking",
+        summary: "장비 성능 추적에 필요한 이벤트와 상태 정보를 구조화합니다.",
+        role: "EES/FDC/OEE 시스템이 설비 성능과 병목을 계산하는 기준 데이터가 됩니다.",
+        dfd: ["Equipment State", "Performance Event", "EES Collector", "OEE/KPI"],
+        tables: [
+          ["equipment_performance_event", "equipment_id, state_code, reason_code, duration_sec, event_start, event_end"],
+          ["equipment_performance_kpi", "equipment_id, metric_name, metric_value, window_start, window_end"]
+        ]
+      },
+      {
+        id: "E120", group: "EDA / Interface A", code: "SEMI E120", name: "Common Equipment Model",
+        summary: "장비의 물리/논리 구성요소를 계층 모델로 표현하는 규칙입니다.",
+        role: "EDA Client가 Load Port, Chamber, Sensor, Software Module의 관계를 이해하게 합니다.",
+        dfd: ["Equipment Components", "CEM Builder", "EDA Metadata Model", "Data Client"],
+        tables: [
+          ["eda_component", "component_id, parent_component_id, component_type, name, path, active_flag"],
+          ["eda_component_relation", "source_component_id, relation_type, target_component_id"]
+        ]
+      },
+      {
+        id: "E125", group: "EDA / Interface A", code: "SEMI E125", name: "Equipment Self Description",
+        summary: "장비가 수집 가능한 Parameter, Event, Exception, Metadata를 스스로 설명하는 방법을 정의합니다.",
+        role: "Collector가 장비별 데이터 사전을 자동으로 가져와 수집 설정과 검증에 사용합니다.",
+        dfd: ["EDA Server", "Self Description Service", "Metadata Cache", "Collector Config"],
+        tables: [
+          ["eda_parameter_def", "parameter_id, component_id, name, data_type, unit, collection_capability"],
+          ["eda_event_def", "event_id, component_id, event_name, description, related_parameters"]
+        ]
+      },
+      {
+        id: "E132", group: "EDA / Interface A", code: "SEMI E132", name: "Client Authentication and Authorization",
+        summary: "EDA Client의 인증과 권한 부여를 표준화합니다.",
+        role: "여러 데이터 소비자가 장비 데이터에 접근할 때 보안 통제를 제공합니다.",
+        dfd: ["EDA Client", "Auth Service", "Authorization Policy", "EDA Server"],
+        tables: [
+          ["eda_client", "client_id, client_name, certificate_subject, status, last_seen_at"],
+          ["eda_permission", "client_id, component_scope, data_scope, allow_collect, allow_manage_plan"]
+        ]
+      },
+      {
+        id: "E134", group: "EDA / Interface A", code: "SEMI E134", name: "Data Collection Management",
+        summary: "Data Collection Plan 생성, 활성화, 비활성화, 구독, 수집 조건을 관리합니다.",
+        role: "EES/FDC가 필요한 Signal을 고속으로 지속 수집하도록 계획을 표준화합니다.",
+        dfd: ["FDC Requirement", "DCP Manager", "EDA Server", "Streaming Collector"],
+        tables: [
+          ["data_collection_plan", "plan_id, equipment_id, plan_name, trigger_rule, sample_period_ms, state"],
+          ["data_collection_item", "plan_id, parameter_id, alias, aggregation_rule, quality_rule"],
+          ["data_sample", "plan_id, parameter_id, value, quality_code, sample_time"]
+        ]
+      },
+      {
+        id: "E164", group: "EDA / Interface A", code: "SEMI E164", name: "EDA Common Metadata",
+        summary: "EDA 구현 간 Metadata 표현과 명명 관례의 공통성을 높이는 기준입니다.",
+        role: "장비 벤더별 Metadata 차이를 줄여 수집 시스템의 재사용성을 높입니다.",
+        dfd: ["EqSD Metadata", "E164 Validator", "Canonical Model", "Analytics Consumer"],
+        tables: [
+          ["canonical_signal", "signal_id, equipment_id, canonical_path, source_parameter_id, unit, semantic_tag"],
+          ["metadata_validation_result", "equipment_id, rule_id, severity, message, checked_at"]
+        ]
+      },
+      {
+        id: "E172", group: "Data Dictionary", code: "SEMI E172", name: "SECS Equipment Data Dictionary",
+        summary: "SECS/GEM 장비 데이터 사전을 XML 기반으로 표현하는 규격입니다.",
+        role: "TC/EAP, Simulator, Test Tool이 장비 메시지와 변수 정의를 자동 로딩하도록 돕습니다.",
+        dfd: ["Equipment SEDD", "Dictionary Parser", "Message Validator", "TC/EAP"],
+        tables: [
+          ["sedd_variable", "equipment_id, vid, name, data_type, unit, description"],
+          ["sedd_message", "equipment_id, stream, function, direction, schema_json"]
+        ]
+      },
+      {
+        id: "E173", group: "Data Dictionary", code: "SEMI E173", name: "XML SECS-II Message Notation",
+        summary: "SECS-II 메시지를 XML 표기법으로 표현하는 규격입니다.",
+        role: "테스트, 문서화, 메시지 검증, API Gateway 변환에 활용할 수 있습니다.",
+        dfd: ["Raw SECS-II", "SMN Converter", "XML Message", "Validation/Test"],
+        tables: [
+          ["smn_template", "template_id, stream, function, xml_schema, description"],
+          ["smn_conversion_log", "message_id, template_id, conversion_status, converted_at"]
+        ]
+      },
+      {
+        id: "E187", group: "보안/운영", code: "SEMI E187", name: "FAB Equipment Cybersecurity",
+        summary: "FAB 장비의 사이버보안 요구사항과 보호 기준을 다룹니다.",
+        role: "TC/EAP, EDA Client, 설비 네트워크 연결에서 계정, 포트, 원격 접속, 취약점 관리 기준을 세웁니다.",
+        dfd: ["Equipment Network", "Security Policy", "Access Control", "Audit Log", "Risk Review"],
+        tables: [
+          ["equipment_security_profile", "equipment_id, network_zone, open_ports, remote_access, patch_level, risk_rating"],
+          ["equipment_access_audit", "equipment_id, user_id, action, source_ip, result, event_time"]
+        ]
+      },
+      {
+        id: "E10", group: "KPI / 신뢰성", code: "SEMI E10", name: "Equipment Reliability, Availability, Maintainability",
+        summary: "장비 신뢰성/가용성 측정과 상태 분류를 위한 기준입니다.",
+        role: "OEE, Availability, MTBF, MTTR, Down Time Pareto의 표준화된 계산 기반입니다.",
+        dfd: ["Equipment State Event", "E10 Classifier", "Availability KPI", "Dashboard"],
+        tables: [
+          ["equipment_state_interval", "equipment_id, e10_state, reason_code, start_time, end_time, duration_sec"],
+          ["availability_metric", "equipment_id, metric_name, numerator_sec, denominator_sec, value, window_start, window_end"]
+        ]
+      },
+      {
+        id: "E151", group: "데이터 품질", code: "SEMI E151", name: "Understanding Data Quality",
+        summary: "데이터 품질을 이해하고 평가하기 위한 가이드입니다.",
+        role: "Message 누락, 시간 지연, 단위 불일치, 비정상 값이 KPI에 미치는 영향을 관리합니다.",
+        dfd: ["Raw Data", "Quality Rule", "Quality Score", "Consumer"],
+        tables: [
+          ["data_quality_rule", "rule_id, signal_id, rule_type, threshold, severity"],
+          ["data_quality_issue", "issue_id, signal_id, issue_type, detected_value, detected_at, status"]
+        ]
+      },
+      {
+        id: "E160", group: "데이터 품질", code: "SEMI E160", name: "Communication of Data Quality",
+        summary: "데이터 품질 정보를 시스템 간 전달하는 방법을 다룹니다.",
+        role: "KPI 계산 시 값뿐 아니라 품질 코드까지 함께 전달해 잘못된 의사결정을 줄입니다.",
+        dfd: ["Collector", "Quality Annotator", "Data Stream", "KPI Engine"],
+        tables: [
+          ["quality_annotated_sample", "sample_id, signal_id, value, quality_code, quality_reason, sample_time"],
+          ["quality_code_dictionary", "quality_code, meaning, calculation_policy"]
+        ]
+      },
+      {
+        id: "E133", group: "APC / EES", code: "SEMI E133", name: "Automated Process Control Systems Interface",
+        summary: "APC 시스템 인터페이스를 위한 표준입니다.",
+        role: "EES/APC가 공정 조건 조정, 모델 결과, 제어 액션을 생산 실행 흐름과 연결하는 데 참고됩니다.",
+        dfd: ["Process Data", "APC Model", "Control Recommendation", "TC/EAP Command"],
+        tables: [
+          ["apc_model_result", "model_id, lot_id, equipment_id, recommendation, confidence, created_at"],
+          ["apc_control_action", "action_id, target_equipment, recipe_param, old_value, new_value, approval_status"]
+        ]
+      },
+      {
+        id: "Chan", group: "Streaming Algorithm", code: "Chan", name: "Chan 평균/분산 병합 알고리즘",
+        summary: "분산된 Batch나 Stream Window의 count, mean, M2를 수치적으로 안정적으로 병합해 평균과 분산을 계산합니다.",
+        role: "장비별/Chamber별/시간창별 KPI를 병렬 집계한 뒤 상위 KPI 시스템에서 정확하게 합칠 때 유용합니다.",
+        dfd: ["Raw Samples", "Local Aggregator", "n/mean/M2 State", "Merge Worker", "Variance KPI"],
+        formula: "delta = meanB - meanA; n = nA + nB; mean = meanA + delta * nB / n; M2 = M2A + M2B + delta^2 * nA * nB / n",
+        tables: [
+          ["stream_moment_state", "key, window_start, window_end, n, mean, m2, min_value, max_value"],
+          ["moment_merge_log", "target_key, source_key_a, source_key_b, merged_n, merged_at"],
+          ["variance_kpi", "key, window_start, window_end, mean, variance, stddev, sample_count"]
+        ]
+      },
+      {
+        id: "KLL", group: "Streaming Algorithm", code: "KLL", name: "KLL Quantile Sketch",
+        summary: "전체 원시 데이터를 모두 저장하지 않고도 p50, p90, p95, p99 같은 분위수를 근사 계산하는 압축 Sketch입니다.",
+        role: "Cycle Time, Queue Time, Sensor Peak, Alarm Duration의 분위수 KPI를 대량 Stream에서 계산할 때 유용합니다.",
+        dfd: ["Raw Samples", "Compactor Level 0", "Compacted Levels", "Merge Sketch", "Quantile KPI"],
+        formula: "값을 Level별 buffer에 삽입하고 용량 초과 시 정렬 후 절반을 상위 Level로 승격합니다. Query 시 Level 가중치를 반영해 rank를 근사합니다.",
+        tables: [
+          ["kll_sketch_state", "sketch_id, key, window_start, window_end, k, total_n, serialized_blob"],
+          ["kll_level_buffer", "sketch_id, level_no, weight, buffer_values_json, capacity"],
+          ["quantile_kpi", "key, window_start, window_end, quantile, approx_value, error_bound, sample_count"]
+        ]
+      }
+    ];
+
+    const groups = [...new Set(standards.map(s => s.group))];
+    const nav = document.getElementById("nav");
+    const detail = document.getElementById("detail");
+    const search = document.getElementById("search");
+
+    function renderNav(filter = "") {
+      const f = filter.trim().toLowerCase();
+      nav.innerHTML = "";
+      groups.forEach(group => {
+        const items = standards.filter(s => s.group === group && (s.code + " " + s.name + " " + s.summary).toLowerCase().includes(f));
+        if (!items.length) return;
+        const title = document.createElement("div");
+        title.className = "group-title";
+        title.textContent = group;
+        nav.appendChild(title);
+        items.forEach(item => {
+          const btn = document.createElement("button");
+          btn.className = "std-button";
+          btn.dataset.id = item.id;
+          btn.innerHTML = `<span class="std-code">${item.code}</span><span class="std-name">${item.name}</span>`;
+          btn.addEventListener("click", () => selectItem(item.id));
+          nav.appendChild(btn);
+        });
+      });
+      markActive(currentId);
+    }
+
+    function diagramFor(item) {
+      const steps = item.dfd;
+      const gap = 190;
+      const width = Math.max(960, 120 + steps.length * gap);
+      const nodes = steps.map((step, i) => {
+        const x = 45 + i * gap;
+        return `<g class="node"><rect x="${x}" y="52" width="150" height="70"></rect><text x="${x + 75}" y="84" text-anchor="middle">${step}</text><text class="tiny" x="${x + 75}" y="105" text-anchor="middle">${i === 0 ? "Input" : i === steps.length - 1 ? "Output" : "Process"}</text></g>`;
+      }).join("");
+      const arrows = steps.slice(1).map((_, i) => {
+        const x1 = 195 + i * gap;
+        const x2 = 235 + i * gap;
+        return `<path class="arrow data" d="M${x1} 87 H${x2}"></path>`;
+      }).join("");
+      return `<svg viewBox="0 0 ${width} 176" aria-label="${item.code} 상세 DFD"><defs><marker id="arrowDetail" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#667085"></path></marker></defs>${nodes}${arrows}</svg>`.replaceAll('marker-end: url(#arrow)', 'marker-end: url(#arrowDetail)');
+    }
+
+    function renderTables(item) {
+      return `<table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody>${item.tables.map(row => `<tr><td><strong>${row[0]}</strong></td><td>${row[1]}</td></tr>`).join("")}</tbody></table>`;
+    }
+
+    function selectItem(id, shouldScroll = true) {
+      currentId = id;
+      const item = standards.find(s => s.id === id) || standards[0];
+      detail.innerHTML = `
+        <div class="detail-head">
+          <div>
+            <h3>${item.code} - ${item.name}</h3>
+            <p>${item.summary}</p>
+          </div>
+          <span class="badge">${item.group}</span>
+        </div>
+        <div class="two-col">
+          <div>
+            <h3>기능 요약</h3>
+            <p>${item.role}</p>
+            ${item.formula ? `<div class="note"><strong>개발 참고:</strong> ${item.formula}</div>` : ""}
+          </div>
+          <div>
+            <h3>개발 시 확인할 항목</h3>
+            <table>
+              <tbody>
+                <tr><th>Interface</th><td>Source/Target 시스템, 동기/비동기, Retry, Timeout</td></tr>
+                <tr><th>Data</th><td>표준 ID, 장비 ID, 시간, 품질 코드, 원본 Payload 보관 여부</td></tr>
+                <tr><th>Governance</th><td>권한, 감사 로그, 사양 개정판, 고객별 예외 관리</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <h3 style="margin-top:20px;">상세 DFD</h3>
+        <div class="diagram-wrap">${diagramFor(item)}</div>
+        <h3 style="margin-top:20px;">프로그램 개발용 테이블 구성</h3>
+        ${renderTables(item)}
+      `;
+      markActive(id);
+      if (shouldScroll) {
+        detail.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    function markActive(id) {
+      document.querySelectorAll(".std-button").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.id === id);
+      });
+    }
+
+    let currentId = "E30";
+    renderNav();
+    selectItem(currentId, false);
+    search.addEventListener("input", e => renderNav(e.target.value));
+    document.querySelectorAll(".click-node").forEach(node => {
+      node.addEventListener("click", () => selectItem(node.dataset.id));
+    });
+  </script>
+</body>
+</html>
