@@ -1,1 +1,0 @@
-hazard_column_draft.md
