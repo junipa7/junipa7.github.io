@@ -4,7 +4,8 @@ const menuConfig = [
         items: [
             { title: "About Me", path: "contents/about.html", active: true },
             { title: "교육 이력", path: "contents/education.html" },
-            { title: "기타 활동", path: "contents/other.html" }
+            { title: "기타 활동", path: "contents/other.html" },
+            { title: "워런 버핏의 조언", path: "contents/Life_Advice/lessons_from_warren_buffett.html", mode: "iframe" }
         ]
     },
     {
