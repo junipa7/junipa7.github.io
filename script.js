@@ -13,7 +13,7 @@ const menuConfig = [
         items: [
             { title: "Guide Overview", path: "SEMI_Interactive_Guide/SEMI_Data_Flow_Main.html", mode: "iframe" },
             {
-                title: "표준별 Guide",
+                title: "SEMI 표준 통합 문서",
                 children: [
                     ["SEMI E5 - SECS-II", "E5"], ["SEMI E37 - HSMS", "E37"], ["SEMI E30 - GEM", "E30"], ["GEM300", "GEM300"],
                     ["SEMI E39 - Object Services", "E39"], ["SEMI E40 - Processing Management", "E40"], ["SEMI E87 - Carrier Management", "E87"],
@@ -24,26 +24,14 @@ const menuConfig = [
                     ["SEMI E151 - Data Quality", "E151"], ["SEMI E160 - Data Quality Communication", "E160"], ["SEMI E133 - APC Interface", "E133"]
                 ].map(([title, id]) => ({ title, path: `SEMI_Interactive_Guide/standards/${id}.html`, mode: "iframe" }))
             },
-            { title: "SEMI E10 기존 Guide", path: "SEMI_Interactive_Guide/SEMI_E10_Guide.html", mode: "iframe" }
-        ]
-    },
-    {
-        title: "SEMI Interactive Developer",
-        items: [
-            { title: "Developer Overview", path: "SEMI_Interactive_Developer/SEMI_Data_Flow_Developer.html", mode: "iframe" },
-            {
-                title: "표준별 Developer",
-                children: [
-                    "E5", "E37", "E30", "GEM300", "E39", "E40", "E87", "E90", "E94", "E116", "E120", "E125", "E132", "E134", "E164", "E172", "E173", "E187", "E10", "E151", "E160", "E133"
-                ].map(id => ({ title: `${id} 개발 참고`, path: `SEMI_Interactive_Developer/standards/${id}.html`, mode: "iframe" }))
-            },
             {
                 title: "Streaming Algorithm",
                 children: [
-                    { title: "Chan 알고리즘", path: "SEMI_Interactive_Developer/algorithms/Chan.html", mode: "iframe" },
-                    { title: "KLL Sketch", path: "SEMI_Interactive_Developer/algorithms/KLL.html", mode: "iframe" }
+                    { title: "Chan 알고리즘", path: "SEMI_Interactive_Guide/algorithms/Chan.html", mode: "iframe" },
+                    { title: "KLL Sketch", path: "SEMI_Interactive_Guide/algorithms/KLL.html", mode: "iframe" }
                 ]
-            }
+            },
+            { title: "SEMI E10 기존 Guide", path: "SEMI_Interactive_Guide/SEMI_E10_Guide.html", mode: "iframe" }
         ]
     },
     {
@@ -71,9 +59,8 @@ const menuConfig = [
                 title: "세부 문서",
                 children: [
                     { title: "Chan 알고리즘과 KLL 스케치", path: "contents/MES/chankll.html" },
-                    { title: "MES Draw.io XML", path: "contents/MES/drawio.xml" },
-                    { title: "OEE Diagram XML", path: "contentsOEE_Diagram.xml" },
-                    { title: "Chan/KLL 원본 메모", path: "contents/chankll.txt" }
+                    { title: "MES Diagram", path: "contents/MES/drawio.xml" },
+                    { title: "OEE Diagram", path: "contents/MES/OEE_Diagram.xml" }
                 ]
             },
             { title: "OEE 설비종합효율", path: "contents/oee.html" },
@@ -83,20 +70,8 @@ const menuConfig = [
     {
         title: "System Hazard",
         items: [
-            { title: "시스템 해저드 메인", path: "contents/systemhazard.html" },
-            {
-                title: "Part 문서",
-                children: [
-                    { title: "Hazard Index", path: "contents/systemhazard/hazardindex.html" },
-                    { title: "Part 1. 개념", path: "contents/systemhazard/part1concept.html" },
-                    { title: "Part 2. 원인", path: "contents/systemhazard/part2causes.html" },
-                    { title: "Part 3. 사례", path: "contents/systemhazard/part3cases.html" },
-                    { title: "Part 4. 영향", path: "contents/systemhazard/part4impact.html" },
-                    { title: "Part 5. 전략", path: "contents/systemhazard/part5strategy.html" },
-                    { title: "Part 6. 방법론", path: "contents/systemhazard/part6methodology.html" },
-                    { title: "Part 7. 적용", path: "contents/systemhazard/part7application.html" }
-                ]
-            },
+
+            { title: "시스템 해저드 (통합본)", path: "contents/systemhazard/index.html", mode: "iframe" },
             { title: "조직문화와 시스템 해저드", path: "contents/systemhazard_orgculture/index.html", mode: "iframe" }
         ]
     },
@@ -210,7 +185,7 @@ async function loadContent(path, mode = "auto") {
         editorContent.scrollTop = 0;
 
         if (mode === "iframe") {
-            editorContent.innerHTML = `<iframe class="content-frame" src="${path}" title="${escapeHtml(path)}"></iframe>`;
+            editorContent.innerHTML = `<iframe class="content-frame" src="${path}" title="${escapeHtml(path)}" scrolling="no" onload="this.style.height=this.contentWindow.document.documentElement.scrollHeight + 30 + 'px'"></iframe>`;
             return;
         }
 

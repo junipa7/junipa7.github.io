@@ -1,0 +1,786 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시스템 헤저드: 도서 목차</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#fcfaf7] text-slate-900 scroll-smooth">
+
+    <!-- Hero / Title -->
+    <header class="bg-slate-900 text-white py-20 border-b-8 border-blue-600">
+        <div class="max-w-5xl mx-auto px-6 text-center">
+            <h1 class="text-5xl font-black mb-6 tracking-tighter">시스템 헤저드 (SYSTEM HAZARD)</h1>
+            <p class="text-xl text-slate-400 font-medium italic">"유기적 결합의 붕괴에서 데이터 중심의 재건까지"</p>
+            <div class="mt-10 flex justify-center space-x-4 text-sm font-bold uppercase tracking-widest">
+                <span class="px-3 py-1 bg-blue-600 rounded">Total 7 Parts</span>
+                <span class="px-3 py-1 bg-slate-700 rounded">24 Chapters</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main TOC Grid -->
+    <main class="max-w-6xl mx-auto px-6 py-16">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            
+            <!-- Part 1 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col" onclick="if(window.loadContent) { loadContent('systemhazard/part1concept.html'); } else { location.href='part1concept.html'; }">
+                <div class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">Part 1</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">개념과 이론</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">유기적 결합의 붕괴와 시스템 이기주의의 탄생, 그리고 모랄 헤저드의 전이.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">01</span> 시스템 헤저드 개요</li>
+                    <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">02</span> 정의와 범위</li>
+                    <li class="flex items-start"><span class="text-blue-500 mr-2 font-bold">03</span> 모랄 헤저드 vs 시스템 헤저드</li>
+                </ul>
+            </div>
+
+            <!-- Part 2 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col" onclick="if(window.loadContent) { loadContent('systemhazard/part2causes.html'); } else { location.href='part2causes.html'; }">
+                <div class="text-[10px] font-black text-rose-600 uppercase tracking-widest mb-2">Part 2</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">발생 구조와 원인</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">데이터 책임의 실종과 아키텍처 통제력 상실, 사일로화된 KPI 분석.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-rose-500 mr-2 font-bold">04</span> 발생 메커니즘</li>
+                    <li class="flex items-start"><span class="text-rose-500 mr-2 font-bold">05</span> 데이터 관점 원인 분석</li>
+                    <li class="flex items-start"><span class="text-rose-500 mr-2 font-bold">06</span> 조직/프로세스 관점 분석</li>
+                    <li class="flex items-start"><span class="text-rose-500 mr-2 font-bold">07</span> 기술/아키텍처 관점 분석</li>
+                </ul>
+            </div>
+
+            <!-- Part 3 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col" onclick="if(window.loadContent) { loadContent('systemhazard/part3cases.html'); } else { location.href='part3cases.html'; }">
+                <div class="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Part 3</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">주요 유형과 사례</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">데이터 투척, 장벽 구축, 병목 유발 사례 및 제조/IT 현장 리포트.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-emerald-500 mr-2 font-bold">08</span> 시스템 헤저드 유형 분류</li>
+                    <li class="flex items-start"><span class="text-emerald-500 mr-2 font-bold">09</span> 제조 사례 (MES/EES/KPI)</li>
+                    <li class="flex items-start"><span class="text-emerald-500 mr-2 font-bold">10</span> IT 사례 (ERP/PLM)</li>
+                </ul>
+            </div>
+
+            <!-- Part 4 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col" onclick="if(window.loadContent) { loadContent('systemhazard/part4impact.html'); } else { location.href='part4impact.html'; }">
+                <div class="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-2">Part 4</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">영향과 리스크</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">보이지 않는 IT 비용의 폭발과 데이터 품질 붕괴, 조직 운영의 위기.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-amber-500 mr-2 font-bold">11</span> 비용 영향 분석</li>
+                    <li class="flex items-start"><span class="text-amber-500 mr-2 font-bold">12</span> 데이터 품질 영향</li>
+                    <li class="flex items-start"><span class="text-amber-500 mr-2 font-bold">13</span> 조직 운영 리스크</li>
+                </ul>
+            </div>
+
+            <!-- Part 5 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col" onclick="if(window.loadContent) { loadContent('systemhazard/part5strategy.html'); } else { location.href='part5strategy.html'; }">
+                <div class="text-[10px] font-black text-teal-600 uppercase tracking-widest mb-2">Part 5</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">해결 전략</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">데이터 중심 설계, 표준 아키텍처 및 거버넌스 재구축 로드맵.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-teal-500 mr-2 font-bold">14</span> 데이터 중심 설계 원칙</li>
+                    <li class="flex items-start"><span class="text-teal-500 mr-2 font-bold">15</span> 표준 아키텍처 설계</li>
+                    <li class="flex items-start"><span class="text-teal-500 mr-2 font-bold">16</span> 데이터 거버넌스 구축</li>
+                    <li class="flex items-start"><span class="text-teal-500 mr-2 font-bold">17</span> KPI 통합 설계 전략</li>
+                </ul>
+            </div>
+
+            <!-- Part 6 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col" onclick="if(window.loadContent) { loadContent('systemhazard/part6methodology.html'); } else { location.href='part6methodology.html'; }">
+                <div class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-2">Part 6</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">실행 방법론</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">진단부터 To-Be 설계, 단계별 전환 및 지속적 운영 체계 수립.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-indigo-500 mr-2 font-bold">18</span> 진단 방법론</li>
+                    <li class="flex items-start"><span class="text-indigo-500 mr-2 font-bold">19</span> To-Be 설계 방법</li>
+                    <li class="flex items-start"><span class="text-indigo-500 mr-2 font-bold">20</span> 단계별 전환 전략</li>
+                    <li class="flex items-start"><span class="text-indigo-500 mr-2 font-bold">21</span> 운영 및 개선 체계</li>
+                </ul>
+            </div>
+
+            <!-- Part 7 -->
+            <div class="part-card bg-white p-8 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:col-span-2 lg:col-span-1" onclick="if(window.loadContent) { loadContent('systemhazard/part7application.html'); } else { location.href='part7application.html'; }">
+                <div class="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2">Part 7</div>
+                <h2 class="text-xl font-bold mb-4 border-b pb-2">실무 적용</h2>
+                <p class="text-xs text-slate-500 mb-6 leading-relaxed">체크리스트 기반 자가 진단 및 생생한 현장 성공/실패 사례 연구.</p>
+                <ul class="text-sm space-y-3 flex-1">
+                    <li class="flex items-start"><span class="text-slate-500 mr-2 font-bold">22</span> 체크리스트 기반 진단</li>
+                    <li class="flex items-start"><span class="text-slate-500 mr-2 font-bold">23</span> 성공 사례</li>
+                    <li class="flex items-start"><span class="text-slate-500 mr-2 font-bold">24</span> 실패 사례</li>
+                </ul>
+            </div>
+
+        </div>
+    </main>
+
+    
+</html><div class="max-w-6xl mx-auto px-6 py-16 space-y-16">
+<section id="part1" class="scroll-mt-24">
+
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200">
+        
+        <h1 class="text-4xl font-extrabold mb-8 text-center border-b pb-6">Part 1. 개념과 이론: 시스템 헤저드의 서막</h1>
+
+        <p class="text-lg">기업은 성장을 위해 끊임없이 새로운 시스템을 도입한다. ERP, MES, PLM 등 수많은 알파벳 약어들이 기업의 인프라를 채운다. 도입 초기, 이들은 서로 유기적으로 결합하여 놀라운 효율을 낼 것처럼 보인다. 하지만 시간이 지날수록 시스템들은 각자의 성벽을 높이 쌓고, 소통을 단절하며, 거대한 '비용의 괴물'로 변해간다. 우리는 이 파괴적인 현상을 <strong>'시스템 헤저드(System Hazard)'</strong>라 부른다. Part 1에서는 시스템 헤저드가 무엇이며, 왜 발생하는지 그 근본적인 개념과 기원을 추적한다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-blue-700">Chapter 1. 시스템 헤저드 개요: 유기적 결합의 붕괴와 시스템 이기주의</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>기업의 IT 환경에는 MES(제조실행시스템), PLM(제품수명주기관리), SCM(공급망관리) 등 목적이 다른 여러 시스템이 존재한다. 초기 설계 단계에서 이들은 하나의 거대한 유기체처럼 서로 데이터를 주고받으며 체계적으로 연계되도록 기획된다. 그러나 운영 단계에 접어들고 시간이 흐르면서, 각 시스템은 전체의 최적화보다는 '자신만의 안위'를 고집하기 시작한다. 나에게 직접적으로 필요하지 않은 데이터 가공이나 인터페이스 작업은 철저히 배제하며, 전사적 데이터 파이프라인을 단절시키는 현상, 이것이 바로 시스템 헤저드의 본질이다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=800&q=80" alt="복잡하게 얽힌 시스템 케이블">
+            <p class="caption">▲ 얽히고설킨 채 소통이 단절된 서버 네트워크는 파편화된 기업 시스템의 현실을 그대로 보여준다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>시스템 헤저드는 <strong>'목적의 파편화'</strong>와 <strong>'시스템 이기주의'</strong>에서 기인한다. 시스템은 체계적인 단계를 거쳐 정보를 전달하고 가공해야 하는 릴레이 경주의 바통과 같다. 하지만 각 시스템을 운영하는 주체(부서 및 담당자)가 점차 자기 시스템의 안정성과 운영 편의성만을 최우선 목표로 삼게 되면서 문제가 발생한다. "그 데이터는 우리 시스템 로직에는 필요 없으니, 타 부서에서 알아서 만들어 쓰라"는 식의 배타적인 태도가 시스템 간의 연결고리를 녹슬게 만든다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: 끊어진 데이터 릴레이</h3>
+        <p>초기 공장 자동화 프로젝트에서는 설비 제어(EES)부터 제조 실행(MES), 그리고 경영 지표(KPI)까지 데이터가 물 흐르듯 이어지도록 설계되었다. 하지만 몇 년 후, 새로운 KPI 지표 산출을 위해 EES의 데이터 가공이 필요해졌다. EES 담당자는 "우리 시스템은 설비 최적화가 목적이지, 경영 지표를 위한 연산은 우리 소관이 아니다"라며 선을 긋는다. 결국 EES는 아무런 맥락(Context)이 없는 단순 원천 로그(Raw Data)만 상위 시스템으로 무작정 던져버린다. 상위 시스템은 억지로 이 데이터를 받아 처리하느라 덩치가 비정상적으로 커지고 속도는 느려진다. 처음의 유기적 결합은 온데간데없이 사라진 것이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p>시스템을 바라보는 패러다임을 '독립된 기능의 집합'에서 <strong>'연속된 가치 사슬(Value Chain)'</strong>로 바꿔야 한다. 시스템의 존재 이유는 그 자체로 완벽하게 동작하는 것이 아니라, 다음 단계의 시스템에 '가치 있는 정보'를 전달하는 데 있음을 명확히 해야 한다. 이를 위해 전사 아키텍처(EA) 관점에서의 지속적인 모니터링과 통제가 필요하다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">시스템 헤저드는 시간이 지날수록 유기적 연계가 무너지고 시스템이 고립되는 현상이다.</li>
+                <li class="mb-1">타 시스템을 위한 데이터 가공을 거부하는 '시스템 이기주의'가 근본 원인이다.</li>
+                <li class="mb-1">시스템의 목적을 단일 기능 수행에서 '가치 사슬 기여'로 재정의해야 한다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">우리 회사의 주요 시스템 중 타 시스템과 연계되지 않고 고립된 채(Silo) 독자적인 데이터베이스만 비대해지고 있는 시스템이 있는지 식별해 보라.</span></p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-blue-700">Chapter 2. 모랄 헤저드 vs 시스템 헤저드: 개인의 해이가 시스템의 해이로</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>경제학 용어인 '모랄 헤저드(Moral Hazard, 도덕적 해이)'는 정보의 비대칭성 상황에서 계약의 한쪽 당사자가 상대방의 이익을 침해하면서 자신의 이익을 극대화하는 행동을 말한다. IT 환경에서도 이와 완벽하게 동일한 현상이 발생한다. 데이터에 대한 책임을 회피하기 위해 관리자가 의도적으로 시스템을 수동적이고 무책임하게 운영하는 태도, 즉 개인의 도덕적 해이가 시스템의 구조적 해이인 '시스템 헤저드'로 전이되는 것이다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=800&q=80" alt="고립된 조직의 사일로">
+            <p class="caption">▲ 곡물을 따로 보관하는 사일로(Silo)처럼, 각 부서가 자신의 책임만 회피하며 고립되는 현상이 시스템 헤저드의 핵심이다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>시스템 담당자는 자신이 운영하는 시스템의 구조와 한계를 누구보다 잘 안다(정보의 비대칭성). 이들은 이 정보의 우위를 악용하여 방어적인 운영을 정당화한다. 중간(Middle) 레벨에 위치한 시스템 담당자가 데이터 정합성 검증이나 1차 가공 책임을 회피하기 위해, "상위 시스템에서 통제해 주지 않으면 우리는 모른다", "나는 그저 하위 시스템이 주는 대로 받고, 받은 대로 상위에 넘겨줄 뿐이다"라는 식의 태도로 일관하는 것이 대표적인 원인이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: "주는 대로 받고, 받은 대로 넘긴다"의 비극</h3>
+        <p>물류 시스템(중간 시스템)을 담당하는 A팀장은 현장의 창고 관리 시스템(하위)에서 올라오는 재고 데이터와 ERP(상위)로 넘겨야 하는 데이터 사이의 정합성을 맞춰야 하는 중요한 역할을 맡고 있다. 하지만 A팀장은 데이터 가공 중 발생할 수 있는 에러와 그에 따른 책임(페널티)을 피하고 싶어 한다.<br>
+        결국 A팀장은 시스템을 단순한 '파이프(Pipe)'로 전락시킨다. 하위 시스템에서 잘못된 데이터가 올라와도 검증(Validation)하지 않고 그대로 상위로 바이패스(Bypass) 시켜버린다. 경영진이 데이터 불일치를 지적하면, A팀장은 "우리 시스템은 로그상 하위에서 100을 받아서 상위로 100을 정확히 넘겼으니 아무 잘못이 없다"고 항변한다. 전형적인 모랄 헤저드가 시스템의 방관을 만들어낸 것이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p>중간 시스템은 단순한 '데이터 배달부(Messenger)'가 되어서는 안 된다. 데이터를 수신하는 순간, 해당 데이터의 정합성과 품질을 보증할 책임을 중간 시스템에 강제해야 한다. 상위 시스템이 하위 시스템을 직접 통제하는 구조를 넘어, 데이터 파이프라인의 각 노드(Node)가 자신의 구간에서 발생하는 데이터에 대한 오너십(Ownership)을 가지도록 KPI와 롤앤레스판서빌리티(R&R)를 명확히 규정해야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">시스템 헤저드는 담당자의 책임 회피(모랄 헤저드)가 시스템에 투영된 결과다.</li>
+                <li class="mb-1">"주는 대로 받고 넘긴다"는 방관자적 태도가 전사 데이터 품질을 무너뜨린다.</li>
+                <li class="mb-1">중간 시스템에 단순 전달이 아닌 '정합성 검증 및 가공 책임'을 부여해야 한다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">타 시스템에서 데이터를 받아 다른 시스템으로 전달하는 중계 성격의 시스템을 찾고, 해당 시스템 내부에 '데이터 정합성 검증(Validation) 로직'이 구현되어 있는지 점검하라.</span></p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-blue-700">Chapter 3. 핑계의 시작: "개발 비용과 일정"의 함정</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>그렇다면 왜 애초에 시스템들은 이렇게 이기적이고 파편화된 구조로 태어나는 것일까? 그 씨앗은 놀랍게도 시스템이 처음 만들어지는 '프로젝트 구축(Build)' 단계에서 뿌려진다. 시스템 아키텍처에는 '어떤 데이터가 어떻게 정의되어야 하는지'에 대한 엄격한 전사적 표준이 존재한다. 하지만 현장에서는 항상 "비용이 부족하다", "오픈 일정이 빠듯하다"는 변명과 함께 표준 절차가 무시되고, 독립적이고 기형적인 시스템이 탄생한다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=800&q=80" alt="끊어진 아키텍처 다리">
+            <p class="caption">▲ 예산과 일정을 핑계로 표준을 무시한 개발은 결국 이어지지 못하고 끊어진 다리처럼 막대한 기술 부채를 남긴다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>프로젝트 관리자(PM)와 현업 부서의 목표는 단기적인 '성공적 오픈(Go-live)'에 맞춰져 있다. 전사 표준 인터페이스를 따르고, 마스터 데이터 관리(MDM) 규정에 맞추어 연계 로직을 짜는 것은 시간과 비용이 많이 드는 작업이다. 따라서 이들은 가장 빠르고 저렴한 방식인 Point-to-Point(1:1 직접 연결) 개발이나, 전사 시스템을 통하지 않는 독자적인 로컬 DB 구축을 선택한다. 당장의 개발 비용은 절감될지 모르나, 이는 고스란히 막대한 '기술 부채(Technical Debt)'로 쌓여 훗날 장기적인 아키텍처 붕괴와 막대한 운영 비용을 초래한다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: 2주를 아끼려다 3년을 고통받다</h3>
+        <p>회사의 새로운 조립 라인을 위해 소규모 생산 관리 모듈을 신규 개발하는 프로젝트. 표준 절차에 따르면 이 모듈은 전사 ERP의 품목 기준 정보를 실시간으로 구독(Subscribe)하고, 전사 통합 인증(SSO)을 거쳐야 한다. 하지만 외주 개발사는 "표준 절차를 따르면 개발 비용이 2천만 원 더 들고, 일정도 2주 지연된다"고 보고한다.<br>
+        현업 부서장은 당장의 예산과 일정을 핑계로 이를 승인하고, 독립적인 로컬 코드 테이블을 가진 고립된 시스템을 만들어버린다. 3년 뒤, 회사의 전사 품목 코드 체계가 개편될 때 이 작은 시스템 하나 때문에 수개월의 마이그레이션 프로젝트가 추가로 발생하고, 다른 시스템들과 연결할 수 없는 거대한 '데이터 갈라파고스'가 되어버렸다. 단기적인 비용 절감이 장기적인 재앙을 부른 것이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p>새로운 개념이 발생하거나 시스템이 필요할 때, 현업 부서나 개발자가 임의로 그것을 만들게 방치해서는 안 된다. 조직 내에 <strong>'시스템 아키텍처 운영 위원회(EA Board)'</strong> 또는 강력한 <strong>'시스템 기획 조직'</strong>이 존재해야 한다. 이들은 프로젝트의 예산이나 일정에 휘둘리지 않고 전사적 관점에서 각 시스템의 할 일과 역할을 분배하고 통제해야 한다. 아키텍처 위원회의 승인 없는 독립 개발(Shadow IT)은 원천적으로 예산 집행이 불가능하도록 프로세스를 통제해야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">예산과 일정을 핑계로 전사 표준을 우회하는 것이 시스템 파편화의 시작이다.</li>
+                <li class="mb-1">단기적인 개발 비용 절감은 막대한 장기적 기술 부채와 운영 리스크로 돌아온다.</li>
+                <li class="mb-1">강력한 권한을 가진 시스템 기획/아키텍처 위원회가 룰(Rule)과 역할을 강제해야 한다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">최근 2년 내에 구축된 신규 시스템들의 '아키텍처 리뷰(Architecture Review) 통과 비율'을 확인하고, "예산/일정 부족"을 사유로 예외 처리(Bypass)된 프로젝트들이 현재 어떤 부작용을 겪고 있는지 추적해 보라.</span></p>
+        </div>
+
+    </div>
+
+</section>
+<section id="part2" class="scroll-mt-24">
+
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200">
+        
+        <h1 class="text-4xl font-extrabold mb-8 text-center border-b pb-6">Part 2. 발생 구조와 원인</h1>
+
+        <p class="text-lg">단순한 실수나 기술의 부족만으로 거대한 시스템 아키텍처가 무너지지는 않는다. 시스템 헤저드는 명확한 구조적 원인을 가지고 발생한다. 데이터에 대한 책임을 서로 미루는 프로세스의 부재, 임의 개발을 막지 못하는 기획 조직의 무능, 그리고 철저히 부서 이기주의를 부추기는 낡은 평가 지표가 바로 그것이다. Part 2에서는 시스템 헤저드가 어떤 메커니즘을 타고 기업 내부에 깊숙이 뿌리내리는지 집중적으로 해부한다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 4 -->
+        <h2 class="text-2xl font-bold mb-6 text-rose-700">Chapter 4. 데이터 책임의 실종: 방관하는 중간 시스템</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>전사 시스템은 데이터를 생산(Source), 가공(Processing), 소비(Consumption)하는 연속된 릴레이 파이프라인이다. 이 파이프라인의 허리를 담당하는 '중간(Middle) 레벨 시스템'들의 무책임한 방관이야말로 시스템 헤저드의 핵심 동력이다. 중간 시스템들은 상/하위 시스템 사이에서 데이터의 맥락을 연결하고 정합성을 맞춰야 하는 역할을 망각한 채, 그저 "주는 대로 받고, 받은 대로 넘긴다"는 태도로 책임을 철저히 회피한다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80" alt="Image of 검수 없이 지나가는 물류 상자">
+            <p class="caption">▲ 안에 무엇이 들었는지 검수하지 않고 그저 상자를 다음 단계로 밀어내는 컨베이어 벨트처럼, 중간 시스템은 책임을 회피하고 데이터 패스스루(Pass-through)만 수행한다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>중간 시스템 담당자들은 데이터의 가공과 검증 과정에서 자신들이 책임을 지는 상황(장애 발생, 데이터 불일치로 인한 페널티 등)을 극도로 꺼린다. 상위 시스템이 지속적으로 푸시(Push)하여 데이터의 신뢰성을 확보하도록 통제해야 하지만, "원천 데이터가 원래 그렇게 들어왔다"며 하위 시스템 탓으로 돌리는 것이 훨씬 쉽고 안전한 방어 수단이기 때문이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: "정합성은 내 알 바 아니다"</h3>
+        <p>제조 현장에서 올라오는 설비 이벤트 데이터를 경영 지표(KPI) 시스템으로 넘겨주는 주간(Weekly) 레벨의 MES 모듈이 있다고 가정해 보자. 하위 설비에서 표준화되지 않은 불량한 원시 데이터(Raw Data)가 올라왔다. MES 담당자는 이 데이터를 중간에서 필터링하거나 기준 정보(Master)와 매핑하는 가공을 수행해야 하지만, 연산 부하와 에러 발생을 핑계로 이를 거부한다.<br>
+        대신 그는 하위 시스템에서 올려주는 데이터를 '보관만' 하다가 그대로 상위 시스템으로 넘긴다. 데이터 정합성이 깨져 경영진 대시보드에 오류가 발생하면, 그는 이렇게 항변한다. <strong>"우리는 받은 걸 그대로 넘겼을 뿐입니다. 가공은 KPI 시스템에서 알아서 하세요."</strong></p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p>파이프라인 상의 모든 노드(시스템)에 '데이터 1차 가공 및 검증 책임제'를 실시해야 한다. 상위 시스템은 하위나 중간 시스템이 무가공 상태의 데이터를 던지는 것을 구조적으로 거부(Reject)할 권한을 가져야 한다. 데이터가 머무는 모든 곳에서, 그 부서는 해당 데이터의 정합성에 대한 서명(Sign-off)을 하도록 프로세스를 강제해야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">중간 레벨 시스템의 "주는 대로 넘긴다"는 방관은 전사 데이터 품질 붕괴의 시작이다.</li>
+                <li class="mb-1">데이터 가공 책임을 피하기 위한 수동적 보관(Pass-through)은 대표적인 모랄 헤저드다.</li>
+                <li class="mb-1">상위 시스템은 하위/중간 시스템의 데이터 정합성을 강제 통제할 프로세스 권한을 가져야 한다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">단순히 데이터를 DB에 적재했다가 스케줄러로 상위 시스템에 밀어주는 기능만 수행하는 인터페이스(I/F) 전용 미들 테이블들을 색출하라.</span></p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 5 -->
+        <h2 class="text-2xl font-bold mb-6 text-rose-700">Chapter 5. 아키텍처 통제력의 상실: 임의 시스템 난립</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>조직은 비즈니스 환경의 변화에 따라 항상 새로운 기능을 요구한다. 문제는 '새로운 정보'가 필요해질 때마다, 해당 기능을 요구하는 현업 부서나 외주 개발자가 각자의 편의에 맞춰 임의의 시스템이나 로컬 테이블을 마구잡이로 만들어낸다는 것이다. 시스템 아키텍처 운영 위원회(EA Board)나 기획 부서의 중앙 통제가 작동하지 않으면, 기업의 IT 환경은 무허가 건축물이 가득한 슬럼가로 전락한다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1541888086425-d81bb19240f5?auto=format&fit=crop&w=800&q=80" alt="Image of 무계획적인 건축물">
+            <p class="caption">▲ 전체 도시 계획(Architecture) 없이 필요할 때마다 임의로 쌓아 올린 구조물은 결국 붕괴의 위험을 안게 된다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>강력한 아키텍처 컨트롤 타워가 부재하기 때문이다. 시스템 아키텍처란 단순히 DB 테이블을 정의하는 것이 아니라, <strong>'전사에 어떤 정보가 존재해야 하고, 그 정보는 어느 시스템이 오너십을 가지고 생산할 것인가'</strong>를 정의하는 헌법과 같다. 그러나 현업의 압박과 개발 편의주의에 밀려 기획 조직이 이 통제권을 포기하는 순간, 각 부서는 비용과 일정을 핑계로 전사 표준을 무시하고 독자적인 개발을 강행한다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: 필요한 곳에서 직접 만드는 비극</h3>
+        <p>회사에 '탄소 배출량 추적'이라는 새로운 비즈니스 개념이 생겼다. 원칙적으로라면 아키텍처 운영 위원회가 소집되어 이 정보를 MES에서 생산할지, SCM에서 취합할지 역할을 분배해야 한다. 하지만 통제력이 없는 상황에서, 생산기획팀은 외주를 줘서 자기들만의 '독립 탄소 관리 시스템'을 새로 뚝딱 만들어버린다.<br>
+        그 결과, 이 독립 시스템 안에는 전사 표준과 전혀 일치하지 않는 엉뚱한 조직 코드와 품목 코드가 하드코딩된다. 나중에 전사 ERP와 데이터를 연동하려 할 때, 이 작은 시스템 하나 때문에 막대한 데이터 정제 비용과 인터페이스 재개발 비용이 발생하며 발목을 잡힌다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p>기획 및 아키텍처 운영 조직의 권한을 대폭 강화해야 한다. 새로운 개념의 시스템이나 대규모 테이블 설계가 필요할 때는 반드시 아키텍처 위원회의 심의를 거치도록 제도화해야 한다. 위원회는 '어떤 시스템에서 만들어라'라고 역할과 할 일을 강제 분배할 수 있어야 하며, 심의를 우회한 프로젝트(Shadow IT)는 재무 부서에서 예산 집행을 차단하는 강력한 방어막이 필요하다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">시스템 아키텍처는 기술 이전에 '할 일과 역할(R&R)의 분배'를 정의하는 거버넌스다.</li>
+                <li class="mb-1">필요한 곳에서 임의로 시스템을 구축하는 행위가 전사 아키텍처의 붕괴를 초래한다.</li>
+                <li class="mb-1">아키텍처 운영 위원회(EA Board)의 강력한 통제와 사전 심의제가 필수적이다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">최근 도입된 부서 단위의 소규모 SaaS나 로컬 시스템들이 사전에 IT 기획 부서의 '아키텍처/데이터 표준 리뷰'를 거쳤는지 기안 문서를 확인해 보라.</span></p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 6 -->
+        <h2 class="text-2xl font-bold mb-6 text-rose-700">Chapter 6. 사일로(Silo)화된 성과 평가(KPI): 방어적 프로세스의 고착화</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>아무리 훌륭한 아키텍처 원칙을 세워도 사람을 움직이는 것은 결국 성과 평가(KPI)다. 각 시스템 운영 부서가 오직 '자신들이 담당하는 시스템의 무결성'으로만 평가받는 한, 부서 이기주의(Silo)는 사라지지 않는다. 전사 최적화라는 명분은 개인의 인사 평가 앞에서 무력하며, 방어적이고 폐쇄적인 시스템 운영 프로세스가 조직에 고착화된다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=800&q=80" alt="Image of 높은 장벽과 문">
+            <p class="caption">▲ 방어적인 KPI는 부서 사이에 거대한 장벽을 세우고, 타 시스템으로의 협력을 막는 가장 강력한 족쇄가 된다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>현재 대부분의 IT 부서 평가는 시스템 가동률(Uptime)이나 장애 건수에 집중되어 있다. 타 부서 시스템에 고품질의 데이터를 제공하기 위해 무거운 연산을 수행하거나 실시간 API를 열어주는 것은 자기 시스템에 리스크를 가중시키는 일이다. 잘해봐야 본전이고 시스템이 느려지거나 다운되면 감점을 받게 되니, 담당자들은 어떻게든 연계를 최소화하고 배치(Batch) 처리만 허용하려 든다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: 리스크를 거부하는 ERP</h3>
+        <p>현장(MES)에서는 실시간으로 자재 소요 계획을 ERP에 질의하여 생산성을 높이려 한다. 하지만 대형 ERP 운영 부서는 단호하게 거절한다. "실시간 인터페이스를 열면 트랜잭션 과부하로 메인 시스템이 다운될 수 있습니다. 우리는 하루 한 번 야간 파일(Batch)로만 제공하겠습니다."<br>
+        ERP 담당자 입장에서는 합리적인 판단이다. 그의 KPI는 'ERP의 365일 무장애'이지 'MES의 효율성 향상'이 아니기 때문이다. 결국 방어적인 KPI 하나 때문에 전사적인 디지털 전환(DX) 노력이 엑셀 수작업과 야간 지연 데이터로 빛이 바래게 된다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p>단위 시스템별 KPI를 파괴해야 한다. 특정 시스템을 평가할 때 '가동률'만이 아니라 <strong>'타 시스템에 제공하는 표준 데이터의 정합성'</strong>, <strong>'인터페이스 제공 유연성 및 지연 시간(Latency)'</strong>을 함께 평가 항목에 넣어야 한다. 더 나아가 단일 부서가 아닌, 비즈니스 목적을 달성하는 '크로스펑셔널(Cross-functional) 통합 프로세스' 단위로 묶어서 공동의 목표를 부여(Shared KPI)해야만 벽을 허물 수 있다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">부서별로 파편화된 KPI는 방어적 운영과 시스템 이기주의(Silo)를 낳는 근본 원인이다.</li>
+                <li class="mb-1">내 시스템만 잘 돌아가면 된다는 평가 체계 속에서 협업은 리스크로 전락한다.</li>
+                <li class="mb-1">타 부서 시스템으로의 기여도와 연계 품질을 핵심 성과 지표(KPI)에 편입시켜야 한다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">현재 IT 관련 부서나 시스템 운영자의 연간 목표(MBO/KPI) 서식에 '타 시스템과의 연계 품질'이나 '전사 아키텍처 준수율' 항목이 존재하는지 점검해 보라.</span></p>
+        </div>
+
+    </div>
+
+</section>
+<section id="part3" class="scroll-mt-24">
+
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200">
+        
+        <h1 class="text-4xl font-extrabold mb-8 text-center border-b pb-6">Part 3. 주요 유형과 현장 사례</h1>
+
+        <p class="text-lg">앞선 장에서 우리는 시스템 헤저드가 발생하는 근본적인 메커니즘을 살펴보았다. 그렇다면 이러한 병폐는 실제 현장에서 어떤 모습으로 나타날까? 시스템 헤저드는 획일적으로 발생하지 않으며, 조직의 권력 구조와 기술 성숙도에 따라 다양한 '변이'를 일으킨다. Part 3에서는 시스템 헤저드의 3대 악성 유형을 정의하고, 제조 및 IT 현장에서 벌어지는 생생하고 치명적인 실패 사례들을 해부한다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 7 -->
+        <h2 class="text-2xl font-bold mb-6 text-emerald-700">Chapter 7. 시스템 헤저드 3대 유형 분류: 적을 알고 나를 알기</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>우리 회사에 잠재된 시스템 헤저드를 치료하려면, 우선 그 증상을 명확히 분류(Typology)해야 한다. 어떤 부서는 일은 떠넘기고 생색을 내는 반면, 어떤 부서는 아예 담장을 높게 치고 소통을 거절한다. 증상에 따라 질병의 원인이 다르듯, 헤저드의 양상에 따라 처방과 아키텍처 전략도 완전히 달라져야 한다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1505330622200-1d5fa30b8e67?auto=format&fit=crop&w=800&q=80" alt="갈림길의 표지판">
+            <p class="caption">▲ 시스템 헤저드는 부서의 권력과 기술적 성향에 따라 각기 다른 방향으로 발현된다. 정확한 진단 없이는 올바른 처방을 내릴 수 없다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석 및 유형</h3>
+        <p>시스템 헤저드의 발현 형태는 주로 두 가지 축, <strong>'데이터 책임 회피 성향'</strong>과 <strong>'시스템의 폐쇄성'</strong>에 의해 결정되며, 이는 다음의 3대 유형으로 나뉜다.</p>
+        <ul class="list-disc pl-5 mb-4 text-slate-700">
+            <li class="mb-2"><strong>데이터 투척형 (Data Dumping):</strong> 가장 흔한 핑퐁 게임의 전형이다. 1차 가공과 맥락(Context) 부여를 귀찮아하며, 아무런 정제 없이 원천 데이터만 타 시스템으로 밀어버린다.</li>
+            <li class="mb-2"><strong>장벽 구축형 (Barrier/Silo):</strong> 변화를 두려워하여 전사 표준 동기화를 거부하고 자신들만의 로컬 시스템(갈라파고스)을 고집하는 형태다.</li>
+            <li class="mb-2"><strong>병목 유발형 (Bottleneck):</strong> 핵심 데이터를 쥐고 있는 시스템이 기술적 한계를 무기로 연동을 제한(예: 실시간 API 불가, 야간 배치만 허용)하여 전체 파이프라인의 속도를 저하시킨다.</li>
+        </ul>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">시스템 헤저드는 '데이터 투척, 장벽 구축, 병목 유발'의 3대 유형으로 나타난다.</li>
+                <li class="mb-1">유형에 따라 프로세스 개선, 거버넌스 통제, 아키텍처 투자 등 맞춤형 처방이 필요하다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">과거 1년간 가장 많이 발생한 인터페이스 마찰 사례를 나열하고, 이 중 어느 유형에 가장 많이 해당하는지 우리 조직의 '헤저드 체질'을 분석해 보라.</span></p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 8 -->
+        <h2 class="text-2xl font-bold mb-6 text-emerald-700">Chapter 8. [제조 사례 1] 잃어버린 기준 정보: 무책임한 EES와 과부하 걸린 KPI</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>경영진의 올바른 의사결정을 위해서는 현장의 설비가 내뿜는 단순한 '신호(Signal)'가 아니라, 경영학적 의미가 부여된 '정보(Information)'가 필요하다. 그러나 전형적인 <strong>'데이터 투척형'</strong> 헤저드가 발생하면, 현장 시스템은 정보 가공을 거부하고 날 것의 데이터를 상위로 던져버려 전체 시스템을 마비시킨다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1584905380598-a15d7c3bc5e9?auto=format&fit=crop&w=800&q=80" alt="정제되지 않고 쏟아지는 데이터">
+            <p class="caption">▲ 필터링 없이 무작정 쏟아지는 원천 데이터(Raw Data)는 상위 시스템의 파이프를 막아버리는 독이 된다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석 및 사례 설명</h3>
+        <p>경영 지표(KPI) 시스템에서 설비의 효율성을 분석하기 위해 'Standard Time(표준 가동 시간)' 대비 실제 '설비 Event Data'의 비교가 필요해졌다. 정상적인 구조라면 데이터를 생성하는 하위 시스템(MOS, EES 등)이 이 두 가지 데이터를 결합하여 1차 가공된 실적 데이터를 올려야 한다.</p>
+        <p>그러나 EES 담당자는 방어막을 친다. <strong>"EES나 MOS는 설비의 제어와 로깅이 목적입니다. KPI에서나 쓰는 Standard Time을 우리 시스템에서 왜 관리하고 가공합니까?"</strong> 결국 EES는 기준 정보를 매핑하는 책임을 거부하고, 수억 건에 달하는 설비의 Event Data(원천 로그)를 매일 그대로 KPI 시스템으로 투척해 버린다. KPI 시스템은 알아서 산출하라며 말이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 파급 효과와 해결 방법</h3>
+        <p>이 결과는 처참하다. 똑같은 테라바이트급 데이터가 하위와 상위 시스템 양쪽에 이중으로 존재하게 된다. KPI 시스템은 가벼운 지표 하나를 띄우기 위해 수억 건의 로그를 Standard Time과 자체적으로 매핑하느라 덩치가 기형적으로 커지고, 쿼리 속도는 바닥을 친다.<br>
+        이를 해결하려면 하위 시스템이 단순히 '데이터를 던지는 곳'이라는 인식을 버려야 한다. 전사 아키텍처 위원회의 강제를 통해, EES 단에서 Standard Time 기준 정보를 내재화하고 1차 연산을 수행하여 정제된 <strong>실적 데이터(Raw가 아닌 Processed Data)</strong>만 상위로 올리도록 아키텍처를 뜯어고쳐야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">"우리 시스템에 불필요한 기준 정보는 관리하지 않는다"는 것이 투척형 헤저드의 전형이다.</li>
+                <li class="mb-1">Raw Data의 무분별한 이관은 상위 시스템의 이중 적재와 막대한 성능 저하를 초래한다.</li>
+                <li class="mb-1">데이터 발생지(Source)에서 1차 가공을 수행하는 'Shift-Left' 책임제가 필수적이다.</li>
+            </ul>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 9 -->
+        <h2 class="text-2xl font-bold mb-6 text-emerald-700">Chapter 9. [제조 사례 2] 실시간 OEE 전환의 좌절: 사일로가 낳은 비효율</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>제조업의 생산성 관리(OEE, 설비종합효율)는 과거 일(Daily) 단위 실적 집계에서 벗어나, 실시간(Real-time)으로 이상 현상을 발견하고 즉각 조치하는 기능 고도화로 넘어가고 있다. 그러나 이 원대한 목표는 '장벽 구축형' 시스템 헤저드 앞에서 무참히 박살 난다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1565514020179-026b92b84bb6?auto=format&fit=crop&w=800&q=80" alt="맞물리지 않는 톱니바퀴">
+            <p class="caption">▲ 개별 시스템들이 서로 맞물려 돌아가는 유기적 연결망을 거부하면, 전사적 고도화 프로젝트는 불가능해진다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석 및 사례 설명</h3>
+        <p>실시간 OEE 체계를 구축하려면, 공장 내 수백 대의 설비 데이터가 유기적으로 하나로 연결되어 표준화된 상태 정보를 중앙으로 쏘아 주어야 한다. 그러나 설비 시스템 담당자들은 각자의 로컬 규격을 고집하며 중앙 데이터 플랫폼과의 실시간 유기적 동기화를 거부한다. 전사 아키텍처의 강제력이 없으니 시스템 간의 파편화는 계속 유지된다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 파급 효과와 해결 방법</h3>
+        <p>시스템이 유기적으로 연결되지 않은 상태, 즉 <strong>'데이터가 성숙하지 않은 상태'</strong>에서 경영진의 실시간 고도화 지시는 떨어졌다. 어떻게 될까? 통합 플랫폼에서의 중앙 처리가 불가능하므로, 결국 <strong>각각의 설비별로 모니터링 기능을 따로따로 개발하여 별개로 운영</strong>하는 끔찍한 비효율이 발생한다. 전사 통합 시스템을 만들 예산을 개별 설비의 로컬 화면을 만드는데 다 낭비해 버린 것이다.<br>
+        실시간 분석 고도화 이전에, 하위 시스템들을 강제로 유기적인 파이프라인으로 편입시키는 '데이터 표준화 및 성숙도 향상 작업'이 무조건 선행되어야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">시스템 간의 유기적 연결(데이터 성숙도) 없이 고급 기능 구현은 불가능하다.</li>
+                <li class="mb-1">연결을 거부하는 사일로(Silo)는 결국 '개별 설비별 독자 개발'이라는 최악의 비용 낭비를 낳는다.</li>
+                <li class="mb-1">전사 통합 실시간 체계 구축을 위해, 하위 시스템의 표준 준수와 연계를 아키텍처로 강제하라.</li>
+            </ul>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 10 -->
+        <h2 class="text-2xl font-bold mb-6 text-emerald-700">Chapter 10. [기술 사례] 고급 알고리즘 적용 불가: 최하단 데이터의 반란</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>최근 기업들은 초대용량 데이터(Big Data)를 실시간으로 처리하고 예측 모델을 만들기 위해 Chan 알고리즘, KLL 엔진과 같은 최첨단 스트리밍 분석 기술을 도입하고자 한다. 그러나 이 화려한 AI/빅데이터 프로젝트들은 뜻밖에도 시스템 계층의 가장 밑바닥(Bottom)에서 발생하는 '이기주의' 때문에 시작조차 하지 못하고 죽어버린다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80" alt="반도체 기판과 끊어진 회로">
+            <p class="caption">▲ 아무리 뛰어난 AI 두뇌를 가졌어도, 신경망의 끝단(최하위 시스템)에서 데이터를 만들어주지 않으면 무용지물이 된다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석 및 사례 설명</h3>
+        <p>Chan 알고리즘이나 KLL 엔진 같은 고급 분석기가 제대로 동작하려면, 단순히 배치로 넘어오는 데이터로는 불가능하다. <strong>현장의 최전선에 있는 TC(Tool Control)와 EES 단에서부터 실시간 스트리밍 포맷으로 가공된 데이터가 쉴 새 없이 만들어져 올라와야 한다.</strong></p>
+        <p>하지만 헤저드에 빠진 TC/EES 담당 부서는 이를 단칼에 거절한다. <strong>"우리는 설비를 제어하는 부서입니다. 그런 복잡한 알고리즘용 데이터 생성을 TC 단에 올리면 부하가 생깁니다. 우리 부서의 평가지표나 운영에는 전혀 필요 없는 작업이니 할 수 없습니다."</strong></p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 파급 효과와 해결 방법</h3>
+        <p>가장 밑단에서 "자기는 필요 없다"고 선언하며 데이터 생성을 거부해 버리면, 상위에서 아무리 수십억을 들여 빅데이터 플랫폼을 구성해 놓아도 구현 자체가 원천적으로 불가능해진다. 전사적인 디지털 혁신이 말단 시스템의 이기주의 하나에 셧다운 되는 것이다.<br>
+        이를 돌파하기 위해서는 최하단 TC/EES를 <strong>'단순 설비 제어기'가 아니라 '전사 AI 플랫폼의 데이터 공급 전초기지'로 역할을 재정의</strong>해야 한다. 시스템 기획 조직의 강력한 탑다운(Top-down) 통제를 통해 데이터 생성 의무를 할당하고, 이를 거부할 수 없는 아키텍처 거버넌스를 구축해야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">고급 알고리즘(Chan, KLL 등)의 성공은 최하단 시스템(TC/EES)의 데이터 생성 능력에 달려 있다.</li>
+                <li class="mb-1">"우리 부서에 필요 없다"는 말단 시스템의 거부는 전사 AI 프로젝트 전체를 무산시킨다.</li>
+                <li class="mb-1">하위 시스템을 전사 데이터 플랫폼의 핵심 공급자로 강제 편입시키는 탑다운 통제가 필요하다.</li>
+            </ul>
+        </div>
+
+    </div>
+
+</section>
+<section id="part4" class="scroll-mt-24">
+
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200">
+        
+        <h1 class="text-4xl font-extrabold mb-8 text-center border-b pb-6">Part 4. 영향과 리스크</h1>
+
+        <p class="text-lg">시스템 헤저드는 단순히 IT 부서의 업무 불편에 그치지 않는다. 이는 기업의 재무적 건전성을 갉아먹고, 데이터 기반 경영이라는 비전을 뿌리째 흔들며, 조직 구성원들 사이에 불신이라는 병을 퍼뜨린다. Part 4에서는 시스템 헤저드가 초래하는 파괴적인 결과들을 비용, 품질, 운영이라는 세 가지 관점에서 입체적으로 분석한다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 11 -->
+        <h2 class="text-2xl font-bold mb-6 text-orange-700">Chapter 11. 비용 영향 분석: 보이지 않는 밑 빠진 독</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>시스템 헤저드가 발생하면 기업은 눈에 보이지 않는 'IT 인프라 유지 비용'의 폭증을 경험한다. 특히 하위 시스템이 가공 책임을 회피하고 상위 시스템으로 데이터를 무작정 투척하는 구조에서는, 데이터의 가치보다 보관 및 처리 비용이 훨씬 커지는 역설적인 상황이 발생한다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?auto=format&fit=crop&w=800&q=80" alt="타오르는 돈과 데이터">
+            <p class="caption">▲ 원칙 없는 데이터 적재와 중복 보관은 기업의 IT 예산을 무의미하게 태워버리는 주범이다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>가장 큰 원인은 <strong>데이터의 중복 적재</strong>와 <strong>인프라 정책의 부재</strong>다. 하위 시스템(EES/MOS)에서 처리해야 할 Raw Data가 상위 시스템(KPI)까지 그대로 올라오면, 동일한 데이터가 전사 시스템 곳곳에 이중, 삼중으로 존재하게 된다. 또한 대용량 로그는 <strong>Data Lake</strong>로, 실시간 집계는 <strong>RDBMS</strong>로 분리해야 하는 정책이 없으면, 비싼 RDBMS에 의미 없는 쓰레기 데이터를 가득 채우게 되어 라이선스 비용이 폭발한다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: 비대해진 시스템과 라이선스 폭탄</h3>
+        <p>EES 시스템에서 초 단위로 발생하는 설비 이벤트 데이터를 KPI 시스템이 그대로 받아 관리한다고 가정해 보자. KPI 시스템은 단순 지표 하나를 산출하기 위해 테라바이트급의 Raw Data를 보관해야 한다. 이를 위해 스토리지 증설은 물론, 방대한 데이터를 처리하기 위해 값비싼 고성능 RDBMS 라이선스를 추가 구매해야 한다.<br>
+        결국 데이터가 발생하는 최하단에서 걸러냈어야 할 '쓰레기'를 상단까지 끌고 오느라, 비즈니스 가치 창출과는 무관한 인프라 유지 비용에 매년 수억 원을 지출하게 되는 것이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p><strong>아키텍처 관점의 데이터 다이어트</strong>가 시급하다. 대용량 로그성 데이터는 저비용 저장소인 Data Lake로 보내고, 상위 시스템에는 가공된 '정보'만 전달하는 정책을 수립해야 한다. 또한 '데이터 중복 보관 비율'을 감사 항목에 넣어 인프라 낭비를 실시간으로 통제해야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">무책임한 데이터 투척은 스토리지와 RDBMS 라이선스 비용의 기하급수적 증가를 초래한다.</li>
+                <li class="mb-1">Data Lake와 RDBMS의 명확한 역할 분리 정책이 없으면 인프라 효율성은 최악으로 떨어진다.</li>
+                <li class="mb-1">중복 데이터를 색출하고 상위 시스템으로의 Raw Data 이관을 원천 차단해야 한다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">전사 DB 중 타 시스템으로부터 넘어온 Raw Data가 차지하는 비중(%)을 산출하여 비용 낭비 규모를 리포트하라.</span></p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 12 -->
+        <h2 class="text-2xl font-bold mb-6 text-orange-700">Chapter 12. 데이터 품질 영향: 가비지 인 가비지 아웃 (GIGO)</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>비용보다 무서운 것은 데이터의 신뢰성 붕괴다. <strong>"주는 대로 받고 받은 대로 넘겨준다"</strong>는 태도가 만연하면, 데이터 파이프라인의 중간 어디선가 발생한 오류가 정정되지 않은 채 최종 소비자인 경영진에게 전달된다. 결국 아무도 시스템의 수치를 믿지 않게 되는 <strong>'데이터 불신의 시대'</strong>가 도래한다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1590247813693-5541d1c609fd?auto=format&fit=crop&w=800&q=80" alt="흐릿한 시야와 망가진 나침반">
+            <p class="caption">▲ 정합성이 깨진 데이터는 경영진에게 망가진 나침반을 쥐여주는 것과 같다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>상위 시스템이 하위 시스템을 통제하여 데이터 신뢰성을 확보하도록 지속적으로 푸시(Push)해야 하지만, 중간 단계에서 이를 방관하기 때문이다. 정합성 검증 없이 데이터만 패스스루(Pass-through)하면, 말단에서 발생한 노이즈가 증폭되어 전체 결과값을 오염시킨다. 이는 전형적인 모랄 헤저드가 낳은 품질 저하다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: 수치가 맞지 않는 OEE 대시보드</h3>
+        <p>실시간 OEE(설비종합효율)를 집계하는 상황에서, 하위 시스템이 상태 코드(State Code)를 표준화하지 않고 제멋대로 쏜다고 가정하자. 중간 시스템인 MES는 이를 바로잡지 않고 그대로 KPI 시스템으로 넘긴다. 결과적으로 KPI 화면에는 가동 중인 설비가 비가동으로 뜨거나, 생산 수량이 실제와 다르게 표시된다.<br>
+        현업 사용자가 "데이터가 틀리다"고 지적하면, 담당자는 "하위에서 그렇게 왔다"는 말만 반복한다. 결국 경영진은 시스템을 끄고 다시 수기 엑셀 보고서를 찾게 된다. 수십억 원짜리 시스템이 엑셀 한 장보다 못한 대접을 받게 되는 순간이다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p>데이터 파이프라인의 각 접점(Node)에서 <strong>정합성 체크포인트</strong>를 구축해야 한다. 기준 정보와 맞지 않는 데이터가 유입될 경우 즉시 에러를 발생시키고 해당 부서로 피드백하는 자동 검증 체계를 아키텍처 레벨에서 구현해야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">정합성 검증 없는 데이터 전달은 시스템 전체의 신뢰성을 무너뜨린다.</li>
+                <li class="mb-1">중간 시스템의 방관은 단순한 실수가 아니라 데이터 품질을 훼손하는 모랄 헤저드다.</li>
+                <li class="mb-1">상위 시스템의 강력한 통제와 하위 시스템의 책임 있는 가공이 수반되어야 한다.</li>
+            </ul>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <!-- Chapter 13 -->
+        <h2 class="text-2xl font-bold mb-6 text-orange-700">Chapter 13. 조직 운영 리스크: 사일로의 심화와 수작업의 부활</h2>
+
+        <h3 class="text-xl font-semibold mb-3">1. 문제 정의</h3>
+        <p>시스템 헤저드는 결국 사람이 하는 일을 늘린다. 시스템이 유기적으로 연결되지 않으면, 그 끊어진 틈을 사람이 메워야 하기 때문이다. 이는 조직 내에 '보이지 않는 수작업 부서'를 만들고, 부서 간의 책임 공방으로 인한 감정적 소모를 극대화한다.</p>
+
+        <div class="image-container">
+            <img src="https://images.unsplash.com/photo-1454165833767-027ffea9e77b?auto=format&fit=crop&w=800&q=80" alt="서로 다른 곳을 보는 팀원들">
+            <p class="caption">▲ 시스템의 단절은 협업의 단절로 이어지며, 효율성을 떨어뜨리는 그림자 IT(수작업)를 양산한다. (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 원인 분석</h3>
+        <p>시스템 아키텍처가 정보를 정의하지 않고 기능만을 정의했기 때문이다. 새로운 정보가 필요한 시점에 아키텍처 위원회가 역할을 분배하지 않으면, 각 부서는 자신의 시스템만을 지키기 위한 방어막(Silo)을 친다. 결과적으로 전사적인 데이터 흐름은 단절되고, 현업은 정보를 얻기 위해 각 시스템의 화면을 엑셀로 내려받아 다시 합치는 노가다를 반복하게 된다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">3. 사례 설명: 인간 미들웨어가 된 현업 담당자</h3>
+        <p>실시간 이상 현상 발견과 조치가 필요한 고도화 업무. 하지만 시스템 간 데이터 연계가 막혀 있다. 현업 담당자는 매일 아침 출근하자마자 A 시스템에서 엑셀을 받고, B 시스템에서 로그를 받아 직접 VLOOKUP으로 데이터를 대조한다. 1시간이면 끝날 분석이 수동 작업 때문에 4시간이 걸린다.<br>
+        정작 중요한 조치는 업무 시간이 다 지나서야 이루어진다. 시스템이 고도화될수록 현업의 고통은 커지는 기현상이 벌어지는 것이다. 이것이 바로 시스템 헤저드가 초래하는 가장 무거운 <strong>조직 운영 리스크</strong>다.</p>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">4. 해결 방법</h3>
+        <p>시스템을 개별 부서의 자산이 아닌 <strong>'전사 공용 인프라'</strong>로 재인식해야 한다. 부서 간의 성벽을 허물기 위해 공동의 데이터 목표(Shared Data KPI)를 부여하고, 수작업으로 인한 업무 로스를 비용으로 환산하여 경영진에 보고함으로써 아키텍처 개선의 동력을 확보해야 한다.</p>
+
+        <div class="highlight-box">
+            <h3 class="text-lg font-bold mb-2">📌 핵심 정리 및 실무 적용</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1">시스템 단절은 현업의 엑셀 수작업(그림자 IT)을 부활시키는 주범이다.</li>
+                <li class="mb-1">정보 오너십이 없는 시스템 난립은 조직의 협업 능력을 저하시킨다.</li>
+                <li class="mb-1">수작업 로스를 정량화하여 아키텍처 위원회의 통제 명분으로 활용해야 한다.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">현재 현업 부서에서 시스템 데이터를 엑셀로 내려받아 2차 가공하는 데 소요되는 인건비(M/H)를 산출해 보라.</span></p>
+        </div>
+
+    </div>
+
+</section>
+<section id="part5" class="scroll-mt-24">
+
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200">
+        <h1 class="text-4xl font-extrabold mb-8 text-center border-b pb-6">Part 5. 해결 전략: 아키텍처와 거버넌스의 재건</h1>
+
+        <p class="text-xl font-bold text-teal-700 text-center mb-8">
+            "기술 부채를 상환하고 유기적 결합을 복원하기 위한 전사적 로드맵"
+        </p>
+
+        <p class="text-lg">시스템 헤저드는 단순히 개발자 몇 명의 태만으로 발생하는 문제가 아닙니다. 이는 조직의 의사결정 체계와 데이터 철학이 부재할 때 나타나는 구조적 병폐입니다. Part 5에서는 이러한 병폐를 도려내고, 데이터를 '단순 적재물'에서 '비즈니스 정보'로 승격시키기 위한 네 가지 핵심 해결 전략을 심층적으로 다룹니다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-teal-700">Chapter 14. 데이터 중심 설계 원칙: Data에서 Information으로</h2>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">1. 문제 정의: 의미 없는 데이터의 홍수</h3>
+        <p>현장의 설비 제어 시스템(EES)이나 모니터링 시스템(MOS)에서 발생하는 로그는 그 자체로는 로우 데이터(Raw Data)입니다. 이 데이터가 상위의 KPI 시스템까지 원형 그대로 투척되는 현상은 시스템 헤저드의 전형입니다. 이 과정에서 맥락(Context)이 유실되고, 상위 시스템은 데이터 정제를 위해 테라바이트급의 불필요한 연산을 반복해야 합니다.</p>
+
+        <div class="image-container my-8 text-center">
+            <img src="https://images.unsplash.com/photo-1551288049-bbda64626744?auto=format&fit=crop&w=800&q=80" alt="정제된 데이터의 흐름" class="rounded-xl shadow-md mx-auto w-full max-w-3xl">
+            <p class="caption text-sm text-slate-500 mt-3 italic">▲ [그림 5-1] 원천 데이터가 기준 정보와 결합되어 유의미한 '정보'로 변하는 정제 프로세스 (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 해결 방법: Shift-Left와 1차 가공 책임제</h3>
+        <p>해결책은 명확합니다. 데이터를 가장 잘 아는 시스템(Origin)이 가공의 책임도 함께 지는 **'Shift-Left'** 전략입니다. KPI 시스템에서 Standard Time을 활용한다면, 하위 시스템은 단순히 이벤트 로그만 보낼 것이 아니라, 자체적으로 Standard Time 기준 정보를 동기화하여 '가동/비가동 여부'나 '표준 대비 실적'을 1차로 가공해 올려야 합니다.</p>
+        <p>이렇게 가공된 정보(Information)가 전달될 때, 상위 시스템은 가벼워지고 전사 데이터 정합성은 획기적으로 향상됩니다. 시스템 간의 대화는 'Raw 로그'가 아닌 '비즈니스 실적' 단위로 이루어져야 합니다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-teal-700">Chapter 15. 표준 아키텍처 설계와 기획의 통제력</h2>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">1. 문제 정의: 비용을 핑계로 한 표준화 회피</h3>
+        <p>신규 프로젝트 시 "개발 비용 절감"과 "촉박한 일정"은 언제나 표준 아키텍처를 우회하는 단골 핑계가 됩니다. 이로 인해 전사 표준을 무시한 독립 개발이 횡행하게 되고, 이는 결국 장기적으로 시스템 간 연결이 불가능한 '데이터 갈라파고스'를 형성합니다.</p>
+
+        <div class="image-container my-8 text-center">
+            <img src="https://images.unsplash.com/photo-1454165833767-027ffea9e77b?auto=format&fit=crop&w=800&q=80" alt="시스템 아키텍처 기획 회의" class="rounded-xl shadow-md mx-auto w-full max-w-3xl">
+            <p class="caption text-sm text-slate-500 mt-3 italic">▲ [그림 5-2] 시스템 아키텍처 운영 위원회를 통한 전사적 역할 분배 (출처: Unsplash)</p>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">2. 해결 방법: 아키텍처 운영 위원회(EA Board)의 통제</h3>
+        <p>새로운 비즈니스 개념이 발생했을 때, 필요한 곳에서 임의로 시스템을 만들게 방치해서는 안 됩니다. **'시스템 아키텍처 운영 위원회'** 혹은 **'시스템 기획 조직'**이 강력한 통제권을 가지고 전사 관점에서 할 일과 역할을 분배해야 합니다. 위원회는 단순히 기술적 검토를 넘어, "어느 시스템이 어떤 데이터를 생산하고 책임질 것인가"를 정의하는 헌법적 역할을 수행해야 합니다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-teal-700">Chapter 16. 저장소 정책 수립: Data Lake vs RDBMS</h2>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">1. 기술적 방향성: 목적에 맞는 인프라 활용</h3>
+        <p>모든 데이터를 비싼 관계형 데이터베이스(RDBMS)에 쏟아붓는 것은 비용과 성능 모두에서 재앙을 부릅니다. 일단위 집계를 위한 설비 로그(Log)와 같은 대용량 데이터는 확장성이 뛰어나고 저렴한 **데이터 레이크(Data Lake)**를 활용해야 합니다.</p>
+        <p>반면, 실시간 이상 현상 감지나 즉각적인 조치가 필요한 고도화 기능은 고성능 **RDBMS**를 활용하는 정책적 분리가 필요합니다. 이러한 저장소 분리 원칙이 확립될 때, 비로소 시스템은 유기적으로 연결되면서도 각자의 성능을 최대로 발휘할 수 있습니다.</p>
+
+        <div class="highlight-box bg-teal-50 p-6 rounded-xl border-l-4 border-teal-500 my-8">
+            <h3 class="text-lg font-bold mb-2 text-teal-900">🏆 Part 5 핵심 요약</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1"><strong>Shift-Left:</strong> 데이터 발생지(Origin)에서 1차 가공 및 기준 정보 결합을 완수하라.</li>
+                <li class="mb-1"><strong>Governance:</strong> 아키텍처 운영 위원회의 승인 없는 임의 개발 및 로컬 테이블 생성을 통제하라.</li>
+                <li class="mb-1"><strong>Infrastructure:</strong> 로그성 대용량 데이터는 Data Lake로, 실시간 정보는 RDBMS로 분리 보관하라.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal">인터페이스 명세서에 단순히 데이터 항목만 적지 말고, '가공 책임 시스템'과 '데이터 오너십'을 명시하십시오.</span></p>
+        </div>
+    </div>
+
+</section>
+<section id="part6" class="scroll-mt-24">
+
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200">
+        <h1 class="text-4xl font-extrabold mb-8 text-center border-b pb-6">Part 6. 실행 방법론: 변화를 위한 실천 전략</h1>
+
+        <p class="text-xl font-bold text-indigo-700 text-center mb-8">
+            "진단에서 설계, 그리고 지속 가능한 운영 체계로의 전환"
+        </p>
+
+        <p class="text-lg">전략이 지도라면, 방법론은 목적지까지 가는 나침반과 같습니다. 시스템 헤저드를 극복하기 위해서는 현재의 비효율을 객관적으로 측정하고, 리스크를 최소화하며 단계적으로 전환하는 정교한 실행 프로세스가 필요합니다. Part 6에서는 실무 현장에서 바로 적용 가능한 4단계 실행 방법론을 제시합니다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-indigo-700">Chapter 18. 진단 방법론: 우리 시스템은 얼마나 병들어 있는가?</h2>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">1. 아키텍처 성숙도 자가 진단</h3>
+        <p>변화의 시작은 현재의 위치를 인정하는 것부터입니다. 우리 조직의 시스템이 단순히 인터페이스로 얽혀 있는 '스파게티 아키텍처'인지, 아니면 표준 기반의 통합이 이루어진 상태인지를 진단해야 합니다. 특히 데이터의 중복 적재율과 '인간 미들웨어(수작업)'의 비중을 정량화하여 경영진에게 개선의 필요성을 환기시켜야 합니다.</p>
+
+        <div class="image-container my-8 text-center">
+            <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=800&q=80" alt="정밀 진단과 데이터 시각화" class="rounded-xl shadow-md mx-auto w-full max-w-3xl">
+            <p class="caption text-sm text-slate-500 mt-3 italic">▲ [그림 6-1] 데이터 파이프라인의 단절 구간을 찾아내는 아키텍처 정밀 진단 (출처: Unsplash)</p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-indigo-700">Chapter 19. To-Be 설계 및 단계별 전환 전략</h2>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">1. 점진적 전환: "빅뱅은 없다"</h3>
+        <p>거대한 공장과 연동된 시스템을 한꺼번에 바꾸는 것은 불가능에 가깝습니다. 가장 데이터 품질이 낮고 비효율이 큰 영역(예: 실시간 OEE 집계 등)을 파일럿(Pilot)으로 선정하여 개선 성공 사례를 만드십시오. 이후 이를 바탕으로 전사 아키텍처로 확장하는 'Scale-up' 전략이 필수적입니다.</p>
+
+        <div class="flex flex-col gap-4 my-8">
+            <div class="flex items-start gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold">1</div>
+                <div class="text-slate-700"><strong>진단 및 타겟 선정:</strong> 데이터 중복이 가장 심한 KPI/보고서 영역 식별</div>
+            </div>
+            <div class="flex items-start gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold">2</div>
+                <div class="text-slate-700"><strong>표준 연계 설계:</strong> 하위 시스템(EES/TC) 가공 책임 부여 및 데이터 레이크 연동</div>
+            </div>
+            <div class="flex items-start gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold">3</div>
+                <div class="text-slate-700"><strong>파일럿 실행:</strong> 실시간 OEE 또는 이상 감지 알고리즘 적용</div>
+            </div>
+            <div class="flex items-start gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                <div class="bg-indigo-600 text-white w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold">4</div>
+                <div class="text-slate-700"><strong>전사 확산:</strong> Shared KPI 적용 및 표준 가이드라인 정착</div>
+            </div>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-indigo-700">Chapter 21. 운영 및 개선 체계: 지속 가능한 거버넌스</h2>
+
+        <h3 class="text-xl font-semibold mb-3 mt-8">1. 아키텍처 모니터링 체계</h3>
+        <p>시스템은 관리가 소홀해지면 다시 무질서한 상태로 회귀하려는 본성이 있습니다. 이를 막기 위해 '데이터 정합성 모니터링 대시보드'를 상시 가동해야 합니다. 하위 시스템에서 보낸 정보와 상위에서 수신한 정보가 일치하는지, 지연 시간(Latency)은 허용 범위 내에 있는지를 실시간으로 감시해야 합니다.</p>
+
+        <div class="image-container my-8 text-center">
+            <img src="https://images.unsplash.com/photo-1551288049-bbda64626744?auto=format&fit=crop&w=800&q=80" alt="지속적인 운영 관리" class="rounded-xl shadow-md mx-auto w-full max-w-3xl">
+            <p class="caption text-sm text-slate-500 mt-3 italic">▲ [그림 6-2] 실시간 데이터 흐름 감시를 통한 아키텍처 건전성 유지 (출처: Unsplash)</p>
+        </div>
+
+        <div class="highlight-box bg-indigo-50 p-6 rounded-xl border-l-4 border-indigo-500 my-8">
+            <h3 class="text-lg font-bold mb-2 text-indigo-900">📌 Part 6 실행 지침 요약</h3>
+            <ul class="list-disc pl-5 mb-4 text-slate-700">
+                <li class="mb-1"><strong>Diagnosis:</strong> 현재의 중복 적재와 수작업 비중을 정량적으로 측정하라.</li>
+                <li class="mb-1"><strong>Roadmap:</strong> 한꺼번에 바꾸려 하지 말고, 파일럿 성공 사례부터 단계적으로 확장하라.</li>
+                <li class="mb-1"><strong>Monitoring:</strong> 정합성 체크 자동화 프로세스를 구축하여 아키텍처의 엔트로피를 통제하라.</li>
+            </ul>
+            <p class="font-semibold text-slate-800">💡 실무 적용 포인트: <span class="font-normal text-indigo-700 underline">다음 분기 시스템 개선 Agenda에 '데이터 중복량 절감' 항목을 포함시키십시오.</span></p>
+        </div>
+    </div>
+
+</section>
+<section id="part7" class="scroll-mt-24">
+
+    <div class="max-w-4xl mx-auto bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-200">
+        <h1 class="text-4xl font-extrabold mb-8 text-center border-b pb-6">Part 7. 실무 적용: 현장의 변화를 이끄는 마지막 열쇠</h1>
+
+        <p class="text-xl font-bold text-amber-700 text-center mb-8">
+            "실패의 교훈과 성공의 패턴: 내일 당장 실행해야 할 리스트"
+        </p>
+
+        <p class="text-lg">이론은 현장에서 증명될 때 비로소 가치를 지닙니다. 시스템 헤저드의 개념과 해결 전략을 모두 이해했다면, 이제 우리 시스템의 거울을 들여다볼 시간입니다. Part 7에서는 당신의 조직을 진단할 수 있는 체크리스트와, 현장의 생생한 성공 및 실패 사례를 통해 실무적 통찰력을 완성합니다.</p>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-amber-700">Chapter 22. 체크리스트 기반 진단: 우리 조직의 위험 지수 측정</h2>
+
+        <p>다음 체크리스트는 당신의 조직이 얼마나 깊은 '시스템 헤저드'의 늪에 빠져 있는지 측정하는 척도입니다. 5개 이상의 항목에 해당된다면, 이미 시스템 아키텍처는 심각하게 오염된 상태입니다.</p>
+
+        <div class="bg-amber-50 p-8 rounded-xl border border-amber-200 my-8">
+            <h3 class="text-xl font-bold mb-6 text-amber-900">🔍 아키텍처 건전성 체크리스트</h3>
+            <div class="flex items-center gap-3 mb-3 text-lg"><input type="checkbox" class="w-5 h-5 rounded border-amber-600 text-amber-600 focus:ring-amber-500"> <span class="text-slate-700">동일한 데이터가 여러 시스템에 중복으로 존재하며, 값이 서로 다르다.</span></div>
+            <div class="flex items-center gap-3 mb-3 text-lg"><input type="checkbox" class="w-5 h-5 rounded border-amber-600 text-amber-600 focus:ring-amber-500"> <span class="text-slate-700">하위 시스템은 원천 로그만 던져주고, 상위 시스템이 모든 가공을 떠안는다.</span></div>
+            <div class="flex items-center gap-3 mb-3 text-lg"><input type="checkbox" class="w-5 h-5 rounded border-amber-600 text-amber-600 focus:ring-amber-500"> <span class="text-slate-700">표준 아키텍처 위원회의 심의를 거치지 않은 '독립 개발 시스템'이 존재한다.</span></div>
+            <div class="flex items-center gap-3 mb-3 text-lg"><input type="checkbox" class="w-5 h-5 rounded border-amber-600 text-amber-600 focus:ring-amber-500"> <span class="text-slate-700">현업 담당자들이 정보를 얻기 위해 여러 시스템에서 엑셀을 받아 수작업으로 합친다.</span></div>
+            <div class="flex items-center gap-3 mb-3 text-lg"><input type="checkbox" class="w-5 h-5 rounded border-amber-600 text-amber-600 focus:ring-amber-500"> <span class="text-slate-700">데이터 레이크와 RDBMS의 구분 없이 모든 데이터를 DB에 무작정 쌓는다.</span></div>
+            <div class="flex items-center gap-3 text-lg"><input type="checkbox" class="w-5 h-5 rounded border-amber-600 text-amber-600 focus:ring-amber-500"> <span class="text-slate-700">특정 부서가 "우리 시스템에 필요 없다"는 이유로 전사 통합 데이터 생성을 거부한다.</span></div>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <h2 class="text-2xl font-bold mb-6 text-amber-700">Chapter 23. 성공과 실패의 갈림길: 현장 리포트</h2>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-8 mb-8 border-t-8 border-t-emerald-600 shadow-sm mt-8">
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase mb-4 bg-emerald-100 text-emerald-800">Success Case</span>
+            <h3 class="text-xl font-bold mb-3 mt-0 text-slate-800">반도체 A사: 고급 알고리즘 도입 성공기</h3>
+            <p class="text-slate-700 mb-2">초대용량 데이터를 실시간으로 분석하기 위해 Chan 알고리즘과 KLL 엔진을 도입하려던 A사. 초기에는 TC와 EES 단에서 데이터 생성을 거부하여 좌절되었습니다. 하지만 아키텍처 위원회가 개입하여 최하단 시스템을 '데이터 공급 전초기지'로 재정의하고, Shift-Left 가공 로직을 강제했습니다.</p>
+            <p class="text-slate-700"><strong>결과:</strong> 실시간 OEE 집계가 가능해졌으며, 이상 현상 감지 속도가 이전 대비 400% 향상되었습니다.</p>
+        </div>
+
+        <div class="image-container my-8 text-center">
+            <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=800&q=80" alt="성공적인 협업" class="rounded-xl shadow-md mx-auto w-full max-w-3xl">
+            <p class="caption text-sm text-slate-500 mt-3 italic">▲ [그림 7-1] 부서 이기주의를 타파하고 공동의 데이터를 지켜낸 성공적인 협업 모델 (출처: Unsplash)</p>
+        </div>
+
+        <div class="bg-white border border-slate-200 rounded-xl p-8 mb-8 border-t-8 border-t-red-600 shadow-sm mt-8">
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase mb-4 bg-red-100 text-red-800">Failure Case</span>
+            <h3 class="text-xl font-bold mb-3 mt-0 text-slate-800">부품사 B사: "주는 대로 받고, 받은 대로 넘긴다"의 비극</h3>
+            <p class="text-slate-700 mb-2">중간 레벨의 시스템 담당자들이 데이터 검증 책임을 회피하며 '바이패스(Bypass)' 정책을 고수했습니다. 하위에서 올라온 에러 데이터가 정제 없이 KPI 시스템까지 전달되었고, 경영진은 매일 아침 수치가 틀린 대시보드를 마주해야 했습니다.</p>
+            <p class="text-slate-700"><strong>결과:</strong> 시스템 불신으로 인해 '엑셀 수작업 부서'가 신설되었고, 시스템은 테라바이트급의 '데이터 쓰레기통'으로 전락했습니다.</p>
+        </div>
+
+        <hr class="my-10 border-slate-200">
+
+        <div class="highlight-box bg-amber-50 p-6 rounded-xl border-l-4 border-amber-500 my-8">
+            <h3 class="text-lg font-bold mb-2 text-amber-900 mt-0">📘 집필을 마치며: 시스템은 의지입니다</h3>
+            <p class="mb-0 italic text-amber-900">"가장 훌륭한 시스템은 혼자 잘 돌아가는 시스템이 아니라, 다른 시스템을 위해 가장 고품질의 정보를 적시에 공급해 주는 시스템입니다. 시스템 헤저드를 극복하는 유일한 방법은 기술이 아니라, 부서 간의 벽을 허물고 전사 최적화를 추구하는 강력한 '아키텍처 의지'입니다."</p>
+        </div>
+
+        <p class="text-center text-slate-400 text-sm mt-10">© 2026 System Hazard Guide. All rights reserved.</p>
+    </div>
+
+</section>
+</div>
+    <!-- Author & Footer -->
+    <footer class="bg-slate-100 py-16 border-t border-slate-200">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h3 class="text-lg font-bold mb-4">About the Series</h3>
+            <p class="text-sm text-slate-600 leading-relaxed mb-8">
+                蹂??꾩꽌 ?쒕━利덈뒗 ?꾨? 湲곗뾽???뚰렪?붾맂 IT ?섍꼍?먯꽌 諛쒖깮?섎뒗 '?쒖뒪???ㅼ??? ?꾩긽???щ룄 ?덇쾶 議곕챸?섍퀬,<br>
+                ?곗씠??以묒떖???듯빀 ?꾪궎?띿쿂瑜??듯빐 ?꾩궗???⑥쑉?깆쓣 ?ш굔?섍린 ?꾪븳 ?ㅻТ 吏移⑥꽌?낅땲??
+            </p>
+            <div class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                짤 2026 Architecture Board. All rights reserved.
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

@@ -5,10 +5,9 @@ const root = __dirname;
 const guideDir = path.join(root, "SEMI_Interactive_Guide");
 const developerDir = path.join(root, "SEMI_Interactive_Developer");
 const guideStandardsDir = path.join(guideDir, "standards");
-const developerStandardsDir = path.join(developerDir, "standards");
 const developerAlgorithmsDir = path.join(developerDir, "algorithms");
 
-for (const dir of [guideDir, developerDir, guideStandardsDir, developerStandardsDir, developerAlgorithmsDir]) {
+for (const dir of [guideDir, developerDir, guideStandardsDir, developerAlgorithmsDir]) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
@@ -73,22 +72,13 @@ function shell(title, subtitle, body, cssPath = "../semi-page.css") {
   return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><link rel="stylesheet" href="${cssPath}"></head><body><main class="page">${body}</main></body></html>`;
 }
 
-function standardGuidePage(s) {
-  return shell(`${s.code} Guide`, s.name, `
+function standardUnifiedPage(s) {
+  return shell(`${s.code} Standard`, s.name, `
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / ${esc(s.code)}</div>
-    <section class="hero"><h1>${esc(s.code)} - ${esc(s.name)}</h1><p>${esc(s.summary)}</p><div class="chips"><span class="chip">${esc(s.group)}</span><span class="chip">Guide</span></div></section>
-    <section class="section"><h2>기능 요약</h2><p>${esc(s.role)}</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 이 페이지는 업무 흐름 이해를 위한 요약입니다.</div></section>
-    <section class="section"><h2>표준 관계 DFD</h2><div class="diagram">${diagram(s.dfd)}</div></section>
+    <section class="hero"><h1>${esc(s.code)} - ${esc(s.name)}</h1><p>${esc(s.summary)}</p><div class="chips"><span class="chip">${esc(s.group)}</span><span class="chip">Guide & Developer</span></div></section>
+    <section class="section"><h2>기능 요약</h2><p>${esc(s.role)}</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
+    <section class="section"><h2>데이터 흐름 (DFD)</h2><div class="diagram">${diagram(s.dfd)}</div></section>
     <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
-  `);
-}
-
-function standardDeveloperPage(s) {
-  return shell(`${s.code} Developer`, s.name, `
-    <div class="crumbs"><a href="../SEMI_Data_Flow_Developer.html">SEMI Developer</a> / ${esc(s.code)}</div>
-    <section class="hero"><h1>${esc(s.code)} - ${esc(s.name)}</h1><p>${esc(s.summary)}</p><div class="chips"><span class="chip">${esc(s.group)}</span><span class="chip">Developer</span></div></section>
-    <section class="section"><h2>개발 기능 요약</h2><p>${esc(s.role)}</p><div class="note">개발 시 Source/Target, 동기/비동기, Retry, Timeout, 원본 Payload 보관, 품질 코드, 감사 로그를 함께 설계합니다.</div></section>
-    <section class="section"><h2>개발 DFD</h2><div class="diagram">${diagram(s.dfd)}</div></section>
     <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody>${tableRows(s.tables)}</tbody></table></section>
   `);
 }
@@ -117,8 +107,7 @@ function overviewPage(type) {
 }
 
 for (const s of standards) {
-  fs.writeFileSync(path.join(guideStandardsDir, `${s.id}.html`), standardGuidePage(s), "utf8");
-  fs.writeFileSync(path.join(developerStandardsDir, `${s.id}.html`), standardDeveloperPage(s), "utf8");
+  fs.writeFileSync(path.join(guideStandardsDir, `${s.id}.html`), standardUnifiedPage(s), "utf8");
 }
 for (const a of algorithms) {
   fs.writeFileSync(path.join(developerAlgorithmsDir, `${a.id}.html`), algorithmPage(a), "utf8");
@@ -126,4 +115,4 @@ for (const a of algorithms) {
 fs.writeFileSync(path.join(guideDir, "SEMI_Data_Flow_Main.html"), overviewPage("guide"), "utf8");
 fs.writeFileSync(path.join(developerDir, "SEMI_Data_Flow_Developer.html"), overviewPage("developer"), "utf8");
 
-console.log(`Generated ${standards.length} guide pages, ${standards.length} developer pages, and ${algorithms.length} algorithm pages.`);
+console.log(`Generated ${standards.length} unified standard pages, and ${algorithms.length} algorithm pages.`);
