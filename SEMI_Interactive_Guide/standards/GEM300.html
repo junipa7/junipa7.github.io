@@ -1,8 +1,72 @@
-﻿<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GEM300 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GEM300 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / GEM300</div>
     <section class="hero"><h1>GEM300 - 300mm Automation Set</h1><p>E39, E40, E87, E90, E94, E116, E142, E148, E157 등으로 Carrier, Substrate, Process Job, Control Job, 성능/시간 동기화까지 확장합니다.</p><div class="chips"><span class="chip">GEM300 생산 실행</span><span class="chip">Guide &amp; Developer</span></div></section>
     <section class="section"><h2>기능 요약</h2><p>Lot/Carrier/Wafer 단위의 자동화 생산 실행을 표준 객체와 상태 모델로 연결합니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
     <section class="section"><h2>표준 관계 DFD</h2><div class="diagram"><svg viewBox="0 0 1245 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">Carrier Arrival</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">Carrier Mgmt</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">Control Job</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">Process Job</text><text class="tiny" x="685" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="800" y="44" width="150" height="76"></rect><text x="875" y="78" text-anchor="middle">Substrate Tracking</text><text class="tiny" x="875" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="990" y="44" width="150" height="76"></rect><text x="1065" y="78" text-anchor="middle">MES/MOS</text><text class="tiny" x="1065" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path><path class="arrow" d="M760 82 H800"></path><path class="arrow" d="M950 82 H990"></path></svg></div></section>
     <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
   <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>carrier_state</strong></td><td>carrier_id, load_port_id, carrier_state, access_mode, slot_map_id, updated_at</td></tr><tr><td><strong>control_job</strong></td><td>control_job_id, carrier_id, recipe_id, job_state, owner_system, created_at</td></tr><tr><td><strong>substrate_trace</strong></td><td>substrate_id, carrier_id, slot_no, module_id, process_state, event_time</td></tr></tbody></table></section>
+  <section class="section">
+    <h2>1장. GEM300 개요 및 필요성</h2>
+    <p>GEM300은 300mm(12인치) 웨이퍼 팹(Fab)의 <strong>완전 자동화(Full Automation)</strong>를 달성하기 위해 도입된 SEMI 표준들의 집합체입니다. 기존 200mm 시절의 E30(GEM)만으로는 OHT(천장 반송 장치) 물류 연동과 복잡한 작업 지시를 처리할 수 없어 새롭게 제정되었습니다.</p>
+
+    <h3>1. 왜 기존 GEM으로는 부족했는가?</h3>
+    <p>200mm 공장에서는 작업자가 손으로 카세트를 나르고 장비 버튼을 눌러 레시피를 실행하는 반자동화가 흔했습니다. 장비 입장에서는 "웨이퍼가 왔네, 굽자" 정도로 충분했습니다. 그러나 300mm 팹에서는 무거운 FOUP을 로봇(OHT)이 나르기 때문에 장비와 OHT 간의 복잡한 물리적 인터페이스(E84)가 필요해졌고, 중앙 시스템이 <strong>어떤 FOUP을(Carrier), 어떤 슬롯의 웨이퍼만 골라서(Substrate), 어떤 레시피로 구울지(Job)</strong> 매우 정교하게 지시해야 했습니다.</p>
+    
+    <h3>2. 패러다임의 변화: 객체 지향 모델</h3>
+    <p>GEM300은 장비 내부의 요소를 <strong>객체(Object)</strong>로 정의합니다. 통이나 캐리어는 Carrier Object, 웨이퍼 한 장 한 장은 Substrate Object, 작업 지시서는 Job Object로 취급하며, 호스트는 이 객체들의 상태(State)를 실시간으로 모니터링하고 제어(E39 Object Services)하게 됩니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>2장. GEM300을 구성하는 핵심 표준들 (Core Suite)</h2>
+    <p>GEM300은 단일 문서가 아니라, 목적에 따라 여러 개의 표준 번호로 나뉘어 유기적으로 맞물려 돌아갑니다.</p>
+    
+    <div class="grid">
+      <div class="card">
+        <strong>SEMI E39 (Object Services)</strong>
+        <span>GEM300의 근간이 되는 '언어'입니다. 장비 내의 다양한 객체들을 생성(Create), 삭제(Delete), 속성 조회(GetAttr), 속성 변경(SetAttr)하는 공통적인 방법론을 제공합니다.</span>
+      </div>
+      <div class="card">
+        <strong>SEMI E40 (Processing Management)</strong>
+        <span><strong>"무엇을 어떻게 가공할 것인가"</strong>를 정의합니다. Process Job(PJ) 객체를 통해 특정 웨이퍼들에 어떤 레시피를 적용할지 작업 단위와 상태(Queued, Executing, Completed)를 관리합니다.</span>
+      </div>
+      <div class="card">
+        <strong>SEMI E87 (Carrier Management)</strong>
+        <span><strong>"FOUP(자재통)의 움직임"</strong>을 관리합니다. 장비의 Load Port에 FOUP이 안착되고, 도어를 열어 슬롯 맵(Slot Map)을 읽고, 작업이 끝나면 OHT가 다시 가져갈 수 있도록 상태(CMS)를 관리합니다.</span>
+      </div>
+      <div class="card">
+        <strong>SEMI E90 (Substrate Tracking)</strong>
+        <span><strong>"웨이퍼 개별 추적"</strong>을 담당합니다. 챔버 안에서 웨이퍼가 어디에 있는지(At Source, At Process, At Destination)를 정확히 추적하여, 에러 발생 시 어느 웨이퍼가 망가졌는지 파악합니다.</span>
+      </div>
+      <div class="card">
+        <strong>SEMI E94 (Control Job Management)</strong>
+        <span><strong>"작업과 물류의 묶음"</strong>을 제어합니다. Control Job(CJ)은 하나 이상의 Process Job(PJ)을 묶고, 어떤 Carrier(FOUP)에서 자재를 빼올 것인지 물류와 공정을 연결해 주는 최상위 작업 지시서입니다.</span>
+      </div>
+      <div class="card">
+        <strong>SEMI E116 (Equipment Performance Tracking)</strong>
+        <span>장비 전체뿐만 아니라 장비 내부의 각 모듈(챔버, 로봇 등) 단위의 성능과 상태(E10 상태 모델)를 세밀하게 추적합니다.</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>3장. GEM300의 일반적인 작업 흐름 (Standard Workflow)</h2>
+    <p>300mm 팹에서 웨이퍼가 장비에 도착하여 가공되고 나갈 때까지, GEM300 표준들이 릴레이로 작동하는 흐름입니다.</p>
+    
+    <ol style="font-size:16px; line-height: 1.8; color:#374151; padding-left:20px;">
+      <li style="margin-bottom:8px;"><strong>OHT 배송 &amp; E87:</strong> OHT가 FOUP을 Load Port에 내려놓습니다. 장비는 E87을 통해 호스트에 "FOUP 도착(Carrier Arrived)"을 알립니다.</li>
+      <li style="margin-bottom:8px;"><strong>ID 및 Slot Map 확인 (E87 &amp; E90):</strong> 장비가 FOUP의 바코드/RFID를 읽고 호스트에 보고합니다. 문을 열어 25개 슬롯 중 몇 번 슬롯에 웨이퍼가 있는지(Slot Map)를 스캔하여 E90 Substrate 객체로 호스트에 보고합니다.</li>
+      <li style="margin-bottom:8px;"><strong>작업 지시 하달 (E94 &amp; E40):</strong> 호스트가 장비에 Control Job(CJ)과 Process Job(PJ)을 차례로 내려보내(Create) "이 FOUP의 1~5번 웨이퍼를 A레시피로 구워라"라고 지시합니다.</li>
+      <li style="margin-bottom:8px;"><strong>작업 실행 (E90 &amp; E40):</strong> 장비가 PJ를 실행(Executing)합니다. 로봇이 웨이퍼를 챔버로 옮길 때마다 E90을 통해 위치 변경 이벤트가 호스트로 쏟아집니다.</li>
+      <li style="margin-bottom:8px;"><strong>작업 완료 (E94 &amp; E87):</strong> 모든 가공이 끝나면 웨이퍼가 FOUP으로 돌아오고, PJ와 CJ가 완료(Completed) 상태가 됩니다. 장비는 호스트에 완료를 보고하고, 호스트는 OHT를 불러 FOUP을 가져갑니다.</li>
+    </ol>
+  </section>
+
+  <section class="section">
+    <h2>4장. 실무 적용의 어려움과 체크포인트</h2>
+    <p>GEM300은 매우 복잡하여 장비 벤더와 호스트 간의 해석 차이가 자주 발생합니다.</p>
+    <ul>
+      <li><strong>State Machine 싱크로율:</strong> E87, E90, E40, E94 각각의 상태 머신이 동시에 톱니바퀴처럼 돌아갑니다. 호스트의 타이머가 장비의 응답 속도보다 짧으면 작업이 꼬여서 알람이 대량 발생합니다.</li>
+      <li><strong>Exception Handling (예외 처리):</strong> 정상 시나리오(Happy Path)는 구현이 쉽지만, "가공 중 챔버 에러", "로봇 그립 에러", "통신 단절 시 복구" 등 예외 상황에서 각 객체(PJ, CJ, Substrate)의 상태를 깔끔하게 Abort 처리하고 롤백하는 로직이 벤더 기술력의 핵심입니다.</li>
+    </ul>
+  </section>
   </main></body></html>

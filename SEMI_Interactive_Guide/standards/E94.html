@@ -1,8 +1,63 @@
-﻿<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E94 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E94 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E94</div>
     <section class="hero"><h1>SEMI E94 - Control Job Management</h1><p>Control Job의 생성, 실행, 종료, 취소 상태 모델을 정의합니다.</p><div class="chips"><span class="chip">GEM300 생산 실행</span><span class="chip">Guide &amp; Developer</span></div></section>
     <section class="section"><h2>기능 요약</h2><p>여러 Carrier와 Process Job을 하나의 생산 제어 단위로 묶습니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
     <section class="section"><h2>표준 관계 DFD</h2><div class="diagram"><svg viewBox="0 0 900 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">MOS Dispatch</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">Control Job Manager</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">Process Job Set</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">Equipment Execution</text><text class="tiny" x="685" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path></svg></div></section>
     <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
   <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>control_job</strong></td><td>control_job_id, job_name, carrier_set, process_job_set, state, priority</td></tr><tr><td><strong>control_job_transition</strong></td><td>control_job_id, from_state, to_state, reason, event_time</td></tr></tbody></table></section>
+  <section class="section">
+    <h2>1장. SEMI E94 (Control Job Management) 개요</h2>
+    <p>SEMI E94는 장비에 내리는 <strong>가장 최상위의 작업 지시서인 Control Job (CJ)</strong>을 관리하는 표준입니다. E40의 Process Job(PJ)이 "이 웨이퍼들을 어떻게(레시피) 구울까?"에 집중한다면, E94의 CJ는 "이 FOUP(Carrier)에 대해 어떤 PJ들을 순서대로 실행시킬까?"라는 <strong>물류와 공정의 결합</strong>을 관장합니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>2장. Control Job의 구조와 역할</h2>
+    <p>호스트(MES/EAP)가 장비에게 최종적으로 작업을 지시할 때, 최소 1개의 CJ와 1개 이상의 PJ를 묶어서 내려보냅니다.</p>
+    
+    <h3>1. 계층 구조 (Hierarchy)</h3>
+    <p>하나의 CJ는 여러 개의 PJ를 소유할 수 있습니다. (1 : N 관계)</p>
+    <ul>
+      <li>예: CJ_001 (작업 대상: FOUP_A)
+        <ul>
+          <li>└ PJ_001 (웨이퍼 1~12번, "OXIDE" 레시피 적용)</li>
+          <li>└ PJ_002 (웨이퍼 13~25번, "NITRIDE" 레시피 적용)</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3>2. 물류 제어 주도 (Carrier Management)</h3>
+    <p>CJ는 시작될 때 E87의 Carrier 객체를 '예약(Reserve)'하고, 가공 중에는 FOUP을 뺄 수 없게 락(Lock)을 겁니다. 모든 PJ가 완료되어 CJ가 끝나야 FOUP 잠금을 해제(CarrierOut)하여 OHT가 가져갈 수 있게 만듭니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>3장. Control Job 상태 모델 (State Model)</h2>
+    <p>CJ 역시 생성부터 완료까지 상태 전이를 가집니다.</p>
+    
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>CJ 상태</th><th>설명</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Queued</strong></td><td>호스트가 CJ를 생성하고 대기 중인 상태.</td></tr>
+          <tr><td><strong>Executing</strong></td><td>하위의 PJ 중 하나라도 셋업되거나 실행(Processing)을 시작하면 CJ도 Executing으로 넘어갑니다.</td></tr>
+          <tr><td><strong>Paused</strong></td><td>작업 일시 정지. 하위 PJ들도 모두 Paused 상태가 됩니다.</td></tr>
+          <tr><td><strong>Completed</strong></td><td>하위의 모든 PJ가 정상 완료되고, 대상 웨이퍼들이 모두 원위치(Destination)로 복귀했을 때 도달합니다.</td></tr>
+          <tr><td><strong>Aborted</strong></td><td>심각한 에러나 호스트의 <code>S14F3 (SetAttr 'Stop')</code> 명령으로 작업이 강제 종료된 상태.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>4장. 실무 적용: 작업 시작 트리거 (Start Method)</h2>
+    <div class="grid">
+      <div class="card">
+        <strong>Auto Start vs Manual Start</strong>
+        <span>CJ를 만들 때 <code>StartMethod</code> 속성을 <code>True(Auto)</code>로 주면, 생성되자마자 즉시 가공을 시작합니다. <code>False(Manual)</code>로 주면 Queued 상태로 머물다가, 나중에 호스트가 명시적으로 <code>PRJobCommand = START</code>를 내려야 비로소 움직입니다. 장비 종류(연속 처리 장비 vs 배치 장비)에 따라 설계가 다릅니다.</span>
+      </div>
+      <div class="card">
+        <strong>Exception Recovery (복구 지시)</strong>
+        <span>작업 중 알람이 발생해 장비가 멈췄을 때, CJ 레벨에서 재시도(Resume)를 할지, 현재 상태에서 그대로 작업을 포기(Abort)할지를 호스트가 결정하여 지시합니다. 이때 남아있는(미가공) 웨이퍼의 상태 처리가 매우 까다로우므로 상태도 다이어그램(State Diagram) 검증이 필수입니다.</span>
+      </div>
+    </div>
+  </section>
   </main></body></html>

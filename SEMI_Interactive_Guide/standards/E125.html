@@ -1,8 +1,42 @@
-﻿<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E125 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E125 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E125</div>
     <section class="hero"><h1>SEMI E125 - Equipment Self Description</h1><p>장비가 수집 가능한 Parameter, Event, Exception, Metadata를 스스로 설명하는 방법을 정의합니다.</p><div class="chips"><span class="chip">EDA / Interface A</span><span class="chip">Guide &amp; Developer</span></div></section>
     <section class="section"><h2>기능 요약</h2><p>Collector가 장비별 데이터 사전을 자동으로 가져와 수집 설정과 검증에 사용합니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
     <section class="section"><h2>표준 관계 DFD</h2><div class="diagram"><svg viewBox="0 0 900 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">EDA Server</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">Self Description Service</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">Metadata Cache</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">Collector Config</text><text class="tiny" x="685" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path></svg></div></section>
     <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
   <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>eda_parameter_def</strong></td><td>parameter_id, component_id, name, data_type, unit, collection_capability</td></tr><tr><td><strong>eda_event_def</strong></td><td>event_id, component_id, event_name, description, related_parameters</td></tr></tbody></table></section>
+  <section class="section">
+    <h2>1장. SEMI E125 (Equipment Self Description) 개요</h2>
+    <p>SEMI E125는 장비가 스스로 자신이 어떤 파라미터(센서 값)와 이벤트(알람, 상태 변화)를 가지고 있는지 호스트에게 <strong>설명서(Metadata) 형태로 제공</strong>하는 표준입니다. E120이 장비의 "구조(뼈대)"를 정의한다면, E125는 그 뼈대에 어떤 "데이터(혈관)"가 흐르는지를 기술합니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>2장. 주요 기술 요소 (Metadata Elements)</h2>
+    <p>장비는 E120의 각 트리 노드마다 E125 기반의 데이터 항목들을 주렁주렁 매달아 놓습니다.</p>
+    <ul>
+      <li><strong>Parameters (파라미터):</strong> 장비가 제공하는 변수들입니다. 센서 값, 설정 값, 타이머 등이 포함되며, 데이터 타입(정수, 실수, 문자열), 단위(Unit), 최소/최대값 제약 조건 등의 메타데이터를 포함합니다.</li>
+      <li><strong>Events (이벤트):</strong> 장비 내부에서 발생하는 사건입니다. 상태 변경, 공정 시작/종료, 에러 발생 등이 정의되며, 이벤트 발생 시 어떤 파라미터 값들을 함께 읽을 수 있는지 연관 관계를 가집니다.</li>
+      <li><strong>Exceptions (예외/알람):</strong> 장비의 알람이나 에러 상황을 기술합니다.</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>3장. Self-Description의 비즈니스적 가치</h2>
+    <p>기존 SECS/GEM에서는 장비의 수만 가지 SVID와 CEID의 의미를 알려면 벤더가 제공하는 두꺼운 엑셀 매뉴얼(GEM Manual)을 사람이 일일이 읽고 EAP 시스템에 타이핑하여 매핑해야 했습니다.</p>
+    <p>E125가 적용된 EDA 환경에서는 클라이언트(호스트)가 장비에게 <strong>"네가 가진 모든 변수와 이벤트 목록의 XML 모델을 줘(GetEquipmentModel)"</strong>라고 요청하면 끝납니다. 이로 인해 장비 연동 기간(Integration Time)이 수주에서 수 시간으로 획기적으로 단축됩니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>4장. 실무 적용 및 트러블슈팅</h2>
+    <div class="grid">
+      <div class="card">
+        <strong>방대한 XML 크기 처리</strong>
+        <span>최신 장비의 E125 모델 XML 파일은 수십~수백 MB에 달할 수 있습니다. 클라이언트 측 파서(Parser)가 DOM 방식으로 전체 파일을 한 번에 메모리에 올리려다 Out of Memory 에러가 발생하기 쉽습니다. 반드시 SAX나 스트리밍 파서를 사용하여 모델을 파싱하고 로컬 DB에 인덱싱해야 합니다.</span>
+      </div>
+      <div class="card">
+        <strong>동적 파라미터 (Dynamic Parameters)</strong>
+        <span>특정 장비들은 레시피가 실행될 때마다 파라미터 목록이 동적으로 변하는 경우가 있습니다. E125는 정적인 메타데이터를 지향하므로, 동적으로 변하는 구조에 대한 처리는 벤더와의 협의를 통해 <code>Data Collection Plan (E134)</code> 단에서 유연하게 구독할 수 있도록 설계해야 합니다.</span>
+      </div>
+    </div>
+  </section>
   </main></body></html>

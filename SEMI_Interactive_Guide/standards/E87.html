@@ -1,8 +1,64 @@
-﻿<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E87 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E87 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E87</div>
     <section class="hero"><h1>SEMI E87 - Carrier Management</h1><p>Carrier ID, Load Port, Slot Map, Carrier State와 관련된 관리를 정의합니다.</p><div class="chips"><span class="chip">GEM300 생산 실행</span><span class="chip">Guide &amp; Developer</span></div></section>
     <section class="section"><h2>기능 요약</h2><p>AMHS, Load Port, 장비 사이의 Carrier 처리 상태를 표준화합니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
     <section class="section"><h2>표준 관계 DFD</h2><div class="diagram"><svg viewBox="0 0 1055 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">AMHS</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">Load Port</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">Carrier Manager</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">Slot Map</text><text class="tiny" x="685" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="800" y="44" width="150" height="76"></rect><text x="875" y="78" text-anchor="middle">MES</text><text class="tiny" x="875" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path><path class="arrow" d="M760 82 H800"></path></svg></div></section>
     <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
   <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>carrier</strong></td><td>carrier_id, carrier_type, current_location, state, access_status</td></tr><tr><td><strong>slot_map</strong></td><td>slot_map_id, carrier_id, slot_no, substrate_id, verified_flag</td></tr></tbody></table></section>
+  <section class="section">
+    <h2>1장. SEMI E87 (Carrier Management) 개요</h2>
+    <p>SEMI E87은 300mm(12인치) 팹 자동화에서 <strong>웨이퍼를 담는 용기인 FOUP이나 카세트(Carrier)의 움직임과 상태를 추적 및 제어</strong>하는 표준입니다. OHT(Overhead Hoist Transport)나 AGV 같은 반송 로봇이 Load Port에 Carrier를 내려놓는 순간부터, 장비가 이를 인식하고 조작한 뒤 다시 반출하기까지의 전체 라이프사이클(Carrier Management State Model)을 관리합니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>2장. Carrier 상태 모델 (CMS, Carrier Management State)</h2>
+    <p>장비의 Load Port에 올려진 FOUP은 다음과 같은 복잡한 상태 트리를 거칩니다.</p>
+    
+    <h3>1. ID Status (식별 상태)</h3>
+    <p>FOUP이 Load Port에 도착(Carrier Arrived)하면 장비는 바코드나 RFID(보통 S24/E99 표준 사용)를 읽어 FOUP의 ID를 확인합니다.</p>
+    <ul>
+      <li><strong>ID Not Read:</strong> 아직 읽지 않음.</li>
+      <li><strong>Waiting For Host:</strong> 읽은 ID를 호스트에 보고하고 "이 FOUP 맞아?"라고 승인을 대기.</li>
+      <li><strong>ID Verified:</strong> 호스트가 맞다고 확인(Proceed)해 줌.</li>
+    </ul>
+
+    <h3>2. Slot Map Status (슬롯 맵 상태)</h3>
+    <p>ID가 확인되면 장비는 FOUP의 도어를 열고(Open Door), 내부에 25개의 슬롯 중 어디에 웨이퍼가 꽂혀 있는지 레이저 센서 등으로 매핑합니다.</p>
+    <ul>
+      <li><strong>Slot Map Not Read:</strong> 아직 문을 안 열었거나 매핑 전.</li>
+      <li><strong>Waiting For Host:</strong> 매핑 결과를 호스트에 보고(S14F1 Event)하고 승인 대기. 호스트는 자신의 DB와 장비가 읽은 매핑 결과가 일치하는지 검증합니다.</li>
+      <li><strong>Slot Map Verified:</strong> 매핑 일치 확인 완료. (이제 가공을 시작할 준비가 됨)</li>
+    </ul>
+
+    <h3>3. Access Status (접근 상태)</h3>
+    <p>장비 로봇이 FOUP 내부의 웨이퍼를 꺼내거나 넣을 수 있는 상태인지를 나타냅니다. <code>Not Accessed -&gt; In Access -&gt; Completed</code> 순으로 진행됩니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>3장. E87 핵심 메시지 및 제어 흐름</h2>
+    <p>호스트와 장비는 E39(Object Services)를 활용하여 Carrier 객체를 제어합니다.</p>
+    
+    <table>
+      <thead><tr><th>명령 (Action)</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td><strong>ProceedWithCarrier</strong></td><td>ID나 Slot Map 확인 후, 다음 단계로 진행하라고 허가하는 호스트 명령.</td></tr>
+        <tr><td><strong>CancelCarrier</strong></td><td>가짜 FOUP이거나 스케줄에 없는 FOUP일 경우 작업을 취소하고 내보내라는 명령.</td></tr>
+        <tr><td><strong>CarrierOut</strong></td><td>가공이 끝났으니 FOUP을 장비에서 Unload(Clamp 해제) 하라는 명령.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2>4장. 실무 적용 및 트러블슈팅</h2>
+    <div class="grid">
+      <div class="card">
+        <strong>Slot Map 불일치 처리 (Crossed Wafer / Double Wafer)</strong>
+        <span>가장 흔한 에러입니다. 호스트는 1,2,3번 슬롯에 웨이퍼가 있다고 알고 있는데, 장비 센서가 1,2번에만 있거나 웨이퍼가 겹쳐서(Double) 꽂혀 있다고 읽는 경우입니다. 이 경우 호스트는 <code>CancelCarrier</code>를 지시하여 OHT로 FOUP을 빼내거나, 작업자가 수동 조치하도록 알람을 띄워야 합니다.</span>
+      </div>
+      <div class="card">
+        <strong>Access Mode 충돌</strong>
+        <span>Load Port를 호스트가 제어할지(Auto), 작업자가 수동 조작할지(Manual)를 결정하는 Access Mode가 꼬이면 E87 상태 머신이 멈춥니다. 장비 UI에서 Manual로 FOUP을 넣었는데 호스트가 Auto 명령을 내리면 E87 위반 알람이 발생합니다.</span>
+      </div>
+    </div>
+  </section>
   </main></body></html>

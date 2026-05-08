@@ -1,8 +1,45 @@
-﻿<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E164 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E164 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E164</div>
     <section class="hero"><h1>SEMI E164 - EDA Common Metadata</h1><p>EDA 구현 간 Metadata 표현과 명명 관례의 공통성을 높이는 기준입니다.</p><div class="chips"><span class="chip">EDA / Interface A</span><span class="chip">Guide &amp; Developer</span></div></section>
     <section class="section"><h2>기능 요약</h2><p>장비 벤더별 Metadata 차이를 줄여 수집 시스템의 재사용성을 높입니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
     <section class="section"><h2>표준 관계 DFD</h2><div class="diagram"><svg viewBox="0 0 900 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">EqSD Metadata</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">E164 Validator</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">Canonical Model</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">Analytics Consumer</text><text class="tiny" x="685" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path></svg></div></section>
     <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
   <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>canonical_signal</strong></td><td>signal_id, equipment_id, canonical_path, source_parameter_id, unit, semantic_tag</td></tr><tr><td><strong>metadata_validation_result</strong></td><td>equipment_id, rule_id, severity, message, checked_at</td></tr></tbody></table></section>
+  <section class="section">
+    <h2>1장. SEMI E164 (EDA Common Metadata) 개요</h2>
+    <p>SEMI E164는 E120과 E125로 장비 데이터를 모델링할 때, 제조사(Vendor) 마음대로 이름과 구조를 짓지 못하도록 <strong>표준화된 작명 규칙(Naming Convention)과 메타데이터 구조를 강제</strong>하는 규약입니다. 서로 다른 장비 벤더들이 동일한 형식으로 데이터를 제공하게 만들어, 반도체 제조사의 데이터 통합 비용을 줄이는 것이 핵심 목표입니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>2장. 도입 배경: 왜 E164가 필요한가?</h2>
+    <p>E120/E125만 적용했을 때의 문제점은 '방언(Dialect)'이 생긴다는 것입니다. A회사의 장비는 온도를 "ChamberTemp"라고 명명하고 섭씨(C)로 주고, B회사의 장비는 "Module_T"라고 명명하고 화씨(F)로 주면 호스트 시스템(FDC, APC)은 각 장비마다 데이터를 변환하는 번역기 코드를 일일이 짜야 했습니다.</p>
+    <p>E164는 기존의 주요 SECS/GEM 표준(E39, E40, E87, E90, E94, E116 등)에 나오는 상태 모델과 변수 이름들을 Interface A의 <strong>표준 모델 노드 이름과 데이터 타입으로 1:1 매핑하여 고정(Hard-coding)</strong>합니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>3장. E164 적용 시의 변화 (Standardization)</h2>
+    
+    <h3>1. 일관된 계층 구조 (Consistent Hierarchy)</h3>
+    <p>모든 장비의 Load Port, Process Chamber 등의 모듈 이름이 규격화됩니다. 클라이언트 코드는 장비 벤더가 누구든 상관없이 <code>Equipment.ProcessModule_1.Temperature</code> 와 같은 일관된 XPath(경로)로 센서에 접근할 수 있습니다.</p>
+
+    <h3>2. 표준화된 상태 머신 (Standardized State Machines)</h3>
+    <p>E90(Substrate Tracking), E87(Carrier Management) 등의 상태 전이 이벤트 이름이 통일됩니다. 예를 들어 웨이퍼가 도착했을 때의 이벤트는 어떤 장비든 <code>CarrierArrived</code>라는 동일한 이벤트명으로 수집됩니다.</p>
+
+    <h3>3. 호환성 검증 (Compliance Testing)</h3>
+    <p>SEMI는 장비가 E164를 제대로 준수했는지 자동으로 검사할 수 있는 XML 스키마(XSD)를 제공합니다. 장비가 납품될 때 호스트는 이 스키마로 모델을 스캔하여 명명 규칙을 어겼는지 손쉽게 검수할 수 있습니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>4장. 실무 적용 및 트러블슈팅</h2>
+    <div class="grid">
+      <div class="card">
+        <strong>표준 파라미터 vs 벤더 고유 파라미터</strong>
+        <span>E164는 '모두가 공통으로 써야 할 기초 정보'만 표준화합니다. 특정 벤더만 가진 특수한 플라즈마 센서나 신기술 파라미터는 여전히 벤더 고유의 이름으로 확장(Extension) 노드 아래에 달리게 됩니다. 따라서 호스트 개발자는 표준 트리와 벤더 종속 트리를 분리해서 수집/분석하는 유연성을 갖춰야 합니다.</span>
+      </div>
+      <div class="card">
+        <strong>버전 간 호환성 문제</strong>
+        <span>E164 표준 자체가 개정되면서 (Freeze 1, Freeze 2 등) 구조가 약간씩 바뀝니다. 구형 장비와 최신 장비가 섞여 있는 팹에서는 여러 버전의 E164 모델 스키마를 동시에 지원하는 Data Broker 시스템이 필요합니다.</span>
+      </div>
+    </div>
+  </section>
   </main></body></html>

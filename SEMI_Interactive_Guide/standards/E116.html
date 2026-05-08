@@ -1,8 +1,55 @@
-﻿<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E116 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E116 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E116</div>
     <section class="hero"><h1>SEMI E116 - Equipment Performance Tracking</h1><p>장비 성능 추적에 필요한 이벤트와 상태 정보를 구조화합니다.</p><div class="chips"><span class="chip">분석/성능</span><span class="chip">Guide &amp; Developer</span></div></section>
     <section class="section"><h2>기능 요약</h2><p>EES/FDC/OEE 시스템이 설비 성능과 병목을 계산하는 기준 데이터가 됩니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
     <section class="section"><h2>표준 관계 DFD</h2><div class="diagram"><svg viewBox="0 0 900 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">Equipment State</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">Performance Event</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">EES Collector</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">OEE/KPI</text><text class="tiny" x="685" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path></svg></div></section>
     <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
   <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>equipment_performance_event</strong></td><td>equipment_id, state_code, reason_code, duration_sec, event_start, event_end</td></tr><tr><td><strong>equipment_performance_kpi</strong></td><td>equipment_id, metric_name, metric_value, window_start, window_end</td></tr></tbody></table></section>
+  <section class="section">
+    <h2>1장. SEMI E116 (Equipment Performance Tracking, EPT) 개요</h2>
+    <p>SEMI E116은 반도체 장비의 <strong>성능 및 상태 추적을 "모듈(Module) 단위"로 정밀하게 세분화</strong>한 표준입니다. 기존의 SEMI E10(장비 신뢰성)이 장비 전체(Equipment-level)의 상태만 나타냈다면, E116은 장비 내의 로봇, 챔버 A, 챔버 B, Load Port 등 각 구성요소(Component)의 상태를 개별적으로 추적합니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>2장. E116의 도입 배경과 클러스터 툴 (Cluster Tool)</h2>
+    <p>과거의 장비는 하나의 덩어리(Single-chamber)였기 때문에 장비가 멈추면 E10 상태가 PRD(가동)에서 UDT(고장)로 바뀌는 것으로 충분했습니다. 하지만 현대 반도체 장비는 <strong>클러스터 툴(Cluster Tool)</strong> 형태입니다.</p>
+    
+    <ul>
+      <li>중앙에 반송 로봇(TM: Transfer Module)이 있고, 그 주변에 여러 개의 공정 챔버(PM: Process Module)가 붙어 있는 형태입니다.</li>
+      <li>만약 4개의 챔버 중 PM1 한 개가 고장 나더라도, 나머지 PM2, PM3, PM4는 정상적으로 제품을 가공할 수 있습니다.</li>
+      <li>이 상황에서 장비 전체의 E10 상태를 UDT(고장)로 잡아야 할까요, PRD(정상 생산)로 잡아야 할까요?</li>
+      <li>E116은 이 문제를 해결하기 위해 <strong>"장비 전체 상태"와 "하위 모듈 상태"를 분리하여 추적</strong>하는 프레임워크를 제공합니다.</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>3장. EPT 상태 모델 (EPT State Model)</h2>
+    <p>E116은 각 모듈(Subsystem)마다 다음과 같은 6가지의 EPT 상태를 부여합니다. 이는 E10의 상태를 더 시스템적으로 추적하기 쉽게 매핑한 것입니다.</p>
+    
+    <table>
+      <thead><tr><th>EPT 상태 (State)</th><th>SEMI E10 매핑</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td><strong>IDLE</strong></td><td>Standby (SBY)</td><td>모듈이 정상이며, 작업을 기다리는 중.</td></tr>
+        <tr><td><strong>BUSY</strong></td><td>Productive (PRD) 또는 Engineering (ENG)</td><td>모듈이 레시피를 실행 중이거나 웨이퍼를 가공/이송 중.</td></tr>
+        <tr><td><strong>BLOCKED</strong></td><td>Standby (SBY)</td><td>모듈은 정상이지만, 앞/뒤 공정 모듈이 막혀서 강제로 쉬고 있는 병목 상태.</td></tr>
+        <tr><td><strong>MAINTENANCE</strong></td><td>Scheduled Downtime (SDT)</td><td>모듈에 예방 정비(PM)를 진행 중인 상태.</td></tr>
+        <tr><td><strong>OUT OF SERVICE</strong></td><td>Unscheduled Downtime (UDT)</td><td>해당 모듈에 에러가 발생하여 사용할 수 없는 상태 (예: PM1 고장).</td></tr>
+        <tr><td><strong>NON-SCHEDULED</strong></td><td>Non-Scheduled Time (NST)</td><td>생산 계획이 없거나 오프라인 상태.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2>4장. 실무 적용 및 데이터 수집 포인트</h2>
+    <div class="grid">
+      <div class="card">
+        <strong>병목(Bottleneck) 모듈 분석</strong>
+        <span>E116의 핵심은 <code>BLOCKED</code> 상태를 측정하는 것입니다. 챔버(PM)는 작업이 끝나서 IDLE이 되고 싶은데, 반송 로봇(TM)이 느려서 웨이퍼를 빼가지 못하면 PM은 BLOCKED 상태가 됩니다. 이를 분석하면 장비 설계의 구조적 병목 구간을 정확히 찾아낼 수 있습니다.</span>
+      </div>
+      <div class="card">
+        <strong>SVID / CEID 매핑</strong>
+        <span>E116을 구현한 장비는 각 모듈별로 현재 EPT State를 나타내는 SVID를 제공하며, 상태가 변할 때마다 <code>EPT State Change (CEID)</code> 이벤트를 S6F11로 던집니다. 호스트는 장비 전체의 E10 상태만 볼 것이 아니라, 반드시 EPT 이벤트를 구독하여 실시간 OEE(설비 효율)를 모듈 단위로 대시보드화 해야 합니다.</span>
+      </div>
+    </div>
+  </section>
   </main></body></html>

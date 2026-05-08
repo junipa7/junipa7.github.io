@@ -1,8 +1,69 @@
-﻿<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E37 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E37 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E37</div>
     <section class="hero"><h1>SEMI E37 - HSMS Generic Services</h1><p>TCP/IP 기반으로 SECS-II Payload를 운반하는 세션, Select, Linktest, Separate, Timeout 규칙을 정의합니다.</p><div class="chips"><span class="chip">SECS/GEM 기본</span><span class="chip">Guide &amp; Developer</span></div></section>
     <section class="section"><h2>기능 요약</h2><p>Serial SECS-I 대신 Ethernet 기반 장비 통신 채널을 구성합니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
     <section class="section"><h2>표준 관계 DFD</h2><div class="diagram"><svg viewBox="0 0 900 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">Equipment HSMS Passive</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">TCP Session</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">HSMS State Manager</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">Host HSMS Active</text><text class="tiny" x="685" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path></svg></div></section>
     <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
   <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>hsms_session</strong></td><td>session_id, equipment_id, ip, port, active_passive, selected_state, last_linktest_at</td></tr><tr><td><strong>connection_health</strong></td><td>session_id, latency_ms, retry_count, disconnect_reason, measured_at</td></tr></tbody></table></section>
+  <section class="section">
+    <h2>1장. SEMI E37 (HSMS) 개요</h2>
+    <p>SEMI E37은 HSMS(High-Speed SECS Message Services)로, 기존 시리얼 통신(RS-232C) 기반이었던 SECS-I(E4)의 한계를 극복하기 위해 <strong>TCP/IP 기반의 고속 통신 프로토콜</strong>을 정의한 표준입니다. 이더넷(Ethernet) 위에서 SECS-II 메시지를 어떻게 패키징하고 전송할지 규정합니다.</p>
+
+    <h3>1. HSMS의 등장 배경</h3>
+    <p>과거에는 장비와 호스트가 시리얼 케이블로 1:1 직접 연결되었으나, 300mm 공장 도입과 함께 엄청난 양의 Trace 데이터와 레시피가 발생하면서 9600bps 속도의 시리얼 통신으로는 감당할 수 없게 되었습니다. HSMS는 이더넷의 속도(10/100/1000Mbps)를 그대로 활용하며, 공장 네트워크망을 통해 여러 장비를 유연하게 연결할 수 있게 해주었습니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>2장. HSMS 메시지 구조 (Message Format)</h2>
+    <p>HSMS 패킷은 <strong>메시지 길이(Message Length) + 헤더(Header) + 실제 SECS-II 데이터(Data)</strong>의 3부분으로 구성됩니다.</p>
+    
+    <h3>1. 패킷 구성</h3>
+    <ul>
+      <li><strong>Message Length (4 bytes):</strong> 헤더와 데이터를 합친 총 길이를 나타냅니다. TCP는 스트림 통신이므로 수신 측에서 이 길이를 먼저 읽어 언제 패킷이 끝나는지 파악합니다.</li>
+      <li><strong>Header (10 bytes):</strong> Session ID, Stream, Function, P-Type, S-Type, System Bytes 등으로 구성됩니다.</li>
+      <li><strong>Data Text (Variable):</strong> SECS-II(E5) 규격으로 인코딩된 실제 데이터. (제어 메시지의 경우 데이터가 없을 수도 있음)</li>
+    </ul>
+
+    <h3>2. Session ID (Device ID)</h3>
+    <p>헤더 앞부분의 2바이트로, 하나의 TCP/IP 포트에서 여러 논리적 장비를 구분할 때 사용됩니다. 일반적인 장비는 0을 사용합니다.</p>
+
+    <h3>3. System Bytes</h3>
+    <p>메시지의 고유 식별 번호(Transaction ID)입니다. Primary 메시지를 보낼 때 System Bytes를 부여하고, 상대방이 Reply를 보낼 때 동일한 System Bytes를 복사해서 보내어, "이 응답이 어느 요청에 대한 응답인지"를 매핑합니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>3장. HSMS 통신 연결 절차와 S-Type</h2>
+    <p>HSMS 헤더의 <strong>S-Type (Session Type)</strong> 값에 따라 메시지가 단순 데이터 전송인지, 통신 제어용인지 구분됩니다.</p>
+    
+    <h3>1. Data Message (S-Type = 0)</h3>
+    <p>우리가 아는 일반적인 SECS-II 메시지(SxFy)를 실어 나르는 상태입니다.</p>
+
+    <h3>2. Control Messages (S-Type 1~10)</h3>
+    <p>HSMS 자체의 연결과 핑 테스트를 위한 컨트롤 메시지입니다.</p>
+    <ul>
+      <li><strong>Select.req (1) / Select.rsp (2):</strong> TCP/IP 소켓이 연결(Connect)된 직후, HSMS 논리적 세션을 맺기 위한 요청/응답입니다. (이 절차가 성공해야 S1F13 등 데이터 전송 가능)</li>
+      <li><strong>Deselect.req (3) / Deselect.rsp (4):</strong> 논리적 세션을 우아하게 종료할 때 사용.</li>
+      <li><strong>Linktest.req (5) / Linktest.rsp (6):</strong> 통신망이 살아있는지 확인하는 하트비트(Heartbeat) 기능입니다. 주기적으로 주고받으며 연결 끊김을 감지합니다.</li>
+      <li><strong>Reject.req (7):</strong> 상대방이 이상한 HSMS 헤더 포맷을 보냈을 때 거절하는 메시지.</li>
+      <li><strong>Separate.req (9):</strong> 통신을 강제로 끊어버리겠다는 통보입니다.</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>4장. HSMS 타임아웃 파라미터 (T-Timers)</h2>
+    <p>실무에서 가장 많이 부딪히는 문제가 타임아웃입니다. HSMS는 네트워크 지연과 장비 부하를 고려해 정교한 타이머를 둡니다.</p>
+    
+    <table>
+      <thead><tr><th>타이머</th><th>의미</th><th>권장/기본값</th></tr></thead>
+      <tbody>
+        <tr><td><strong>T3 (Reply Timeout)</strong></td><td>Primary 메시지를 보내고 Secondary(응답) 메시지를 기다리는 최대 시간.</td><td>45초</td></tr>
+        <tr><td><strong>T5 (Connect Timeout)</strong></td><td>TCP/IP 소켓 연결 시도(SYN) 후 성공할 때까지 기다리는 시간.</td><td>10초</td></tr>
+        <tr><td><strong>T6 (Control Timeout)</strong></td><td>Select.req 등 컨트롤 메시지를 보내고 응답을 기다리는 시간.</td><td>5초</td></tr>
+        <tr><td><strong>T7 (Not Selected Timeout)</strong></td><td>TCP 소켓은 연결되었는데 상대방이 Select.req를 안 보내고 멍때리는 시간 제한. 초과 시 연결 끊음.</td><td>10초</td></tr>
+        <tr><td><strong>T8 (Network Intercharacter Timeout)</strong></td><td>하나의 패킷이 수신되는 도중 다음 바이트가 오기까지의 최대 지연. (네트워크 끊김 감지)</td><td>5초</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note"><strong>실무 팁:</strong> 보통 호스트(TC/EAP)가 Active(Client) 모드로 접속하고 장비가 Passive(Server) 모드로 대기합니다. 통신이 안 될 때 Ping은 가는데 연결이 안 된다면 장비의 Port 번호 설정과 Active/Passive 방향 설정을 확인해야 합니다.</div>
+  </section>
   </main></body></html>

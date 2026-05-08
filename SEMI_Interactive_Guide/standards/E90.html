@@ -1,8 +1,53 @@
-﻿<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E90 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E90 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E90</div>
     <section class="hero"><h1>SEMI E90 - Substrate Tracking</h1><p>Wafer/Substrate의 위치, 이동, 처리 상태를 추적하는 모델입니다.</p><div class="chips"><span class="chip">GEM300 생산 실행</span><span class="chip">Guide &amp; Developer</span></div></section>
     <section class="section"><h2>기능 요약</h2><p>Carrier보다 더 세밀한 Wafer 단위 이력과 공정 문맥을 만듭니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
     <section class="section"><h2>표준 관계 DFD</h2><div class="diagram"><svg viewBox="0 0 1055 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">Carrier Slot</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">Transfer Module</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">Process Module</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">Substrate History</text><text class="tiny" x="685" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="800" y="44" width="150" height="76"></rect><text x="875" y="78" text-anchor="middle">MES Trace</text><text class="tiny" x="875" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path><path class="arrow" d="M760 82 H800"></path></svg></div></section>
     <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
   <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>substrate</strong></td><td>substrate_id, lot_id, carrier_id, slot_no, product_id, state</td></tr><tr><td><strong>substrate_location_history</strong></td><td>substrate_id, from_location, to_location, move_reason, event_time</td></tr></tbody></table></section>
+  <section class="section">
+    <h2>1장. SEMI E90 (Substrate Tracking) 개요</h2>
+    <p>SEMI E90은 장비 내부에 들어온 <strong>개별 웨이퍼(Substrate)의 위치와 상태를 정밀하게 추적</strong>하는 표준입니다. E87이 "FOUP(통)" 단위의 관리라면, E90은 그 통 안에 들어있는 25장의 "웨이퍼 한 장 한 장"에 대한 주민등록등본이자 GPS 역할을 합니다.</p>
+  </section>
+
+  <section class="section">
+    <h2>2장. Substrate Object의 생명 주기</h2>
+    <p>웨이퍼는 장비 밖에서 OHT를 타고 다닐 때는 호스트(MES)가 추적하지만, FOUP에 담겨 장비(Load Port)에 도착하는 순간 장비 내부의 E90 Substrate 객체로 생성(Instantiate)됩니다.</p>
+    
+    <h3>1. Substrate Location (위치 추적)</h3>
+    <p>장비 내부에서 웨이퍼의 위치는 3단계로 보고됩니다. 웨이퍼가 로봇 암(Arm)을 타고 챔버로 들어갔다 나오는 모든 순간이 S6F11 이벤트로 호스트에 중계됩니다.</p>
+    <ul>
+      <li><strong>At Source:</strong> 웨이퍼가 아직 원래의 FOUP(출발지) 슬롯에 꽂혀 있는 상태.</li>
+      <li><strong>At Work:</strong> 로봇이 웨이퍼를 집어 챔버(Process Module), Aligner, Loadlock 등으로 이동 중이거나 가공 중인 상태.</li>
+      <li><strong>At Destination:</strong> 가공을 마치고 다시 목적지 FOUP(보통은 원래의 FOUP, 가끔 다른 FOUP)의 슬롯에 꽂힌 상태.</li>
+    </ul>
+
+    <h3>2. Substrate Processing State (공정 상태)</h3>
+    <p>위치뿐만 아니라, 해당 웨이퍼가 "구워지고 있는지" 상태도 추적합니다.</p>
+    <ul>
+      <li><strong>NeedsProcessing:</strong> 가공 전 상태.</li>
+      <li><strong>InProcess:</strong> 현재 챔버에서 플라즈마를 맞거나 화학 반응 중인 상태.</li>
+      <li><strong>Processed:</strong> 정상적으로 가공이 완료된 상태.</li>
+      <li><strong>Rejected / Aborted:</strong> 공정 중 에러가 나서 불량이 되거나 가공이 취소된 상태.</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>3장. E90과 팹 자동화의 융합</h2>
+    <p>E90의 위치 데이터는 팹 운영에 치명적일 정도로 중요합니다.</p>
+    
+    <table>
+      <thead><tr><th>활용 분야</th><th>설명</th></tr></thead>
+      <tbody>
+        <tr><td><strong>FDC 및 APC 연동</strong></td><td>"지금 1번 챔버에 들어간 웨이퍼가 몇 번 FOUP의 몇 번 슬롯이었지?"를 알아야 해당 시점의 센서 데이터(온도/압력)를 그 웨이퍼의 품질 데이터와 매핑할 수 있습니다.</td></tr>
+        <tr><td><strong>Scrap (폐기) 추적</strong></td><td>장비 내부에서 정전이나 알람이 발생했을 때, 로봇 암 위에 있던 웨이퍼와 챔버 안에 있던 웨이퍼를 정확히 식별하여 살릴지 폐기할지 결정합니다.</td></tr>
+        <tr><td><strong>Sort (웨이퍼 재배치)</strong></td><td>A FOUP에 있는 양품만 골라 B FOUP으로 옮겨 담는 작업(Sorter 장비)의 핵심이 E90의 Source/Destination 추적 로직입니다.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="section">
+    <h2>4장. 실무 적용 시 트러블슈팅</h2>
+    <div class="note"><strong>"유령 웨이퍼 (Ghost Wafer) 현상"</strong><br>장비 센서 오류나 통신 지연으로, 분명히 로봇이 웨이퍼를 챔버에 넣었는데 E90 이벤트 상으로는 아직 로봇 암(At Work)에 남아있다고 보고되는 경우가 있습니다. 이 상태에서 다음 웨이퍼를 밀어 넣으면 물리적 충돌(Wafer Crash)이 발생해 수억 원의 손실이 발생합니다. 호스트 EAP는 반드시 이전 웨이퍼의 'At Destination' 이벤트를 확인한 후 다음 웨이퍼의 투입 지시를 내려야 합니다.</div>
+  </section>
   </main></body></html>
