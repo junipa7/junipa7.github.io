@@ -254,11 +254,11 @@ if (themeToggle) {
     });
 }
 
+let isMenuCollapsed = true;
 if (collapseAll) {
-    let collapsed = false;
     collapseAll.addEventListener("click", () => {
-        collapsed = !collapsed;
-        setAllCollapsed(collapsed);
+        isMenuCollapsed = !isMenuCollapsed;
+        setAllCollapsed(isMenuCollapsed);
     });
 }
 
@@ -270,6 +270,7 @@ function updateClock() {
 }
 
 renderMenu();
+setAllCollapsed(isMenuCollapsed);
 setInterval(updateClock, 1000);
 updateClock();
 

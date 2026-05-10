@@ -2,7 +2,34 @@
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E90</div>
     <section class="hero"><h1>SEMI E90 - Substrate Tracking</h1><p>Wafer/Substrate의 위치, 이동, 처리 상태를 추적하는 모델입니다.</p><div class="chips"><span class="chip">GEM300 생산 실행</span><span class="chip">Guide &amp; Developer</span></div></section>
     <section class="section"><h2>기능 요약</h2><p>Carrier보다 더 세밀한 Wafer 단위 이력과 공정 문맥을 만듭니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
-    <section class="section"><h2>표준 관계 DFD</h2><div class="diagram"><svg viewBox="0 0 1055 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">Carrier Slot</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">Transfer Module</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">Process Module</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">Substrate History</text><text class="tiny" x="685" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="800" y="44" width="150" height="76"></rect><text x="875" y="78" text-anchor="middle">MES Trace</text><text class="tiny" x="875" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path><path class="arrow" d="M760 82 H800"></path></svg></div></section>
+    <section class="section"><h2>표준 관계 DFD</h2>
+      <div class="flow-diagram">
+        <div class="flow-node">
+          <strong>Carrier Slot</strong>
+          <span class="tiny">Input</span>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <strong>Transfer Module</strong>
+          <span class="tiny">Process</span>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <strong>Process Module</strong>
+          <span class="tiny">Process</span>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <strong>Substrate History</strong>
+          <span class="tiny">Process</span>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <strong>MES Trace</strong>
+          <span class="tiny">Output</span>
+        </div>
+      </div>
+    </section>
     <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
   <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>substrate</strong></td><td>substrate_id, lot_id, carrier_id, slot_no, product_id, state</td></tr><tr><td><strong>substrate_location_history</strong></td><td>substrate_id, from_location, to_location, move_reason, event_time</td></tr></tbody></table></section>
   <section class="section">

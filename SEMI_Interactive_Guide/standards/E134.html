@@ -2,7 +2,29 @@
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E134</div>
     <section class="hero"><h1>SEMI E134 - Data Collection Management</h1><p>Data Collection Plan 생성, 활성화, 비활성화, 구독, 수집 조건을 관리합니다.</p><div class="chips"><span class="chip">EDA / Interface A</span><span class="chip">Guide &amp; Developer</span></div></section>
     <section class="section"><h2>기능 요약</h2><p>EES/FDC가 필요한 Signal을 고속으로 지속 수집하도록 계획을 표준화합니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
-    <section class="section"><h2>표준 관계 DFD</h2><div class="diagram"><svg viewBox="0 0 900 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">FDC Requirement</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">DCP Manager</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">EDA Server</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">Streaming Collector</text><text class="tiny" x="685" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path></svg></div></section>
+    <section class="section"><h2>표준 관계 DFD</h2>
+      <div class="flow-diagram">
+        <div class="flow-node">
+          <strong>FDC Requirement</strong>
+          <span class="tiny">Input</span>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <strong>DCP Manager</strong>
+          <span class="tiny">Process</span>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <strong>EDA Server</strong>
+          <span class="tiny">Process</span>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <strong>Streaming Collector</strong>
+          <span class="tiny">Output</span>
+        </div>
+      </div>
+    </section>
     <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
   <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>data_collection_plan</strong></td><td>plan_id, equipment_id, plan_name, trigger_rule, sample_period_ms, state</td></tr><tr><td><strong>data_collection_item</strong></td><td>plan_id, parameter_id, alias, aggregation_rule, quality_rule</td></tr><tr><td><strong>data_sample</strong></td><td>plan_id, parameter_id, value, quality_code, sample_time</td></tr></tbody></table></section>
   <section class="section">

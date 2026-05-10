@@ -1,6 +1,49 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI Guide</title><link rel="stylesheet" href="semi-page.css"></head><body><main class="page">
     <section class="hero"><h1>SEMI Interactive Guide</h1><p>설비 Message 수집부터 TC/EAP, EES/APC/FDC, MOS/MES, KPI 관리까지 이어지는 SEMI 표준 관계를 업무 관점으로 정리했습니다.</p><div class="chips"><span class="chip">SECS/GEM</span><span class="chip">GEM300</span><span class="chip">EDA / Interface A</span><span class="chip">KPI</span></div></section>
     <section class="section"><h2>전체 흐름</h2><div class="diagram"><svg viewBox="0 0 1435 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">Equipment</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">SECS/GEM</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">GEM300/EDA</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">TC/EAP</text><text class="tiny" x="685" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="800" y="44" width="150" height="76"></rect><text x="875" y="78" text-anchor="middle">EES/APC/FDC</text><text class="tiny" x="875" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="990" y="44" width="150" height="76"></rect><text x="1065" y="78" text-anchor="middle">MOS/MES</text><text class="tiny" x="1065" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="1180" y="44" width="150" height="76"></rect><text x="1255" y="78" text-anchor="middle">KPI System</text><text class="tiny" x="1255" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path><path class="arrow" d="M760 82 H800"></path><path class="arrow" d="M950 82 H990"></path><path class="arrow" d="M1140 82 H1180"></path></svg></div></section>
-    <section class="section"><h2>표준별 가이드 문서</h2><div class="list"><a href="standards/E5.html"><strong>SEMI E5</strong><span class="muted">SECS-II Message Content · SECS/GEM 기본</span></a><a href="standards/E37.html"><strong>SEMI E37</strong><span class="muted">HSMS Generic Services · SECS/GEM 기본</span></a><a href="standards/E30.html"><strong>SEMI E30</strong><span class="muted">GEM · SECS/GEM 기본</span></a><a href="standards/GEM300.html"><strong>GEM300</strong><span class="muted">300mm Automation Set · GEM300 생산 실행</span></a><a href="standards/E39.html"><strong>SEMI E39</strong><span class="muted">Object Services · GEM300 생산 실행</span></a><a href="standards/E40.html"><strong>SEMI E40</strong><span class="muted">Processing Management · GEM300 생산 실행</span></a><a href="standards/E87.html"><strong>SEMI E87</strong><span class="muted">Carrier Management · GEM300 생산 실행</span></a><a href="standards/E90.html"><strong>SEMI E90</strong><span class="muted">Substrate Tracking · GEM300 생산 실행</span></a><a href="standards/E94.html"><strong>SEMI E94</strong><span class="muted">Control Job Management · GEM300 생산 실행</span></a><a href="standards/E116.html"><strong>SEMI E116</strong><span class="muted">Equipment Performance Tracking · 분석/성능</span></a><a href="standards/E120.html"><strong>SEMI E120</strong><span class="muted">Common Equipment Model · EDA / Interface A</span></a><a href="standards/E125.html"><strong>SEMI E125</strong><span class="muted">Equipment Self Description · EDA / Interface A</span></a><a href="standards/E132.html"><strong>SEMI E132</strong><span class="muted">Client Authentication and Authorization · EDA / Interface A</span></a><a href="standards/E134.html"><strong>SEMI E134</strong><span class="muted">Data Collection Management · EDA / Interface A</span></a><a href="standards/E164.html"><strong>SEMI E164</strong><span class="muted">EDA Common Metadata · EDA / Interface A</span></a><a href="standards/E172.html"><strong>SEMI E172</strong><span class="muted">SECS Equipment Data Dictionary · Data Dictionary</span></a><a href="standards/E173.html"><strong>SEMI E173</strong><span class="muted">XML SECS-II Message Notation · Data Dictionary</span></a><a href="standards/E187.html"><strong>SEMI E187</strong><span class="muted">FAB Equipment Cybersecurity · 보안/운영</span></a><a href="standards/E10.html"><strong>SEMI E10</strong><span class="muted">Equipment Reliability, Availability, Maintainability · KPI / 신뢰성</span></a><a href="standards/E151.html"><strong>SEMI E151</strong><span class="muted">Understanding Data Quality · 데이터 품질</span></a><a href="standards/E160.html"><strong>SEMI E160</strong><span class="muted">Communication of Data Quality · 데이터 품질</span></a><a href="standards/E133.html"><strong>SEMI E133</strong><span class="muted">Automated Process Control Systems Interface · APC / EES</span></a></div></section>
+    <section class="section">
+      <h2>표준별 가이드 문서</h2>
+      <h3 style="margin: 20px 0 10px; font-size: 16px; color: var(--blue);">1. Equipment</h3>
+      <div class="list">
+        <a href="standards/E187.html"><strong>SEMI E187</strong><span class="muted">FAB Equipment Cybersecurity · 보안/운영</span></a>
+      </div>
+      <h3 style="margin: 20px 0 10px; font-size: 16px; color: var(--blue);">2. SECS/GEM</h3>
+      <div class="list">
+        <a href="standards/E5.html"><strong>SEMI E5</strong><span class="muted">SECS-II Message Content · SECS/GEM 기본</span></a>
+        <a href="standards/E37.html"><strong>SEMI E37</strong><span class="muted">HSMS Generic Services · SECS/GEM 기본</span></a>
+        <a href="standards/E30.html"><strong>SEMI E30</strong><span class="muted">GEM · SECS/GEM 기본</span></a>
+        <a href="standards/E172.html"><strong>SEMI E172</strong><span class="muted">SECS Equipment Data Dictionary · Data Dictionary</span></a>
+        <a href="standards/E173.html"><strong>SEMI E173</strong><span class="muted">XML SECS-II Message Notation · Data Dictionary</span></a>
+      </div>
+      <h3 style="margin: 20px 0 10px; font-size: 16px; color: var(--blue);">3. GEM300/EDA</h3>
+      <div class="list">
+        <a href="standards/GEM300.html"><strong>GEM300</strong><span class="muted">300mm Automation Set · GEM300 생산 실행</span></a>
+        <a href="standards/E39.html"><strong>SEMI E39</strong><span class="muted">Object Services · GEM300 생산 실행</span></a>
+        <a href="standards/E40.html"><strong>SEMI E40</strong><span class="muted">Processing Management · GEM300 생산 실행</span></a>
+        <a href="standards/E87.html"><strong>SEMI E87</strong><span class="muted">Carrier Management · GEM300 생산 실행</span></a>
+        <a href="standards/E90.html"><strong>SEMI E90</strong><span class="muted">Substrate Tracking · GEM300 생산 실행</span></a>
+        <a href="standards/E94.html"><strong>SEMI E94</strong><span class="muted">Control Job Management · GEM300 생산 실행</span></a>
+        <a href="standards/E120.html"><strong>SEMI E120</strong><span class="muted">Common Equipment Model · EDA / Interface A</span></a>
+        <a href="standards/E125.html"><strong>SEMI E125</strong><span class="muted">Equipment Self Description · EDA / Interface A</span></a>
+        <a href="standards/E132.html"><strong>SEMI E132</strong><span class="muted">Client Authentication and Authorization · EDA / Interface A</span></a>
+        <a href="standards/E134.html"><strong>SEMI E134</strong><span class="muted">Data Collection Management · EDA / Interface A</span></a>
+        <a href="standards/E164.html"><strong>SEMI E164</strong><span class="muted">EDA Common Metadata · EDA / Interface A</span></a>
+      </div>
+      <h3 style="margin: 20px 0 10px; font-size: 16px; color: var(--blue);">4. TC/EAP</h3>
+      <p class="muted" style="margin-top: -5px; font-size: 13px;">해당 그룹에 등록된 문서가 없습니다.</p>
+      <h3 style="margin: 20px 0 10px; font-size: 16px; color: var(--blue);">5. EES/APC/FDC</h3>
+      <div class="list">
+        <a href="standards/E133.html"><strong>SEMI E133</strong><span class="muted">Automated Process Control Systems Interface · APC / EES</span></a>
+        <a href="standards/E151.html"><strong>SEMI E151</strong><span class="muted">Understanding Data Quality · 데이터 품질</span></a>
+        <a href="standards/E160.html"><strong>SEMI E160</strong><span class="muted">Communication of Data Quality · 데이터 품질</span></a>
+      </div>
+      <h3 style="margin: 20px 0 10px; font-size: 16px; color: var(--blue);">6. MOS/MES</h3>
+      <p class="muted" style="margin-top: -5px; font-size: 13px;">해당 그룹에 등록된 문서가 없습니다.</p>
+      <h3 style="margin: 20px 0 10px; font-size: 16px; color: var(--blue);">7. KPI System</h3>
+      <div class="list">
+        <a href="standards/E10.html"><strong>SEMI E10</strong><span class="muted">Equipment Reliability, Availability, Maintainability · KPI / 신뢰성</span></a>
+        <a href="standards/E116.html"><strong>SEMI E116</strong><span class="muted">Equipment Performance Tracking · 분석/성능</span></a>
+      </div>
+    </section>
     <section class="section"><h2>Streaming Algorithm</h2><div class="list"><a href="algorithms/Chan.html"><strong>Chan</strong><span class="muted">Chan 평균/분산 병합 알고리즘</span></a><a href="algorithms/KLL.html"><strong>KLL</strong><span class="muted">KLL Quantile Sketch</span></a></div></section>
   </main></body></html>
