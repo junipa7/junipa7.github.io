@@ -80,21 +80,133 @@
 
     <section class="section">
       <h2>권장 테이블 구성</h2>
+
+      <h3>1. equipment_security_profile</h3>
+      <p class="muted">설비별 보안 설정 및 위험도 현황을 관리하는 테이블입니다.</p>
       <table>
         <thead>
           <tr>
-            <th>테이블</th>
-            <th>권장 컬럼</th>
+            <th>컬럼명</th>
+            <th>Data Type</th>
+            <th>Data 길이</th>
+            <th>PK</th>
+            <th>내용</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong>equipment_security_profile</strong></td>
-            <td>equipment_id, network_zone, open_ports, remote_access, patch_level, risk_rating</td>
+            <td><strong>equipment_id</strong></td>
+            <td>VARCHAR</td>
+            <td>50</td>
+            <td>Y</td>
+            <td>설비 고유 식별자</td>
           </tr>
           <tr>
-            <td><strong>equipment_access_audit</strong></td>
-            <td>equipment_id, user_id, action, source_ip, result, event_time</td>
+            <td><strong>network_zone</strong></td>
+            <td>VARCHAR</td>
+            <td>20</td>
+            <td>N</td>
+            <td>네트워크 보안 구역 (OT/Quarantine 등)</td>
+          </tr>
+          <tr>
+            <td><strong>open_ports</strong></td>
+            <td>VARCHAR</td>
+            <td>255</td>
+            <td>N</td>
+            <td>허용된 네트워크 포트 목록</td>
+          </tr>
+          <tr>
+            <td><strong>remote_access</strong></td>
+            <td>CHAR</td>
+            <td>1</td>
+            <td>N</td>
+            <td>원격 접속 허용 여부 (Y/N)</td>
+          </tr>
+          <tr>
+            <td><strong>patch_level</strong></td>
+            <td>VARCHAR</td>
+            <td>50</td>
+            <td>N</td>
+            <td>현재 OS 보안 패치 버전 및 레벨</td>
+          </tr>
+          <tr>
+            <td><strong>risk_rating</strong></td>
+            <td>VARCHAR</td>
+            <td>10</td>
+            <td>N</td>
+            <td>보안 위험 평가 등급 (High/Med/Low)</td>
+          </tr>
+          <tr>
+            <td><strong>updated_at</strong></td>
+            <td>DATETIME</td>
+            <td>-</td>
+            <td>N</td>
+            <td>정보 최종 갱신 일시</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-top: 30px;">2. equipment_access_audit</h3>
+      <p class="muted">설비 접속 및 보안 관련 활동 로그를 기록하는 테이블입니다.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>컬럼명</th>
+            <th>Data Type</th>
+            <th>Data 길이</th>
+            <th>PK</th>
+            <th>내용</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>audit_id</strong></td>
+            <td>BIGINT</td>
+            <td>-</td>
+            <td>Y</td>
+            <td>감사 로그 고유 번호 (Auto Increment)</td>
+          </tr>
+          <tr>
+            <td><strong>equipment_id</strong></td>
+            <td>VARCHAR</td>
+            <td>50</td>
+            <td>N</td>
+            <td>설비 식별자</td>
+          </tr>
+          <tr>
+            <td><strong>user_id</strong></td>
+            <td>VARCHAR</td>
+            <td>50</td>
+            <td>N</td>
+            <td>접속 시도 사용자 ID</td>
+          </tr>
+          <tr>
+            <td><strong>action</strong></td>
+            <td>VARCHAR</td>
+            <td>50</td>
+            <td>N</td>
+            <td>수행 작업 (Login, Change Config 등)</td>
+          </tr>
+          <tr>
+            <td><strong>source_ip</strong></td>
+            <td>VARCHAR</td>
+            <td>45</td>
+            <td>N</td>
+            <td>접속 요청지 IP 주소</td>
+          </tr>
+          <tr>
+            <td><strong>result</strong></td>
+            <td>VARCHAR</td>
+            <td>20</td>
+            <td>N</td>
+            <td>작업 결과 (Success/Fail)</td>
+          </tr>
+          <tr>
+            <td><strong>event_time</strong></td>
+            <td>DATETIME</td>
+            <td>-</td>
+            <td>N</td>
+            <td>보안 이벤트 발생 시각</td>
           </tr>
         </tbody>
       </table>
