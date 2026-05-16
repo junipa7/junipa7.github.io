@@ -1,457 +1,211 @@
 <!doctype html>
 <html lang="ko">
-
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SEMI E187 Guide - Integrated Edition</title>
+  <title>SEMI E187 Guide - FAB Equipment Cybersecurity</title>
   <link rel="stylesheet" href="../semi-page.css">
+  <style>
+    .lesson-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
+    .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
+    @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
+  </style>
 </head>
-
 <body>
   <main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E187</div>
 
     <section class="hero">
       <h1>SEMI E187 - FAB Equipment Cybersecurity</h1>
-      <p>FAB 장비의 사이버보안 요구사항과 보호 기준을 다룹니다.</p>
-      <div class="chips"><span class="chip">보안/운영</span><span class="chip">Guide &amp; Developer</span></div>
+      <p>반도체 장비 사이버보안 요구사항. SEMI E187은 fab 장비가 네트워크에 연결될 때 필요한 보안 요구사항을 장비 설계와 운영 관점에서 다룹니다. 생산성만 보던 장비 자동화에 보안 기준선을 더하는 표준입니다.</p>
+      <div class="chips">
+        <span class="chip">Cybersecurity</span>
+        <span class="chip">교육용 상세 가이드</span>
+        <span class="chip">개발 설계 관점</span>
+      </div>
     </section>
 
     <section class="section">
-      <h2>기능 요약</h2>
-      <p>TC/EAP, EDA Client, 설비 네트워크 연결에서 계정, 포트, 원격 접속, 취약점 관리 기준을 세웁니다.</p>
-      <div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div>
+      <h2>학습 목표</h2>
+      <div class="lesson-index">
+        <a href="#concept">1. 표준의 역할</a>
+        <a href="#dfd">2. DFD와 데이터 흐름</a>
+        <a href="#model">3. 객체/상태 모델</a>
+        <a href="#implementation">4. 구현 설계</a>
+        <a href="#database">5. 데이터베이스</a>
+        <a href="#logic">6. 처리 로직</a>
+        <a href="#test">7. 테스트</a>
+        <a href="#ops">8. 운영 체크</a>
+      </div>
+      <div class="callout">이 문서는 수업과 시스템 설계를 돕기 위한 교육용 해설입니다. 실제 프로젝트 적용 시에는 고객 사양서, 장비 벤더 매뉴얼, 최신 SEMI 공식 문서를 함께 확인해야 합니다.</div>
+      <p><strong>수업에서 기억할 핵심:</strong> E187는 장비 반입 보안 심사, remote access 정책, 패치/취약점 관리, 계정/포트 통제, 감사 로그 설계에 사용합니다. 이 문서를 읽을 때는 표준 번호를 외우는 것보다, 입력 데이터가 어디서 오고 어떤 상태 판단을 거쳐 어떤 업무 시스템으로 전달되는지 따라가야 합니다.</p>
     </section>
 
-    <section class="section">
-      <h2>표준 관계 DFD</h2>
+    <section id="concept" class="section">
+      <h2>1. 표준의 역할과 현장 배경</h2>
+      <p>SEMI E187은 fab 장비가 네트워크에 연결될 때 필요한 보안 요구사항을 장비 설계와 운영 관점에서 다룹니다. 생산성만 보던 장비 자동화에 보안 기준선을 더하는 표준입니다.</p>
+      <p>반도체 fab의 자동화 시스템은 장비, EAP, MES, FDC, APC, 물류 시스템이 동시에 움직입니다. 이때 E187 영역의 데이터가 애매하면 운영자는 같은 현상을 서로 다른 용어로 부르게 되고, 개발자는 예외 처리를 코드 곳곳에 흩뿌리게 됩니다. 따라서 먼저 표준이 다루는 경계를 정하고, 그 안에서 공통 객체와 상태를 모델링해야 합니다.</p>
+      <div class="two-col">
+        <div class="card">
+          <strong>학생에게 설명하는 비유</strong>
+          <span>E187를 하나의 교실 규칙이라고 보면 됩니다. 교사가 출석, 과제, 시험을 같은 양식으로 관리해야 학생별 이력을 비교할 수 있듯이, 장비 자동화도 Asset Inventory, Network Control, Access Control, Vulnerability Management 같은 핵심 요소를 같은 언어로 관리해야 합니다.</span>
+        </div>
+        <div class="card">
+          <strong>개발자에게 중요한 이유</strong>
+          <span>표준을 데이터 모델로 옮기면 화면, API, 이벤트 처리, 장애 분석이 같은 기준을 공유합니다. 반대로 표준을 문서로만 두면 프로젝트마다 다른 용어와 상태값이 생겨 유지보수가 어려워집니다.</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="dfd" class="section">
+      <h2>2. DFD: 데이터가 흘러가는 방식</h2>
       <div class="flow-diagram">
-        <div class="flow-node">
-          <strong>Equipment Network</strong>
-          <span class="tiny">Input</span>
-        </div>
+        <div class="flow-node"><strong>장비 자산 식별</strong><span class="tiny">Input</span></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Security Policy</strong>
-          <span class="tiny">Process</span>
-        </div>
+        <div class="flow-node"><strong>네트워크/계정 정책</strong><span class="tiny">Process</span></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Access Control</strong>
-          <span class="tiny">Process</span>
-        </div>
+        <div class="flow-node"><strong>취약점/패치 관리</strong><span class="tiny">Process</span></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Audit Log</strong>
-          <span class="tiny">Process</span>
-        </div>
+        <div class="flow-node"><strong>감사 로그</strong><span class="tiny">Process</span></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Risk Review</strong>
-          <span class="tiny">Output</span>
-        </div>
+        <div class="flow-node"><strong>위험 평가/개선</strong><span class="tiny">Output</span></div>
       </div>
-      <p style="margin-top: 15px; font-size: 0.95em; color: var(--muted);">이 다이어그램은 장비 네트워크가 외부망에 연결될 때 보안 리스크를 관리하는 일련의
-        과정을 나타냅니다. 각 단계별 역할은 다음과 같습니다:</p>
-      <ul style="margin-top: 10px; font-size: 0.9em; color: var(--ink); list-style-type: none; padding-left: 0;">
-        <li style="margin-bottom: 8px;"><strong>1. Equipment Network:</strong> 보호 대상이 되는 반도체 장비와 그 장비가 연결된 공장 내부(OT)
-          네트워크 환경을 의미합니다.</li>
-        <li style="margin-bottom: 8px;"><strong>2. Security Policy:</strong> SEMI E187에서 정의하는 4대 핵심 요구사항(OS, 네트워크,
-          엔드포인트, 모니터링)에 따른 구체적인 보안 규칙입니다.</li>
-        <li style="margin-bottom: 8px;"><strong>3. Access Control:</strong> 수립된 정책에 따라 불필요한 포트를 차단하고, 인가된 대상만 통신을 허용하는
-          화이트리스트 기반의 실질적인 통제 단계입니다.</li>
-        <li style="margin-bottom: 8px;"><strong>4. Audit Log:</strong> 사용자 로그인, 설정 변경, 보안 이벤트 등 시스템에서 발생하는 모든 유의미한 활동을
-          기록하여 추적성을 확보합니다.</li>
-        <li style="margin-bottom: 8px;"><strong>5. Risk Review:</strong> 수집된 감사 로그와 정책 준수 현황을 분석하여 최종적으로 보안 위협을 평가하고 대응
-          방안을 도출하는 출력 단계입니다.</li>
-      </ul>
+      <p style="margin-top:14px">위 흐름은 E187를 프로그램으로 구현할 때의 기본 DFD입니다. 단순히 화면에 값을 보여주는 흐름이 아니라, 입력, 검증, 상태 판단, 저장, 업무 시스템 전달까지 포함합니다.</p>
+      <table>
+        <thead><tr><th>단계</th><th>처리 의미</th><th>개발 시 저장/검증 포인트</th></tr></thead>
+        <tbody><tr><td><strong>1. 장비 자산 식별</strong></td><td>입력 데이터 또는 시작 조건</td><td>장비, Host, 운영자, 물류 시스템에서 발생</td></tr>
+<tr><td><strong>2. 네트워크/계정 정책</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>3. 취약점/패치 관리</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>4. 감사 로그</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>5. 위험 평가/개선</strong></td><td>업무 시스템이 사용하는 결과</td><td>MES/EAP/대시보드/분석 시스템으로 전달</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="model" class="section">
+      <h2>3. 핵심 객체와 상태 모델</h2>
+      <p>E187 구현은 아래 객체들을 중심으로 설계하면 이해가 쉽습니다. 학생들은 각 객체가 "무엇을 식별하고", "어떤 상태를 가지며", "어떤 이벤트로 변하는지"를 먼저 그려보면 됩니다.</p>
+      <table>
+        <thead><tr><th>객체/개념</th><th>역할</th><th>수업식 해설</th></tr></thead>
+        <tbody><tr><td><strong>Asset Inventory</strong></td><td>보호 대상</td><td>장비 PC, OS, application, network interface, service 목록입니다.</td></tr>
+<tr><td><strong>Network Control</strong></td><td>통신 통제</td><td>필요한 포트와 프로토콜만 허용합니다.</td></tr>
+<tr><td><strong>Access Control</strong></td><td>계정/권한</td><td>사용자와 서비스 계정의 권한을 최소화합니다.</td></tr>
+<tr><td><strong>Vulnerability Management</strong></td><td>취약점 관리</td><td>패치 수준, 예외 승인, 완화 조치를 추적합니다.</td></tr>
+<tr><td><strong>Audit Log</strong></td><td>감사 기록</td><td>로그인, 설정 변경, remote access, 보안 이벤트를 남깁니다.</td></tr></tbody>
+      </table>
+      <h3>상태 전이 관점</h3>
+      <p>상태 모델은 "현재 상태를 저장하는 테이블"과 "상태가 바뀐 이력 테이블"을 분리해서 생각해야 합니다. 현재 상태는 화면과 제어 판단에 빠르게 쓰이고, 이력은 감사, 추적, KPI 계산, 장애 분석에 쓰입니다.</p>
+      <div class="codebox">state_event_received
+  -> validate_event_order
+  -> close_previous_interval_if_needed
+  -> update_current_state
+  -> append_history
+  -> publish_business_event</div>
     </section>
 
     <section class="section">
-      <h2>업무 적용 체크포인트</h2>
+      <h2>4. 메시지와 이벤트 설계</h2>
+      <p>표준을 실제 시스템에 연결할 때는 메시지 이름보다 메시지가 만드는 업무 효과를 더 중요하게 봐야 합니다. 예를 들어 ACK가 성공이어도 실제 상태가 바뀌지 않았으면 업무적으로는 아직 완료가 아닙니다.</p>
+      <table>
+        <thead><tr><th>메시지/이벤트</th><th>의도</th><th>구현 시 확인할 점</th></tr></thead>
+        <tbody><tr><td><strong>Security Baseline</strong></td><td>기준선 등록</td><td>장비 반입 시 보안 상태를 기록합니다.</td></tr>
+<tr><td><strong>Access Event</strong></td><td>접속 기록</td><td>성공/실패, source, 계정, 작업을 저장합니다.</td></tr>
+<tr><td><strong>Risk Review</strong></td><td>위험 평가</td><td>취약점과 예외를 주기적으로 검토합니다.</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="database" class="section">
+      <h2>5. 권장 데이터베이스 구조</h2>
+      <p>아래 테이블은 교육용 설계 예시입니다. 실제 프로젝트에서는 장비 수, 이벤트량, 보존 기간, 고객 naming rule에 맞춰 column을 조정해야 합니다. 그래도 핵심은 원본 이벤트, 현재 상태, 이력, 설정 버전을 분리하는 것입니다.</p>
+      <table>
+        <thead><tr><th>테이블</th><th>권장 컬럼</th><th>설계 이유</th></tr></thead>
+        <tbody><tr><td><strong>equipment_security_profile</strong></td><td><code>equipment_id, os_name, os_version, open_ports, remote_access_policy, patch_level, risk_rating</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr>
+<tr><td><strong>equipment_access_audit</strong></td><td><code>audit_id, equipment_id, user_id, source_ip, action, result, event_time</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr>
+<tr><td><strong>vulnerability_exception</strong></td><td><code>exception_id, equipment_id, cve_id, mitigation, approved_by, expire_at</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr></tbody>
+      </table>
+      <h3>ERD를 그릴 때의 원칙</h3>
+      <ul><li>장비 ID, 표준 객체 ID, 발생 시각은 대부분의 테이블에 들어가는 기본 축입니다.</li>
+<li>현재 상태 테이블은 업데이트가 많고, 이력 테이블은 append 중심으로 설계합니다.</li>
+<li>설정값과 사전 정보는 version을 둡니다. 장비 SW 변경 후 같은 ID의 의미가 바뀌는 경우가 있습니다.</li>
+<li>원본 payload 또는 raw message 참조를 남기면 장애 분석과 재처리가 쉬워집니다.</li></ul>
+    </section>
+
+    <section id="implementation" class="section">
+      <h2>6. 구현 절차</h2>
+      <p>처음부터 전체 자동화를 만들려고 하면 복잡합니다. 수업 프로젝트나 PoC에서는 다음 순서로 구현하면 기능이 자연스럽게 쌓입니다.</p>
+      <table>
+        <thead><tr><th>순서</th><th>구현 항목</th><th>완료 기준</th></tr></thead>
+        <tbody><tr><td><strong>1</strong></td><td>장비 반입 시 보안 baseline을 만들고, 이후 변경을 drift로 감지합니다.</td><td>입력 조건과 설정값이 화면/DB에 남는다.</td></tr>
+<tr><td><strong>2</strong></td><td>remote access는 임시 승인, 시간 제한, 세션 기록을 기본으로 설계합니다.</td><td>정상/오류 케이스가 테스트로 재현된다.</td></tr>
+<tr><td><strong>3</strong></td><td>생산 영향 때문에 즉시 패치할 수 없는 경우 보완 통제와 만료일이 있는 예외 승인 프로세스를 둡니다.</td><td>정상/오류 케이스가 테스트로 재현된다.</td></tr>
+<tr><td><strong>4</strong></td><td>보안 로그는 장비 내부에만 두지 말고 중앙 로그 시스템으로 전송합니다.</td><td>장애 상황에서도 로그와 상태가 일관된다.</td></tr></tbody>
+      </table>
+      <h3>서비스 분리 예시</h3>
+      <div class="codebox">Controller/API
+  -> Command Validator
+  -> Standard Domain Service (E187)
+  -> State Repository
+  -> Event Publisher
+  -> Audit/Metric Writer</div>
+      <p>Domain Service 안에는 E187의 상태 전이, 권한 판단, 데이터 품질 판단 같은 표준별 규칙을 넣고, Controller에는 HTTP나 화면 요청 처리만 남기는 구조가 유지보수에 좋습니다.</p>
+    </section>
+
+    <section id="logic" class="section">
+      <h2>7. 처리 로직 상세</h2>
+      <p>아래 의사코드는 E187 이벤트를 받았을 때 공통적으로 적용할 수 있는 처리 흐름입니다. 실제 코드는 Java, C#, Python, Node.js 어느 언어로 작성해도 되지만 순서는 유지하는 편이 안전합니다.</p>
+      <div class="codebox">function handleE187Event(event):
+  assert event.equipmentId is not empty
+  assert event.eventTime is not in the future beyond allowedSkew
+  dictionary = loadDictionary(event.equipmentId, event.standardVersion)
+  normalized = normalize(event, dictionary)
+  validationResult = validateBusinessRule(normalized)
+  saveRawEvent(event)
+  if validationResult.ok:
+      updateCurrentState(normalized)
+      appendHistory(normalized)
+      publishToConsumers(normalized)
+  else:
+      createExceptionRecord(normalized, validationResult.reason)
+      notifyOperatorIfNeeded()</div>
+      <h3>예외 처리 원칙</h3>
+      <ul><li>오류 이벤트도 버리지 않습니다. raw event와 실패 이유를 저장해야 재처리와 벤더 문의가 가능합니다.</li>
+<li>장비 시간과 서버 시간이 다를 수 있으므로 허용 가능한 clock skew를 설정합니다.</li>
+<li>중복 이벤트는 idempotency key로 걸러냅니다. 보통 equipment_id, event_name, event_time, sequence를 조합합니다.</li>
+<li>업무 시스템으로 내보내기 전에 표준 상태값을 사내 공통 코드로 매핑합니다.</li></ul>
+    </section>
+
+    <section id="test" class="section">
+      <h2>8. 테스트 시나리오</h2>
+      <p>표준 구현의 품질은 정상 케이스보다 예외 케이스에서 드러납니다. 아래 테스트를 자동화하면 장비 반입과 SW 변경 검증 시간이 크게 줄어듭니다.</p>
+      <table>
+        <thead><tr><th>테스트</th><th>입력 조건</th><th>기대 결과</th></tr></thead>
+        <tbody><tr><td>TC-01</td><td>허용 포트 스캔 결과 비교</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-02</td><td>권한 없는 remote access 차단</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-03</td><td>계정 변경 감사 로그</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-04</td><td>취약점 예외 만료 알람</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr></tbody>
+      </table>
+      <h3>자주 발생하는 실수</h3>
+      <div><span class="badge">벤더 기본 계정 방치</span> <span class="badge">불필요한 open port 허용</span> <span class="badge">패치 예외 만료일 없음</span> <span class="badge">보안 로그 시간 동기화 누락</span></div>
+    </section>
+
+    <section id="ops" class="section">
+      <h2>9. 운영 화면과 모니터링 설계</h2>
+      <p>E187를 운영 시스템에 넣을 때는 개발자 로그만으로 부족합니다. 운영자가 즉시 판단할 수 있도록 현재 상태, 마지막 이벤트 시각, 실패 원인, 관련 객체 링크를 한 화면에 보여줘야 합니다.</p>
       <div class="grid">
-        <div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span>
-        </div>
-        <div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div>
-        <div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div>
+        <div class="card"><strong>상태 패널</strong><span>현재 상태, 마지막 정상 이벤트, 마지막 오류 이벤트, 장비/Client 연결 상태를 표시합니다.</span></div>
+        <div class="card"><strong>이력 타임라인</strong><span>이벤트가 어떤 순서로 발생했는지 시간축으로 보여주고 raw payload까지 drill-down할 수 있게 합니다.</span></div>
+        <div class="card"><strong>품질/예외 큐</strong><span>미처리 오류, 재처리 대상, 승인 대기 예외를 운영자가 확인하고 조치합니다.</span></div>
       </div>
-    </section>
-
-    <section class="section">
-      <h2>권장 테이블 구성</h2>
-
-      <h3>1. equipment_security_profile</h3>
-      <p class="muted">설비별 보안 설정 및 위험도 현황을 관리하는 테이블입니다.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>컬럼명</th>
-            <th>Data Type</th>
-            <th>Data 길이</th>
-            <th>PK</th>
-            <th>내용</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>equipment_id</strong></td>
-            <td>VARCHAR</td>
-            <td>50</td>
-            <td>Y</td>
-            <td>설비 고유 식별자</td>
-          </tr>
-          <tr>
-            <td><strong>network_zone</strong></td>
-            <td>VARCHAR</td>
-            <td>20</td>
-            <td>N</td>
-            <td>네트워크 보안 구역 (OT/Quarantine 등)</td>
-          </tr>
-          <tr>
-            <td><strong>open_ports</strong></td>
-            <td>VARCHAR</td>
-            <td>255</td>
-            <td>N</td>
-            <td>허용된 네트워크 포트 목록</td>
-          </tr>
-          <tr>
-            <td><strong>remote_access</strong></td>
-            <td>CHAR</td>
-            <td>1</td>
-            <td>N</td>
-            <td>원격 접속 허용 여부 (Y/N)</td>
-          </tr>
-          <tr>
-            <td><strong>patch_level</strong></td>
-            <td>VARCHAR</td>
-            <td>50</td>
-            <td>N</td>
-            <td>현재 OS 보안 패치 버전 및 레벨</td>
-          </tr>
-          <tr>
-            <td><strong>risk_rating</strong></td>
-            <td>VARCHAR</td>
-            <td>10</td>
-            <td>N</td>
-            <td>보안 위험 평가 등급 (High/Med/Low)</td>
-          </tr>
-          <tr>
-            <td><strong>updated_at</strong></td>
-            <td>DATETIME</td>
-            <td>-</td>
-            <td>N</td>
-            <td>정보 최종 갱신 일시</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h3 style="margin-top: 30px;">2. equipment_access_audit</h3>
-      <p class="muted">설비 접속 및 보안 관련 활동 로그를 기록하는 테이블입니다.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>컬럼명</th>
-            <th>Data Type</th>
-            <th>Data 길이</th>
-            <th>PK</th>
-            <th>내용</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>audit_id</strong></td>
-            <td>BIGINT</td>
-            <td>-</td>
-            <td>Y</td>
-            <td>감사 로그 고유 번호 (Auto Increment)</td>
-          </tr>
-          <tr>
-            <td><strong>equipment_id</strong></td>
-            <td>VARCHAR</td>
-            <td>50</td>
-            <td>N</td>
-            <td>설비 식별자</td>
-          </tr>
-          <tr>
-            <td><strong>user_id</strong></td>
-            <td>VARCHAR</td>
-            <td>50</td>
-            <td>N</td>
-            <td>접속 시도 사용자 ID</td>
-          </tr>
-          <tr>
-            <td><strong>action</strong></td>
-            <td>VARCHAR</td>
-            <td>50</td>
-            <td>N</td>
-            <td>수행 작업 (Login, Change Config 등)</td>
-          </tr>
-          <tr>
-            <td><strong>source_ip</strong></td>
-            <td>VARCHAR</td>
-            <td>45</td>
-            <td>N</td>
-            <td>접속 요청지 IP 주소</td>
-          </tr>
-          <tr>
-            <td><strong>result</strong></td>
-            <td>VARCHAR</td>
-            <td>20</td>
-            <td>N</td>
-            <td>작업 결과 (Success/Fail)</td>
-          </tr>
-          <tr>
-            <td><strong>event_time</strong></td>
-            <td>DATETIME</td>
-            <td>-</td>
-            <td>N</td>
-            <td>보안 이벤트 발생 시각</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section class="section">
-      <h2>SEMI E187 제정 배경 및 주요 목적</h2>
-
-      <h3>1. SEMI E187 제정 배경</h3>
-      <table>
-        <tr>
-          <th>치명적인 사이버 보안 사고 발생</th>
-          <td>2018년 TSMC의 워너크라이(WannaCry) 랜섬웨어 감염 사태로 인한 천문학적 피해(약 3,300억 원)가 발생하면서, Fab 환경에 특화된 장비 보안의 필요성이 대두되었습니다.
-          </td>
-        </tr>
-        <tr>
-          <th>레거시(Legacy) OS의 구조적 취약성</th>
-          <td>수십억 원에 달하는 반도체 장비는 수명이 매우 길어(10~20년), 보안 패치가 이미 중단된 구형 OS(Windows XP, 7 등)로 구동되는 경우가 많아 공격에 무방비로 노출되어
-            있었습니다.</td>
-        </tr>
-        <tr>
-          <th>파편화된 보안 요구사항</th>
-          <td>기존에는 삼성, TSMC, 인텔 등 반도체 제조사(도입사)마다 요구하는 보안 기준이 달라, 장비 제조사(OEM)들이 이에 각각 대응하느라 막대한 시간과 비용을 소모해야 했습니다.</td>
-        </tr>
-      </table>
-
-      <h3>2. SEMI E187의 주요 목적</h3>
-      <table>
-        <tr>
-          <th>글로벌 '베이스라인' 확립</th>
-          <td>반도체 장비가 공장에 반입되기 전 기본적으로 갖춰야 할 4대 핵심 보안 기준(OS 보안, 네트워크 보안, 엔드포인트 보호, 보안 모니터링)을 명확히 정의합니다.</td>
-        </tr>
-        <tr>
-          <th>공급망 보안 강화</th>
-          <td>도입 후가 아닌, 장비를 '설계하고 납품하는 단계(Security by Design)'부터 보안을 내재화하여 악성코드 유입 및 확산 리스크를 원천 차단합니다.</td>
-        </tr>
-        <tr>
-          <th>비용 및 시간 절감</th>
-          <td>전 세계 반도체 제조사와 장비 제조사가 동일한 보안 규격을 공유하게 함으로써, 불필요한 중복 검증 절차를 없애고 산업 전체의 효율성을 높입니다.</td>
-        </tr>
-      </table>
-    </section>
-
-    <section class="section">
-      <h2>E187 4대 핵심 요구사항 (Core Requirements)</h2>
-
-      <h3>1. 운영체제(OS) 보안</h3>
-      <table>
-        <tr>
-          <th>지원되는 OS 사용</th>
-          <td>제조사(Microsoft, Linux 등)로부터 보안 업데이트와 패치가 지속적으로 제공되는 운영체제를 탑재해야 합니다.</td>
-        </tr>
-        <tr>
-          <th>패치 관리 메커니즘</th>
-          <td>취약점이 발견되었을 때, 장비 가동에 영향을 주지 않고 안전하게 최신 보안 패치를 적용할 수 있는 수단과 절차를 제공해야 합니다.</td>
-        </tr>
-        <tr>
-          <th>레거시 OS 보호 대책</th>
-          <td>보안 지원이 종료된 구형 OS(예: Windows XP, 7)를 불가피하게 써야만 하는 경우, 철저한 네트워크 분리, 불필요한 서비스 비활성화(Hardening), 애플리케이션 화이트리스팅
-            등 대체 보안 통제(Compensating Controls)를 반드시 적용해야 합니다.</td>
-        </tr>
-      </table>
-
-      <h3>2. 네트워크 보안</h3>
-      <table>
-        <tr>
-          <th>포트 및 서비스 차단</th>
-          <td>장비 운영(예: SECS/GEM 통신, 필수 제어)에 명시적으로 필요한 네트워크 포트와 서비스만 열어두고, 나머지는 모두 기본적으로 비활성화(Default Deny) 해야
-            합니다.<br>해커나 웜(Worm) 바이러스는 열려있는 취약한 포트를 무작위로 스캔하여 침투하기 때문입니다.</td>
-        </tr>
-        <tr>
-          <th>네트워크 접근 제어</th>
-          <td>장비 자체에 방화벽 기능을 활성화하거나 네트워크 제어 기술을 적용하여, 사전에 인가된 IP 주소와 포트만 통신을 허용하는 '화이트리스트(Whitelist)' 방식의 통제를 구현해야 합니다.
-          </td>
-        </tr>
-        <tr>
-          <th>안전한 통신</th>
-          <td>원격 유지보수를 위해 외부에서 접속하거나 민감한 데이터를 전송할 때는 데이터가 탈취되거나 변조되지 않도록 암호화 통신(예: SSH, HTTPS 등)을 지원해야 합니다.</td>
-        </tr>
-      </table>
-
-      <h3>3. 엔드포인트 보호</h3>
-      <table>
-        <tr>
-          <th>애플리케이션 화이트리스팅</th>
-          <td>장비 운영에 필수적인 '사전 승인된 프로그램 목록(화이트리스트)'만 실행되도록 허용하고, 그 외의 모든 프로그램(악성코드, 랜섬웨어 등)은 실행을 원천 차단합니다. E187에서 가장 강력하게
-            권장하는 방어 수단입니다.</td>
-        </tr>
-        <tr>
-          <th>악성코드 방지</th>
-          <td>백신(Anti-Virus) 등 보안 솔루션을 설치하여 주기적으로 시스템을 검사하고, 알려진 위협을 탐지 및 제거해야 합니다.</td>
-        </tr>
-        <tr>
-          <th>이동식 매체 제어</th>
-          <td>유지보수 등을 위해 USB나 외장하드를 연결할 때, 인가된 매체만 접근을 허용하고 반드시 내부 악성코드 검사를 거치도록 통제해야 합니다.</td>
-        </tr>
-      </table>
-
-      <h3>4. 보안 모니터링</h3>
-      <table>
-        <tr>
-          <th>보안 이벤트 로그 생성</th>
-          <td>사용자 접속(로그인 성공/실패), 권한 변경, 중요 설정 변경, 악성코드 탐지 알림 등 보안과 관련된 모든 주요 활동을 빠짐없이 기록해야 합니다.</td>
-        </tr>
-        <tr>
-          <th>로그 보호 및 보존</th>
-          <td>공격자가 시스템에 침입한 뒤 자신의 흔적을 지우지 못하도록 로그 데이터의 위변조를 막아야(무결성 보장) 하며, 이를 일정 기간 안전하게 보관할 수 있어야 합니다.</td>
-        </tr>
-        <tr>
-          <th>시간 동기화</th>
-          <td>장비의 시스템 시간을 공장의 중앙 표준 시간(NTP 서버 등)과 정확하게 일치시켜야 합니다.<br>사고 발생 시 수많은 장비와 네트워크 장비의 로그를 시간순으로 퍼즐 맞추듯 교차 분석하여
-            공격 경로를 파악해야 하기 때문입니다.</td>
-        </tr>
-      </table>
-    </section>
-
-    <section class="section">
-      <h2>장비 설계 및 도입 시 E187 준수 검증 방법</h2>
-
-      <h3>1. 도입 단계별 검증 프로세스</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>단계</th>
-            <th>검증 내용</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>1단계: 요구사항 정의 및 계약 (RFP/RFI)</strong></td>
-            <td>반도체 제조사(도입사)가 장비 제조사(OEM)에 장비를 발주할 때, 구매 요구사항(RFP)에 "SEMI E187 기준 준수"를 법적, 기술적 필수 조건으로 명시합니다.</td>
-          </tr>
-          <tr>
-            <td><strong>2단계: 장비 설계 및 제작 (OEM 측)</strong></td>
-            <td>장비 제조사는 처음부터 최신/지원 가능한 OS를 선정하고, 불필요한 네트워크 포트를 막은 상태로 제어 소프트웨어를 개발합니다. 이때 사용된 모든 소프트웨어의 목록인 SBOM을 작성합니다.
-            </td>
-          </tr>
-          <tr>
-            <td><strong>3단계: 공장 인수 검사 (FAT)</strong></td>
-            <td>장비가 OEM 공장에서 출하되기 전 보안 테스트를 진행합니다. 실제 보안 취약점 스캐너를 돌려 취약점이 없는지 확인하고, 화이트리스트 솔루션 작동을 시연 검증합니다.</td>
-          </tr>
-          <tr>
-            <td><strong>4단계: 현장 인수 검사 (SAT) 및 반입</strong></td>
-            <td>장비가 반도체 Fab에 도착한 후 진행하는 최종 검증입니다.<br>SEMI E188 표준과 연계하여 USB 등을 통한 악성코드 유입을 철저히 검사하고 망 연결 후 암호화 통신과 방화벽
-              정책을 확인합니다.</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h3>2. 실무에서 요구하는 '4대 필수 증빙 문서'</h3>
-      <table>
-        <tr>
-          <th>소프트웨어 명세서(SBOM) 및 OS 지원 증명서</th>
-          <td>장비에 설치된 모든 프로그램 목록과, 해당 OS가 언제까지 보안 패치를 지원받을 수 있는지 증명하는 문서.</td>
-        </tr>
-        <tr>
-          <th>취약점 스캔 결과 리포트</th>
-          <td>글로벌 표준 취약점 스캐닝 도구로 장비를 점검하여, '알려진 심각한 취약점(CVE)이 없음'을 증명하는 리포트.</td>
-        </tr>
-        <tr>
-          <th>네트워크 포트/서비스 명세서</th>
-          <td>장비가 사용하는 필수 네트워크 포트의 목록과 그 사용 목적을 명시한 문서 (이 목록에 없는 포트는 모두 닫혀 있어야 함).</td>
-        </tr>
-        <tr>
-          <th>제3자 보안 인증서</th>
-          <td>Bureau Veritas, TÜV Rheinland 등 공인 기관으로부터 받은 공식 인증서 (최근 대형 기업들이 강력 요구 추세).</td>
-        </tr>
-      </table>
-
-      <h3>3. SEMI E188 (악성코드 감염 없는 장비 반입 표준)과의 연계성</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>절차 (시간 순서)</th>
-            <th>프로세스 상세</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>1. 제작 및 출하 (E187)</strong></td>
-            <td>OEM은 E187 요건에 맞춰 방화벽과 화이트리스트가 적용된 장비를 제작하고 출하합니다.</td>
-          </tr>
-          <tr>
-            <td><strong>2. 운송 및 반입 (E188)</strong></td>
-            <td>운송 중 누군가 임의로 조작하지 못하도록 하드웨어 포트를 물리적으로 봉인(Seal)합니다.</td>
-          </tr>
-          <tr>
-            <td><strong>3. 검역 네트워크 격리 (E188)</strong></td>
-            <td>장비가 공장에 도착하면 절대 메인망(OT망)에 바로 꽂지 않고 단절된 '검역 존(Quarantine Area)'에 우선 배치합니다.</td>
-          </tr>
-          <tr>
-            <td><strong>4. 최종 무결성 스캔 (E188)</strong></td>
-            <td>검역 존에서 전용 백신이나 스캐너를 통해 이동·설치 중 유입된 악성코드가 없는지 최종 검사합니다.</td>
-          </tr>
-          <tr>
-            <td><strong>5. 메인망 연결 및 운영 (E187)</strong></td>
-            <td>검역(E188)을 무사히 통과하여 메인망에 연결되면, 장비에 탑재된 E187 보안 기능이 24시간 작동하며 공장을 보호합니다.</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <section class="section">
-      <h2>글로벌 반도체 기업의 보안 컴플라이언스 요구 동향</h2>
-      <table>
-        <tr>
-          <th>TSMC 주도</th>
-          <td>2018년 사고 이후 E187 제정을 이끌었으며, 공급망 참여 장비사에 이를 강력히 요구합니다.<br>발주 시 E187 준수 여부를 기술 점수에 반영하고 충족하지 못하면 입찰 참여를 제한할
-            수 있습니다.</td>
-        </tr>
-        <tr>
-          <th>글로벌 보안 동기화</th>
-          <td>인텔, 삼성전자, SK하이닉스 등도 개별 기준 대신 SEMI E187/E188 국제 표준으로 수렴하고 있습니다.<br>장비사 입장에서는 대응 기준이 통합되는 의미이며, SBOM 제출 요구가
-            거세지고 있습니다.</td>
-        </tr>
-        <tr>
-          <th>강제 인증 전환</th>
-          <td>장비 제조사가 스스로 점검하는 수준을 넘어, 공인된 인증 기관으로부터 E187 준수 인증서를 받아 제출할 것을 요구하고 있습니다.<br>망 접속 순간부터 모든 통신을 의심하는 제로
-            트러스트(Zero Trust) 요구도 늘고 있습니다.</td>
-        </tr>
-      </table>
-    </section>
-
-    <section class="section">
-      <h2>용어 및 약어 풀이 (Glossary)</h2>
-      <div class="grid">
-        <div class="card"><strong>FAB</strong><span>Semiconductor Fabrication Plant (반도체 제조 공장)</span></div>
-        <div class="card"><strong>TC/EAP</strong><span>Tool Control / Equipment Automation Program (장비 제어 및 자동화
-            프로그램)</span></div>
-        <div class="card"><strong>EDA</strong><span>Equipment Data Acquisition (설비 데이터 수집, Interface A)</span></div>
-        <div class="card"><strong>SECS/GEM</strong><span>SEMI Equipment Communications Standard / Generic Model (반도체 장비
-            통신 표준)</span></div>
-        <div class="card"><strong>EES/APC/FDC</strong><span>Equipment Engineering / Automated Process Control / Fault
-            Detection (공정 및 설비 제어/분석 시스템)</span></div>
-        <div class="card"><strong>MES</strong><span>Manufacturing Execution System (제조 실행 시스템)</span></div>
-        <div class="card"><strong>SBOM</strong><span>Software Bill of Materials (소프트웨어 명세서/부품표)</span></div>
-        <div class="card"><strong>RFP/RFI</strong><span>Request for Proposal / Information (제안 요청서 / 정보 요청서)</span>
-        </div>
-        <div class="card"><strong>FAT/SAT</strong><span>Factory / Site Acceptance Test (공장 / 현장 인수 테스트)</span></div>
-        <div class="card"><strong>CVE</strong><span>Common Vulnerabilities and Exposures (공개된 보안 취약점 목록)</span></div>
-        <div class="card"><strong>NTP</strong><span>Network Time Protocol (네트워크 시간 동기화 프로토콜)</span></div>
-        <div class="card"><strong>Zero Trust</strong><span>"아무도 믿지 않는다"는 원칙 하의 보안 모델</span></div>
-      </div>
+      <h3>완료 체크리스트</h3>
+      <ul><li>표준 객체와 사내 공통 코드의 매핑표가 있다.</li>
+<li>정상/오류/재처리/중복 이벤트 테스트가 자동화되어 있다.</li>
+<li>운영자가 볼 수 있는 현재 상태 화면과 이력 화면이 있다.</li>
+<li>장비 SW 또는 표준 사전 변경 시 영향 분석 절차가 있다.</li>
+<li>공식 SEMI 문서와 고객 사양서 기준으로 최종 검토했다.</li></ul>
     </section>
   </main>
 </body>
-
 </html>

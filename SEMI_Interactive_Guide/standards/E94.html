@@ -1,85 +1,212 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E94 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SEMI E94 Guide - CJM</title>
+  <link rel="stylesheet" href="../semi-page.css">
+  <style>
+    .lesson-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
+    .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
+    @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E94</div>
-    <section class="hero"><h1>SEMI E94 - Control Job Management</h1><p>Control Job의 생성, 실행, 종료, 취소 상태 모델을 정의합니다.</p><div class="chips"><span class="chip">GEM300 생산 실행</span><span class="chip">Guide &amp; Developer</span></div></section>
-    <section class="section"><h2>기능 요약</h2><p>여러 Carrier와 Process Job을 하나의 생산 제어 단위로 묶습니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
-    <section class="section"><h2>표준 관계 DFD</h2>
-      <div class="flow-diagram">
-        <div class="flow-node">
-          <strong>MOS Dispatch</strong>
-          <span class="tiny">Input</span>
+
+    <section class="hero">
+      <h1>SEMI E94 - CJM</h1>
+      <p>Control Job Management. SEMI E94는 Carrier 관리(E87)와 Process Job(E40)을 묶어 실제 장비 실행 단위인 Control Job을 관리합니다. Control Job은 &#39;이 carrier의 이 wafer들을 이 공정 작업으로 실행하라&#39;는 오케스트레이션 객체입니다.</p>
+      <div class="chips">
+        <span class="chip">GEM300</span>
+        <span class="chip">교육용 상세 가이드</span>
+        <span class="chip">개발 설계 관점</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>학습 목표</h2>
+      <div class="lesson-index">
+        <a href="#concept">1. 표준의 역할</a>
+        <a href="#dfd">2. DFD와 데이터 흐름</a>
+        <a href="#model">3. 객체/상태 모델</a>
+        <a href="#implementation">4. 구현 설계</a>
+        <a href="#database">5. 데이터베이스</a>
+        <a href="#logic">6. 처리 로직</a>
+        <a href="#test">7. 테스트</a>
+        <a href="#ops">8. 운영 체크</a>
+      </div>
+      <div class="callout">이 문서는 수업과 시스템 설계를 돕기 위한 교육용 해설입니다. 실제 프로젝트 적용 시에는 고객 사양서, 장비 벤더 매뉴얼, 최신 SEMI 공식 문서를 함께 확인해야 합니다.</div>
+      <p><strong>수업에서 기억할 핵심:</strong> E94는 MES가 load port에 올라온 carrier와 여러 Process Job을 연결하여 자동으로 공정을 시작, 일시정지, 재개, 완료시키는 데 사용합니다. 이 문서를 읽을 때는 표준 번호를 외우는 것보다, 입력 데이터가 어디서 오고 어떤 상태 판단을 거쳐 어떤 업무 시스템으로 전달되는지 따라가야 합니다.</p>
+    </section>
+
+    <section id="concept" class="section">
+      <h2>1. 표준의 역할과 현장 배경</h2>
+      <p>SEMI E94는 Carrier 관리(E87)와 Process Job(E40)을 묶어 실제 장비 실행 단위인 Control Job을 관리합니다. Control Job은 &#39;이 carrier의 이 wafer들을 이 공정 작업으로 실행하라&#39;는 오케스트레이션 객체입니다.</p>
+      <p>반도체 fab의 자동화 시스템은 장비, EAP, MES, FDC, APC, 물류 시스템이 동시에 움직입니다. 이때 E94 영역의 데이터가 애매하면 운영자는 같은 현상을 서로 다른 용어로 부르게 되고, 개발자는 예외 처리를 코드 곳곳에 흩뿌리게 됩니다. 따라서 먼저 표준이 다루는 경계를 정하고, 그 안에서 공통 객체와 상태를 모델링해야 합니다.</p>
+      <div class="two-col">
+        <div class="card">
+          <strong>학생에게 설명하는 비유</strong>
+          <span>E94를 하나의 교실 규칙이라고 보면 됩니다. 교사가 출석, 과제, 시험을 같은 양식으로 관리해야 학생별 이력을 비교할 수 있듯이, 장비 자동화도 Control Job ID, Carrier Binding, PJob Binding, CJ State 같은 핵심 요소를 같은 언어로 관리해야 합니다.</span>
         </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Control Job Manager</strong>
-          <span class="tiny">Process</span>
-        </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Process Job Set</strong>
-          <span class="tiny">Process</span>
-        </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Equipment Execution</strong>
-          <span class="tiny">Output</span>
+        <div class="card">
+          <strong>개발자에게 중요한 이유</strong>
+          <span>표준을 데이터 모델로 옮기면 화면, API, 이벤트 처리, 장애 분석이 같은 기준을 공유합니다. 반대로 표준을 문서로만 두면 프로젝트마다 다른 용어와 상태값이 생겨 유지보수가 어려워집니다.</span>
         </div>
       </div>
     </section>
-    <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
-  <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>control_job</strong></td><td>control_job_id, job_name, carrier_set, process_job_set, state, priority</td></tr><tr><td><strong>control_job_transition</strong></td><td>control_job_id, from_state, to_state, reason, event_time</td></tr></tbody></table></section>
-  <section class="section">
-    <h2>1장. SEMI E94 (Control Job Management) 개요</h2>
-    <p>SEMI E94는 장비에 내리는 <strong>가장 최상위의 작업 지시서인 Control Job (CJ)</strong>을 관리하는 표준입니다. E40의 Process Job(PJ)이 "이 웨이퍼들을 어떻게(레시피) 구울까?"에 집중한다면, E94의 CJ는 "이 FOUP(Carrier)에 대해 어떤 PJ들을 순서대로 실행시킬까?"라는 <strong>물류와 공정의 결합</strong>을 관장합니다.</p>
-  </section>
 
-  <section class="section">
-    <h2>2장. Control Job의 구조와 역할</h2>
-    <p>호스트(MES/EAP)가 장비에게 최종적으로 작업을 지시할 때, 최소 1개의 CJ와 1개 이상의 PJ를 묶어서 내려보냅니다.</p>
-    
-    <h3>1. 계층 구조 (Hierarchy)</h3>
-    <p>하나의 CJ는 여러 개의 PJ를 소유할 수 있습니다. (1 : N 관계)</p>
-    <ul>
-      <li>예: CJ_001 (작업 대상: FOUP_A)
-        <ul>
-          <li>└ PJ_001 (웨이퍼 1~12번, "OXIDE" 레시피 적용)</li>
-          <li>└ PJ_002 (웨이퍼 13~25번, "NITRIDE" 레시피 적용)</li>
-        </ul>
-      </li>
-    </ul>
-
-    <h3>2. 물류 제어 주도 (Carrier Management)</h3>
-    <p>CJ는 시작될 때 E87의 Carrier 객체를 '예약(Reserve)'하고, 가공 중에는 FOUP을 뺄 수 없게 락(Lock)을 겁니다. 모든 PJ가 완료되어 CJ가 끝나야 FOUP 잠금을 해제(CarrierOut)하여 OHT가 가져갈 수 있게 만듭니다.</p>
-  </section>
-
-  <section class="section">
-    <h2>3장. Control Job 상태 모델 (State Model)</h2>
-    <p>CJ 역시 생성부터 완료까지 상태 전이를 가집니다.</p>
-    
-    <div class="table-wrap">
+    <section id="dfd" class="section">
+      <h2>2. DFD: 데이터가 흘러가는 방식</h2>
+      <div class="flow-diagram">
+        <div class="flow-node"><strong>Carrier 준비</strong><span class="tiny">Input</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>PJob 준비</strong><span class="tiny">Process</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>Control Job 생성</strong><span class="tiny">Process</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>Start/Execute</strong><span class="tiny">Process</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>Complete/Abort</strong><span class="tiny">Process</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>Result 보고</strong><span class="tiny">Output</span></div>
+      </div>
+      <p style="margin-top:14px">위 흐름은 E94를 프로그램으로 구현할 때의 기본 DFD입니다. 단순히 화면에 값을 보여주는 흐름이 아니라, 입력, 검증, 상태 판단, 저장, 업무 시스템 전달까지 포함합니다.</p>
       <table>
-        <thead><tr><th>CJ 상태</th><th>설명</th></tr></thead>
-        <tbody>
-          <tr><td><strong>Queued</strong></td><td>호스트가 CJ를 생성하고 대기 중인 상태.</td></tr>
-          <tr><td><strong>Executing</strong></td><td>하위의 PJ 중 하나라도 셋업되거나 실행(Processing)을 시작하면 CJ도 Executing으로 넘어갑니다.</td></tr>
-          <tr><td><strong>Paused</strong></td><td>작업 일시 정지. 하위 PJ들도 모두 Paused 상태가 됩니다.</td></tr>
-          <tr><td><strong>Completed</strong></td><td>하위의 모든 PJ가 정상 완료되고, 대상 웨이퍼들이 모두 원위치(Destination)로 복귀했을 때 도달합니다.</td></tr>
-          <tr><td><strong>Aborted</strong></td><td>심각한 에러나 호스트의 <code>S14F3 (SetAttr 'Stop')</code> 명령으로 작업이 강제 종료된 상태.</td></tr>
-        </tbody>
+        <thead><tr><th>단계</th><th>처리 의미</th><th>개발 시 저장/검증 포인트</th></tr></thead>
+        <tbody><tr><td><strong>1. Carrier 준비</strong></td><td>입력 데이터 또는 시작 조건</td><td>장비, Host, 운영자, 물류 시스템에서 발생</td></tr>
+<tr><td><strong>2. PJob 준비</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>3. Control Job 생성</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>4. Start/Execute</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>5. Complete/Abort</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>6. Result 보고</strong></td><td>업무 시스템이 사용하는 결과</td><td>MES/EAP/대시보드/분석 시스템으로 전달</td></tr></tbody>
       </table>
-    </div>
-  </section>
+    </section>
 
-  <section class="section">
-    <h2>4장. 실무 적용: 작업 시작 트리거 (Start Method)</h2>
-    <div class="grid">
-      <div class="card">
-        <strong>Auto Start vs Manual Start</strong>
-        <span>CJ를 만들 때 <code>StartMethod</code> 속성을 <code>True(Auto)</code>로 주면, 생성되자마자 즉시 가공을 시작합니다. <code>False(Manual)</code>로 주면 Queued 상태로 머물다가, 나중에 호스트가 명시적으로 <code>PRJobCommand = START</code>를 내려야 비로소 움직입니다. 장비 종류(연속 처리 장비 vs 배치 장비)에 따라 설계가 다릅니다.</span>
+    <section id="model" class="section">
+      <h2>3. 핵심 객체와 상태 모델</h2>
+      <p>E94 구현은 아래 객체들을 중심으로 설계하면 이해가 쉽습니다. 학생들은 각 객체가 "무엇을 식별하고", "어떤 상태를 가지며", "어떤 이벤트로 변하는지"를 먼저 그려보면 됩니다.</p>
+      <table>
+        <thead><tr><th>객체/개념</th><th>역할</th><th>수업식 해설</th></tr></thead>
+        <tbody><tr><td><strong>Control Job ID</strong></td><td>실행 단위</td><td>공정 실행 전체를 대표하는 ID입니다.</td></tr>
+<tr><td><strong>Carrier Binding</strong></td><td>물류 연결</td><td>어떤 carrier와 load port를 사용하는지 정의합니다.</td></tr>
+<tr><td><strong>PJob Binding</strong></td><td>공정 연결</td><td>Control Job 안에 포함되는 Process Job 목록입니다.</td></tr>
+<tr><td><strong>CJ State</strong></td><td>실행 상태</td><td>Queued, Selected, Executing, Completed, Aborted 등으로 관리합니다.</td></tr></tbody>
+      </table>
+      <h3>상태 전이 관점</h3>
+      <p>상태 모델은 "현재 상태를 저장하는 테이블"과 "상태가 바뀐 이력 테이블"을 분리해서 생각해야 합니다. 현재 상태는 화면과 제어 판단에 빠르게 쓰이고, 이력은 감사, 추적, KPI 계산, 장애 분석에 쓰입니다.</p>
+      <div class="codebox">state_event_received
+  -> validate_event_order
+  -> close_previous_interval_if_needed
+  -> update_current_state
+  -> append_history
+  -> publish_business_event</div>
+    </section>
+
+    <section class="section">
+      <h2>4. 메시지와 이벤트 설계</h2>
+      <p>표준을 실제 시스템에 연결할 때는 메시지 이름보다 메시지가 만드는 업무 효과를 더 중요하게 봐야 합니다. 예를 들어 ACK가 성공이어도 실제 상태가 바뀌지 않았으면 업무적으로는 아직 완료가 아닙니다.</p>
+      <table>
+        <thead><tr><th>메시지/이벤트</th><th>의도</th><th>구현 시 확인할 점</th></tr></thead>
+        <tbody><tr><td><strong>Create CJ</strong></td><td>Control Job 생성</td><td>carrier와 process job을 묶습니다.</td></tr>
+<tr><td><strong>Start CJ</strong></td><td>실행 지시</td><td>장비가 실제 공정을 시작합니다.</td></tr>
+<tr><td><strong>CJ State Event</strong></td><td>상태 변화</td><td>진행/완료/중단 상황을 Host에 보고합니다.</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="database" class="section">
+      <h2>5. 권장 데이터베이스 구조</h2>
+      <p>아래 테이블은 교육용 설계 예시입니다. 실제 프로젝트에서는 장비 수, 이벤트량, 보존 기간, 고객 naming rule에 맞춰 column을 조정해야 합니다. 그래도 핵심은 원본 이벤트, 현재 상태, 이력, 설정 버전을 분리하는 것입니다.</p>
+      <table>
+        <thead><tr><th>테이블</th><th>권장 컬럼</th><th>설계 이유</th></tr></thead>
+        <tbody><tr><td><strong>control_job</strong></td><td><code>cjob_id, equipment_id, state, priority, created_at, started_at, ended_at</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr>
+<tr><td><strong>control_job_binding</strong></td><td><code>cjob_id, carrier_id, port_id, pjob_id, binding_order</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr></tbody>
+      </table>
+      <h3>ERD를 그릴 때의 원칙</h3>
+      <ul><li>장비 ID, 표준 객체 ID, 발생 시각은 대부분의 테이블에 들어가는 기본 축입니다.</li>
+<li>현재 상태 테이블은 업데이트가 많고, 이력 테이블은 append 중심으로 설계합니다.</li>
+<li>설정값과 사전 정보는 version을 둡니다. 장비 SW 변경 후 같은 ID의 의미가 바뀌는 경우가 있습니다.</li>
+<li>원본 payload 또는 raw message 참조를 남기면 장애 분석과 재처리가 쉬워집니다.</li></ul>
+    </section>
+
+    <section id="implementation" class="section">
+      <h2>6. 구현 절차</h2>
+      <p>처음부터 전체 자동화를 만들려고 하면 복잡합니다. 수업 프로젝트나 PoC에서는 다음 순서로 구현하면 기능이 자연스럽게 쌓입니다.</p>
+      <table>
+        <thead><tr><th>순서</th><th>구현 항목</th><th>완료 기준</th></tr></thead>
+        <tbody><tr><td><strong>1</strong></td><td>CJ 생성 전 E87 carrier 상태와 E40 PJob 상태를 모두 확인합니다.</td><td>입력 조건과 설정값이 화면/DB에 남는다.</td></tr>
+<tr><td><strong>2</strong></td><td>CJ 상태가 executing일 때 recipe나 slot map이 바뀌지 않도록 변경 잠금을 둡니다.</td><td>정상/오류 케이스가 테스트로 재현된다.</td></tr>
+<tr><td><strong>3</strong></td><td>여러 PJob을 포함하는 CJ에서는 완료 기준을 명확히 합니다. 일부 wafer 실패를 전체 실패로 볼지 부분 완료로 볼지 고객 룰이 필요합니다.</td><td>정상/오류 케이스가 테스트로 재현된다.</td></tr>
+<tr><td><strong>4</strong></td><td>CJ 완료 후 결과는 MES lot history, E90 substrate history, E10 time state와 연결합니다.</td><td>장애 상황에서도 로그와 상태가 일관된다.</td></tr></tbody>
+      </table>
+      <h3>서비스 분리 예시</h3>
+      <div class="codebox">Controller/API
+  -> Command Validator
+  -> Standard Domain Service (E94)
+  -> State Repository
+  -> Event Publisher
+  -> Audit/Metric Writer</div>
+      <p>Domain Service 안에는 E94의 상태 전이, 권한 판단, 데이터 품질 판단 같은 표준별 규칙을 넣고, Controller에는 HTTP나 화면 요청 처리만 남기는 구조가 유지보수에 좋습니다.</p>
+    </section>
+
+    <section id="logic" class="section">
+      <h2>7. 처리 로직 상세</h2>
+      <p>아래 의사코드는 E94 이벤트를 받았을 때 공통적으로 적용할 수 있는 처리 흐름입니다. 실제 코드는 Java, C#, Python, Node.js 어느 언어로 작성해도 되지만 순서는 유지하는 편이 안전합니다.</p>
+      <div class="codebox">function handleE94Event(event):
+  assert event.equipmentId is not empty
+  assert event.eventTime is not in the future beyond allowedSkew
+  dictionary = loadDictionary(event.equipmentId, event.standardVersion)
+  normalized = normalize(event, dictionary)
+  validationResult = validateBusinessRule(normalized)
+  saveRawEvent(event)
+  if validationResult.ok:
+      updateCurrentState(normalized)
+      appendHistory(normalized)
+      publishToConsumers(normalized)
+  else:
+      createExceptionRecord(normalized, validationResult.reason)
+      notifyOperatorIfNeeded()</div>
+      <h3>예외 처리 원칙</h3>
+      <ul><li>오류 이벤트도 버리지 않습니다. raw event와 실패 이유를 저장해야 재처리와 벤더 문의가 가능합니다.</li>
+<li>장비 시간과 서버 시간이 다를 수 있으므로 허용 가능한 clock skew를 설정합니다.</li>
+<li>중복 이벤트는 idempotency key로 걸러냅니다. 보통 equipment_id, event_name, event_time, sequence를 조합합니다.</li>
+<li>업무 시스템으로 내보내기 전에 표준 상태값을 사내 공통 코드로 매핑합니다.</li></ul>
+    </section>
+
+    <section id="test" class="section">
+      <h2>8. 테스트 시나리오</h2>
+      <p>표준 구현의 품질은 정상 케이스보다 예외 케이스에서 드러납니다. 아래 테스트를 자동화하면 장비 반입과 SW 변경 검증 시간이 크게 줄어듭니다.</p>
+      <table>
+        <thead><tr><th>테스트</th><th>입력 조건</th><th>기대 결과</th></tr></thead>
+        <tbody><tr><td>TC-01</td><td>정상 CJ 생성/실행/완료</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-02</td><td>PJob 미준비 상태 CJ 생성 거부</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-03</td><td>실행 중 carrier 제거 알람</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-04</td><td>부분 실패 결과 저장</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr></tbody>
+      </table>
+      <h3>자주 발생하는 실수</h3>
+      <div><span class="badge">CJ와 PJ를 같은 객체로 모델링</span> <span class="badge">carrier unload 후 CJ 상태가 active로 남음</span> <span class="badge">partial complete 정책 누락</span></div>
+    </section>
+
+    <section id="ops" class="section">
+      <h2>9. 운영 화면과 모니터링 설계</h2>
+      <p>E94를 운영 시스템에 넣을 때는 개발자 로그만으로 부족합니다. 운영자가 즉시 판단할 수 있도록 현재 상태, 마지막 이벤트 시각, 실패 원인, 관련 객체 링크를 한 화면에 보여줘야 합니다.</p>
+      <div class="grid">
+        <div class="card"><strong>상태 패널</strong><span>현재 상태, 마지막 정상 이벤트, 마지막 오류 이벤트, 장비/Client 연결 상태를 표시합니다.</span></div>
+        <div class="card"><strong>이력 타임라인</strong><span>이벤트가 어떤 순서로 발생했는지 시간축으로 보여주고 raw payload까지 drill-down할 수 있게 합니다.</span></div>
+        <div class="card"><strong>품질/예외 큐</strong><span>미처리 오류, 재처리 대상, 승인 대기 예외를 운영자가 확인하고 조치합니다.</span></div>
       </div>
-      <div class="card">
-        <strong>Exception Recovery (복구 지시)</strong>
-        <span>작업 중 알람이 발생해 장비가 멈췄을 때, CJ 레벨에서 재시도(Resume)를 할지, 현재 상태에서 그대로 작업을 포기(Abort)할지를 호스트가 결정하여 지시합니다. 이때 남아있는(미가공) 웨이퍼의 상태 처리가 매우 까다로우므로 상태도 다이어그램(State Diagram) 검증이 필수입니다.</span>
-      </div>
-    </div>
-  </section>
-  </main></body></html>
+      <h3>완료 체크리스트</h3>
+      <ul><li>표준 객체와 사내 공통 코드의 매핑표가 있다.</li>
+<li>정상/오류/재처리/중복 이벤트 테스트가 자동화되어 있다.</li>
+<li>운영자가 볼 수 있는 현재 상태 화면과 이력 화면이 있다.</li>
+<li>장비 SW 또는 표준 사전 변경 시 영향 분석 절차가 있다.</li>
+<li>공식 SEMI 문서와 고객 사양서 기준으로 최종 검토했다.</li></ul>
+    </section>
+  </main>
+</body>
+</html>

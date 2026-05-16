@@ -1,80 +1,209 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E90 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SEMI E90 Guide - STS</title>
+  <link rel="stylesheet" href="../semi-page.css">
+  <style>
+    .lesson-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
+    .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
+    @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E90</div>
-    <section class="hero"><h1>SEMI E90 - Substrate Tracking</h1><p>Wafer/Substrate의 위치, 이동, 처리 상태를 추적하는 모델입니다.</p><div class="chips"><span class="chip">GEM300 생산 실행</span><span class="chip">Guide &amp; Developer</span></div></section>
-    <section class="section"><h2>기능 요약</h2><p>Carrier보다 더 세밀한 Wafer 단위 이력과 공정 문맥을 만듭니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
-    <section class="section"><h2>표준 관계 DFD</h2>
-      <div class="flow-diagram">
-        <div class="flow-node">
-          <strong>Carrier Slot</strong>
-          <span class="tiny">Input</span>
+
+    <section class="hero">
+      <h1>SEMI E90 - STS</h1>
+      <p>Substrate Tracking. SEMI E90은 wafer 또는 substrate가 carrier, load port, chamber, aligner, buffer 등 장비 내부 어디에 있는지 추적합니다. 학생에게는 &#39;lot이 처리됐다&#39;가 아니라 각 wafer의 이동 경로와 상태를 기록해야 하는 이유를 보여주는 표준입니다.</p>
+      <div class="chips">
+        <span class="chip">GEM300</span>
+        <span class="chip">교육용 상세 가이드</span>
+        <span class="chip">개발 설계 관점</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>학습 목표</h2>
+      <div class="lesson-index">
+        <a href="#concept">1. 표준의 역할</a>
+        <a href="#dfd">2. DFD와 데이터 흐름</a>
+        <a href="#model">3. 객체/상태 모델</a>
+        <a href="#implementation">4. 구현 설계</a>
+        <a href="#database">5. 데이터베이스</a>
+        <a href="#logic">6. 처리 로직</a>
+        <a href="#test">7. 테스트</a>
+        <a href="#ops">8. 운영 체크</a>
+      </div>
+      <div class="callout">이 문서는 수업과 시스템 설계를 돕기 위한 교육용 해설입니다. 실제 프로젝트 적용 시에는 고객 사양서, 장비 벤더 매뉴얼, 최신 SEMI 공식 문서를 함께 확인해야 합니다.</div>
+      <p><strong>수업에서 기억할 핵심:</strong> E90는 wafer mix 방지, chamber별 이력 추적, recipe 결과를 개별 substrate와 연결, 공정 중 분실/중복 감지에 사용합니다. 이 문서를 읽을 때는 표준 번호를 외우는 것보다, 입력 데이터가 어디서 오고 어떤 상태 판단을 거쳐 어떤 업무 시스템으로 전달되는지 따라가야 합니다.</p>
+    </section>
+
+    <section id="concept" class="section">
+      <h2>1. 표준의 역할과 현장 배경</h2>
+      <p>SEMI E90은 wafer 또는 substrate가 carrier, load port, chamber, aligner, buffer 등 장비 내부 어디에 있는지 추적합니다. 학생에게는 &#39;lot이 처리됐다&#39;가 아니라 각 wafer의 이동 경로와 상태를 기록해야 하는 이유를 보여주는 표준입니다.</p>
+      <p>반도체 fab의 자동화 시스템은 장비, EAP, MES, FDC, APC, 물류 시스템이 동시에 움직입니다. 이때 E90 영역의 데이터가 애매하면 운영자는 같은 현상을 서로 다른 용어로 부르게 되고, 개발자는 예외 처리를 코드 곳곳에 흩뿌리게 됩니다. 따라서 먼저 표준이 다루는 경계를 정하고, 그 안에서 공통 객체와 상태를 모델링해야 합니다.</p>
+      <div class="two-col">
+        <div class="card">
+          <strong>학생에게 설명하는 비유</strong>
+          <span>E90를 하나의 교실 규칙이라고 보면 됩니다. 교사가 출석, 과제, 시험을 같은 양식으로 관리해야 학생별 이력을 비교할 수 있듯이, 장비 자동화도 Substrate ID, Location, Substrate State, History 같은 핵심 요소를 같은 언어로 관리해야 합니다.</span>
         </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Transfer Module</strong>
-          <span class="tiny">Process</span>
-        </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Process Module</strong>
-          <span class="tiny">Process</span>
-        </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Substrate History</strong>
-          <span class="tiny">Process</span>
-        </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>MES Trace</strong>
-          <span class="tiny">Output</span>
+        <div class="card">
+          <strong>개발자에게 중요한 이유</strong>
+          <span>표준을 데이터 모델로 옮기면 화면, API, 이벤트 처리, 장애 분석이 같은 기준을 공유합니다. 반대로 표준을 문서로만 두면 프로젝트마다 다른 용어와 상태값이 생겨 유지보수가 어려워집니다.</span>
         </div>
       </div>
     </section>
-    <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
-  <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>substrate</strong></td><td>substrate_id, lot_id, carrier_id, slot_no, product_id, state</td></tr><tr><td><strong>substrate_location_history</strong></td><td>substrate_id, from_location, to_location, move_reason, event_time</td></tr></tbody></table></section>
-  <section class="section">
-    <h2>1장. SEMI E90 (Substrate Tracking) 개요</h2>
-    <p>SEMI E90은 장비 내부에 들어온 <strong>개별 웨이퍼(Substrate)의 위치와 상태를 정밀하게 추적</strong>하는 표준입니다. E87이 "FOUP(통)" 단위의 관리라면, E90은 그 통 안에 들어있는 25장의 "웨이퍼 한 장 한 장"에 대한 주민등록등본이자 GPS 역할을 합니다.</p>
-  </section>
 
-  <section class="section">
-    <h2>2장. Substrate Object의 생명 주기</h2>
-    <p>웨이퍼는 장비 밖에서 OHT를 타고 다닐 때는 호스트(MES)가 추적하지만, FOUP에 담겨 장비(Load Port)에 도착하는 순간 장비 내부의 E90 Substrate 객체로 생성(Instantiate)됩니다.</p>
-    
-    <h3>1. Substrate Location (위치 추적)</h3>
-    <p>장비 내부에서 웨이퍼의 위치는 3단계로 보고됩니다. 웨이퍼가 로봇 암(Arm)을 타고 챔버로 들어갔다 나오는 모든 순간이 S6F11 이벤트로 호스트에 중계됩니다.</p>
-    <ul>
-      <li><strong>At Source:</strong> 웨이퍼가 아직 원래의 FOUP(출발지) 슬롯에 꽂혀 있는 상태.</li>
-      <li><strong>At Work:</strong> 로봇이 웨이퍼를 집어 챔버(Process Module), Aligner, Loadlock 등으로 이동 중이거나 가공 중인 상태.</li>
-      <li><strong>At Destination:</strong> 가공을 마치고 다시 목적지 FOUP(보통은 원래의 FOUP, 가끔 다른 FOUP)의 슬롯에 꽂힌 상태.</li>
-    </ul>
+    <section id="dfd" class="section">
+      <h2>2. DFD: 데이터가 흘러가는 방식</h2>
+      <div class="flow-diagram">
+        <div class="flow-node"><strong>Slot Map</strong><span class="tiny">Input</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>Substrate ID/위치 등록</strong><span class="tiny">Process</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>장비 내부 이동</strong><span class="tiny">Process</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>Process 상태 변경</strong><span class="tiny">Process</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>반출 검증</strong><span class="tiny">Output</span></div>
+      </div>
+      <p style="margin-top:14px">위 흐름은 E90를 프로그램으로 구현할 때의 기본 DFD입니다. 단순히 화면에 값을 보여주는 흐름이 아니라, 입력, 검증, 상태 판단, 저장, 업무 시스템 전달까지 포함합니다.</p>
+      <table>
+        <thead><tr><th>단계</th><th>처리 의미</th><th>개발 시 저장/검증 포인트</th></tr></thead>
+        <tbody><tr><td><strong>1. Slot Map</strong></td><td>입력 데이터 또는 시작 조건</td><td>장비, Host, 운영자, 물류 시스템에서 발생</td></tr>
+<tr><td><strong>2. Substrate ID/위치 등록</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>3. 장비 내부 이동</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>4. Process 상태 변경</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>5. 반출 검증</strong></td><td>업무 시스템이 사용하는 결과</td><td>MES/EAP/대시보드/분석 시스템으로 전달</td></tr></tbody>
+      </table>
+    </section>
 
-    <h3>2. Substrate Processing State (공정 상태)</h3>
-    <p>위치뿐만 아니라, 해당 웨이퍼가 "구워지고 있는지" 상태도 추적합니다.</p>
-    <ul>
-      <li><strong>NeedsProcessing:</strong> 가공 전 상태.</li>
-      <li><strong>InProcess:</strong> 현재 챔버에서 플라즈마를 맞거나 화학 반응 중인 상태.</li>
-      <li><strong>Processed:</strong> 정상적으로 가공이 완료된 상태.</li>
-      <li><strong>Rejected / Aborted:</strong> 공정 중 에러가 나서 불량이 되거나 가공이 취소된 상태.</li>
-    </ul>
-  </section>
+    <section id="model" class="section">
+      <h2>3. 핵심 객체와 상태 모델</h2>
+      <p>E90 구현은 아래 객체들을 중심으로 설계하면 이해가 쉽습니다. 학생들은 각 객체가 "무엇을 식별하고", "어떤 상태를 가지며", "어떤 이벤트로 변하는지"를 먼저 그려보면 됩니다.</p>
+      <table>
+        <thead><tr><th>객체/개념</th><th>역할</th><th>수업식 해설</th></tr></thead>
+        <tbody><tr><td><strong>Substrate ID</strong></td><td>개별 wafer 식별</td><td>물리 wafer 또는 기판을 추적하는 ID입니다.</td></tr>
+<tr><td><strong>Location</strong></td><td>현재 위치</td><td>Carrier slot, chamber, buffer 등 논리/물리 위치입니다.</td></tr>
+<tr><td><strong>Substrate State</strong></td><td>처리 상태</td><td>Waiting, InProcess, Processed, Rejected 등으로 추적합니다.</td></tr>
+<tr><td><strong>History</strong></td><td>이동 이력</td><td>어디서 어디로 언제 이동했는지 저장합니다.</td></tr></tbody>
+      </table>
+      <h3>상태 전이 관점</h3>
+      <p>상태 모델은 "현재 상태를 저장하는 테이블"과 "상태가 바뀐 이력 테이블"을 분리해서 생각해야 합니다. 현재 상태는 화면과 제어 판단에 빠르게 쓰이고, 이력은 감사, 추적, KPI 계산, 장애 분석에 쓰입니다.</p>
+      <div class="codebox">state_event_received
+  -> validate_event_order
+  -> close_previous_interval_if_needed
+  -> update_current_state
+  -> append_history
+  -> publish_business_event</div>
+    </section>
 
-  <section class="section">
-    <h2>3장. E90과 팹 자동화의 융합</h2>
-    <p>E90의 위치 데이터는 팹 운영에 치명적일 정도로 중요합니다.</p>
-    
-    <table>
-      <thead><tr><th>활용 분야</th><th>설명</th></tr></thead>
-      <tbody>
-        <tr><td><strong>FDC 및 APC 연동</strong></td><td>"지금 1번 챔버에 들어간 웨이퍼가 몇 번 FOUP의 몇 번 슬롯이었지?"를 알아야 해당 시점의 센서 데이터(온도/압력)를 그 웨이퍼의 품질 데이터와 매핑할 수 있습니다.</td></tr>
-        <tr><td><strong>Scrap (폐기) 추적</strong></td><td>장비 내부에서 정전이나 알람이 발생했을 때, 로봇 암 위에 있던 웨이퍼와 챔버 안에 있던 웨이퍼를 정확히 식별하여 살릴지 폐기할지 결정합니다.</td></tr>
-        <tr><td><strong>Sort (웨이퍼 재배치)</strong></td><td>A FOUP에 있는 양품만 골라 B FOUP으로 옮겨 담는 작업(Sorter 장비)의 핵심이 E90의 Source/Destination 추적 로직입니다.</td></tr>
-      </tbody>
-    </table>
-  </section>
+    <section class="section">
+      <h2>4. 메시지와 이벤트 설계</h2>
+      <p>표준을 실제 시스템에 연결할 때는 메시지 이름보다 메시지가 만드는 업무 효과를 더 중요하게 봐야 합니다. 예를 들어 ACK가 성공이어도 실제 상태가 바뀌지 않았으면 업무적으로는 아직 완료가 아닙니다.</p>
+      <table>
+        <thead><tr><th>메시지/이벤트</th><th>의도</th><th>구현 시 확인할 점</th></tr></thead>
+        <tbody><tr><td><strong>Substrate Location Event</strong></td><td>위치 변화</td><td>장비 내부 이동을 Host에 보고합니다.</td></tr>
+<tr><td><strong>Substrate Process State</strong></td><td>공정 상태</td><td>개별 wafer의 처리 시작/완료를 알립니다.</td></tr>
+<tr><td><strong>Mismatch Event</strong></td><td>불일치</td><td>예상 위치와 실제 위치가 다를 때 보고합니다.</td></tr></tbody>
+      </table>
+    </section>
 
-  <section class="section">
-    <h2>4장. 실무 적용 시 트러블슈팅</h2>
-    <div class="note"><strong>"유령 웨이퍼 (Ghost Wafer) 현상"</strong><br>장비 센서 오류나 통신 지연으로, 분명히 로봇이 웨이퍼를 챔버에 넣었는데 E90 이벤트 상으로는 아직 로봇 암(At Work)에 남아있다고 보고되는 경우가 있습니다. 이 상태에서 다음 웨이퍼를 밀어 넣으면 물리적 충돌(Wafer Crash)이 발생해 수억 원의 손실이 발생합니다. 호스트 EAP는 반드시 이전 웨이퍼의 'At Destination' 이벤트를 확인한 후 다음 웨이퍼의 투입 지시를 내려야 합니다.</div>
-  </section>
-  </main></body></html>
+    <section id="database" class="section">
+      <h2>5. 권장 데이터베이스 구조</h2>
+      <p>아래 테이블은 교육용 설계 예시입니다. 실제 프로젝트에서는 장비 수, 이벤트량, 보존 기간, 고객 naming rule에 맞춰 column을 조정해야 합니다. 그래도 핵심은 원본 이벤트, 현재 상태, 이력, 설정 버전을 분리하는 것입니다.</p>
+      <table>
+        <thead><tr><th>테이블</th><th>권장 컬럼</th><th>설계 이유</th></tr></thead>
+        <tbody><tr><td><strong>substrate_current</strong></td><td><code>substrate_id, equipment_id, current_location, state, carrier_id, slot_no, updated_at</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr>
+<tr><td><strong>substrate_move_history</strong></td><td><code>move_id, substrate_id, from_location, to_location, move_time, reason_code</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr></tbody>
+      </table>
+      <h3>ERD를 그릴 때의 원칙</h3>
+      <ul><li>장비 ID, 표준 객체 ID, 발생 시각은 대부분의 테이블에 들어가는 기본 축입니다.</li>
+<li>현재 상태 테이블은 업데이트가 많고, 이력 테이블은 append 중심으로 설계합니다.</li>
+<li>설정값과 사전 정보는 version을 둡니다. 장비 SW 변경 후 같은 ID의 의미가 바뀌는 경우가 있습니다.</li>
+<li>원본 payload 또는 raw message 참조를 남기면 장애 분석과 재처리가 쉬워집니다.</li></ul>
+    </section>
+
+    <section id="implementation" class="section">
+      <h2>6. 구현 절차</h2>
+      <p>처음부터 전체 자동화를 만들려고 하면 복잡합니다. 수업 프로젝트나 PoC에서는 다음 순서로 구현하면 기능이 자연스럽게 쌓입니다.</p>
+      <table>
+        <thead><tr><th>순서</th><th>구현 항목</th><th>완료 기준</th></tr></thead>
+        <tbody><tr><td><strong>1</strong></td><td>current 테이블과 history 테이블을 분리합니다. 화면은 current를 빠르게 보고, 추적/감사는 history를 봅니다.</td><td>입력 조건과 설정값이 화면/DB에 남는다.</td></tr>
+<tr><td><strong>2</strong></td><td>위치 변경은 트랜잭션으로 처리합니다. 이전 위치 제거와 새 위치 등록이 둘 중 하나만 성공하면 중복 wafer처럼 보입니다.</td><td>정상/오류 케이스가 테스트로 재현된다.</td></tr>
+<tr><td><strong>3</strong></td><td>장비가 substrate ID를 직접 읽지 못하는 경우 carrier slot 기반의 inferred ID 정책을 명확히 둡니다.</td><td>정상/오류 케이스가 테스트로 재현된다.</td></tr>
+<tr><td><strong>4</strong></td><td>E40 Process Job과 연결하여 &#39;어떤 wafer가 어떤 recipe로 어떤 chamber에서 처리됐는가&#39;를 한 번에 조회할 수 있게 합니다.</td><td>장애 상황에서도 로그와 상태가 일관된다.</td></tr></tbody>
+      </table>
+      <h3>서비스 분리 예시</h3>
+      <div class="codebox">Controller/API
+  -> Command Validator
+  -> Standard Domain Service (E90)
+  -> State Repository
+  -> Event Publisher
+  -> Audit/Metric Writer</div>
+      <p>Domain Service 안에는 E90의 상태 전이, 권한 판단, 데이터 품질 판단 같은 표준별 규칙을 넣고, Controller에는 HTTP나 화면 요청 처리만 남기는 구조가 유지보수에 좋습니다.</p>
+    </section>
+
+    <section id="logic" class="section">
+      <h2>7. 처리 로직 상세</h2>
+      <p>아래 의사코드는 E90 이벤트를 받았을 때 공통적으로 적용할 수 있는 처리 흐름입니다. 실제 코드는 Java, C#, Python, Node.js 어느 언어로 작성해도 되지만 순서는 유지하는 편이 안전합니다.</p>
+      <div class="codebox">function handleE90Event(event):
+  assert event.equipmentId is not empty
+  assert event.eventTime is not in the future beyond allowedSkew
+  dictionary = loadDictionary(event.equipmentId, event.standardVersion)
+  normalized = normalize(event, dictionary)
+  validationResult = validateBusinessRule(normalized)
+  saveRawEvent(event)
+  if validationResult.ok:
+      updateCurrentState(normalized)
+      appendHistory(normalized)
+      publishToConsumers(normalized)
+  else:
+      createExceptionRecord(normalized, validationResult.reason)
+      notifyOperatorIfNeeded()</div>
+      <h3>예외 처리 원칙</h3>
+      <ul><li>오류 이벤트도 버리지 않습니다. raw event와 실패 이유를 저장해야 재처리와 벤더 문의가 가능합니다.</li>
+<li>장비 시간과 서버 시간이 다를 수 있으므로 허용 가능한 clock skew를 설정합니다.</li>
+<li>중복 이벤트는 idempotency key로 걸러냅니다. 보통 equipment_id, event_name, event_time, sequence를 조합합니다.</li>
+<li>업무 시스템으로 내보내기 전에 표준 상태값을 사내 공통 코드로 매핑합니다.</li></ul>
+    </section>
+
+    <section id="test" class="section">
+      <h2>8. 테스트 시나리오</h2>
+      <p>표준 구현의 품질은 정상 케이스보다 예외 케이스에서 드러납니다. 아래 테스트를 자동화하면 장비 반입과 SW 변경 검증 시간이 크게 줄어듭니다.</p>
+      <table>
+        <thead><tr><th>테스트</th><th>입력 조건</th><th>기대 결과</th></tr></thead>
+        <tbody><tr><td>TC-01</td><td>carrier slot에서 chamber 이동</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-02</td><td>중복 위치 등록 방지</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-03</td><td>unknown substrate 처리</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-04</td><td>반출 전 원위치 검증</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr></tbody>
+      </table>
+      <h3>자주 발생하는 실수</h3>
+      <div><span class="badge">slot 번호를 0-base와 1-base로 혼용</span> <span class="badge">wafer 이동 중 중간 위치를 누락</span> <span class="badge">공정 실패 wafer를 processed로 처리</span></div>
+    </section>
+
+    <section id="ops" class="section">
+      <h2>9. 운영 화면과 모니터링 설계</h2>
+      <p>E90를 운영 시스템에 넣을 때는 개발자 로그만으로 부족합니다. 운영자가 즉시 판단할 수 있도록 현재 상태, 마지막 이벤트 시각, 실패 원인, 관련 객체 링크를 한 화면에 보여줘야 합니다.</p>
+      <div class="grid">
+        <div class="card"><strong>상태 패널</strong><span>현재 상태, 마지막 정상 이벤트, 마지막 오류 이벤트, 장비/Client 연결 상태를 표시합니다.</span></div>
+        <div class="card"><strong>이력 타임라인</strong><span>이벤트가 어떤 순서로 발생했는지 시간축으로 보여주고 raw payload까지 drill-down할 수 있게 합니다.</span></div>
+        <div class="card"><strong>품질/예외 큐</strong><span>미처리 오류, 재처리 대상, 승인 대기 예외를 운영자가 확인하고 조치합니다.</span></div>
+      </div>
+      <h3>완료 체크리스트</h3>
+      <ul><li>표준 객체와 사내 공통 코드의 매핑표가 있다.</li>
+<li>정상/오류/재처리/중복 이벤트 테스트가 자동화되어 있다.</li>
+<li>운영자가 볼 수 있는 현재 상태 화면과 이력 화면이 있다.</li>
+<li>장비 SW 또는 표준 사전 변경 시 영향 분석 절차가 있다.</li>
+<li>공식 SEMI 문서와 고객 사양서 기준으로 최종 검토했다.</li></ul>
+    </section>
+  </main>
+</body>
+</html>

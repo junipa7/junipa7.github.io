@@ -1,120 +1,212 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E10 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SEMI E10 Guide - RAM</title>
+  <link rel="stylesheet" href="../semi-page.css">
+  <style>
+    .lesson-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
+    .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
+    @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E10</div>
-    <section class="hero"><h1>SEMI E10 - Equipment Reliability, Availability, Maintainability</h1><p>장비 신뢰성/가용성 측정과 상태 분류를 위한 기준입니다.</p><div class="chips"><span class="chip">KPI / 신뢰성</span><span class="chip">Guide &amp; Developer</span></div></section>
-    <section class="section"><h2>기능 요약</h2><p>OEE, Availability, MTBF, MTTR, Down Time Pareto의 표준화된 계산 기반입니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
-    <section class="section"><h2>표준 관계 DFD</h2>
-      <div class="flow-diagram">
-        <div class="flow-node">
-          <strong>Equipment State Event</strong>
-          <span class="tiny">Input</span>
+
+    <section class="hero">
+      <h1>SEMI E10 - RAM</h1>
+      <p>Reliability, Availability, Maintainability. SEMI E10은 장비 시간을 Productive, Standby, Engineering, Scheduled Downtime, Unscheduled Downtime, Non-Scheduled Time 등으로 나누고 MTBF, MTTR, Availability 같은 지표를 계산하는 방법을 설명합니다.</p>
+      <div class="chips">
+        <span class="chip">Productivity</span>
+        <span class="chip">교육용 상세 가이드</span>
+        <span class="chip">개발 설계 관점</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>학습 목표</h2>
+      <div class="lesson-index">
+        <a href="#concept">1. 표준의 역할</a>
+        <a href="#dfd">2. DFD와 데이터 흐름</a>
+        <a href="#model">3. 객체/상태 모델</a>
+        <a href="#implementation">4. 구현 설계</a>
+        <a href="#database">5. 데이터베이스</a>
+        <a href="#logic">6. 처리 로직</a>
+        <a href="#test">7. 테스트</a>
+        <a href="#ops">8. 운영 체크</a>
+      </div>
+      <div class="callout">이 문서는 수업과 시스템 설계를 돕기 위한 교육용 해설입니다. 실제 프로젝트 적용 시에는 고객 사양서, 장비 벤더 매뉴얼, 최신 SEMI 공식 문서를 함께 확인해야 합니다.</div>
+      <p><strong>수업에서 기억할 핵심:</strong> E10는 장비 성능 대시보드, 설비 벤더 평가, PM 효과 분석, 다운타임 Pareto, OEE 계산의 시간 기반 입력으로 사용합니다. 이 문서를 읽을 때는 표준 번호를 외우는 것보다, 입력 데이터가 어디서 오고 어떤 상태 판단을 거쳐 어떤 업무 시스템으로 전달되는지 따라가야 합니다.</p>
+    </section>
+
+    <section id="concept" class="section">
+      <h2>1. 표준의 역할과 현장 배경</h2>
+      <p>SEMI E10은 장비 시간을 Productive, Standby, Engineering, Scheduled Downtime, Unscheduled Downtime, Non-Scheduled Time 등으로 나누고 MTBF, MTTR, Availability 같은 지표를 계산하는 방법을 설명합니다.</p>
+      <p>반도체 fab의 자동화 시스템은 장비, EAP, MES, FDC, APC, 물류 시스템이 동시에 움직입니다. 이때 E10 영역의 데이터가 애매하면 운영자는 같은 현상을 서로 다른 용어로 부르게 되고, 개발자는 예외 처리를 코드 곳곳에 흩뿌리게 됩니다. 따라서 먼저 표준이 다루는 경계를 정하고, 그 안에서 공통 객체와 상태를 모델링해야 합니다.</p>
+      <div class="two-col">
+        <div class="card">
+          <strong>학생에게 설명하는 비유</strong>
+          <span>E10를 하나의 교실 규칙이라고 보면 됩니다. 교사가 출석, 과제, 시험을 같은 양식으로 관리해야 학생별 이력을 비교할 수 있듯이, 장비 자동화도 PRD, SBY, ENG, SDT 같은 핵심 요소를 같은 언어로 관리해야 합니다.</span>
         </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>E10 Classifier</strong>
-          <span class="tiny">Process</span>
-        </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Availability KPI</strong>
-          <span class="tiny">Process</span>
-        </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Dashboard</strong>
-          <span class="tiny">Output</span>
+        <div class="card">
+          <strong>개발자에게 중요한 이유</strong>
+          <span>표준을 데이터 모델로 옮기면 화면, API, 이벤트 처리, 장애 분석이 같은 기준을 공유합니다. 반대로 표준을 문서로만 두면 프로젝트마다 다른 용어와 상태값이 생겨 유지보수가 어려워집니다.</span>
         </div>
       </div>
     </section>
-    <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
-  <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>equipment_state_interval</strong></td><td>equipment_id, e10_state, reason_code, start_time, end_time, duration_sec</td></tr><tr><td><strong>availability_metric</strong></td><td>equipment_id, metric_name, numerator_sec, denominator_sec, value, window_start, window_end</td></tr></tbody></table></section>
-  <section class="section">
-    <h2>1장. 장비 상태와 시간의 계층 구조 (Time Hierarchy &amp; States)</h2>
-    <p>SEMI E10은 단순히 장비가 "돈다/안 돈다"를 넘어서, 장비의 24시간을 현미경처럼 들여다보고 분석하기 위한 프레임워크입니다. 이를 위해 시간을 철저하게 상호 배타적인(Mutually Exclusive) 상태로 쪼갭니다.</p>
-    <h3>1. 시간의 기본 계층 구조 (Time Stack)</h3>
-    <p>모든 시간 분석은 <strong>총 시간(Total Time, 보통 1주일=168시간 기준)</strong>에서 출발하여 아래로 세분화됩니다.</p>
-    <ul>
-      <li>Total Time (총 시간) = Operations Time + Non-Scheduled Time (NST)</li>
-      <li>Operations Time (운영 시간) = Equipment Uptime + Equipment Downtime</li>
-      <li>Equipment Uptime (가동 시간) = Productive (PRD) + Standby (SBY) + Engineering (ENG)</li>
-      <li>Equipment Downtime (비가동 시간) = Scheduled Downtime (SDT) + Unscheduled Downtime (UDT)</li>
-    </ul>
-    <h3>2. 6대 기본 상태와 세부 상태 (Sub-states) 심층 분석</h3>
-    <p>단순한 6가지 분류를 넘어, 실무에서는 고장의 진짜 원인을 찾기 위해 각 상태를 다시 <strong>세부 상태(Sub-states)</strong>로 나눕니다.</p>
-    <table>
-      <thead><tr><th>상태 (State)</th><th>설명</th><th>주요 세부 상태 (Sub-states)</th></tr></thead>
-      <tbody>
-        <tr><td>PRD (생산 시간)</td><td>장비가 가치를 창출하는 시간 (정상 공정 진행 중)</td><td>정상 생산, 우회 생산, 재작업</td></tr>
-        <tr><td>SBY (대기 시간)</td><td>장비는 문제가 없으나 공장 사정으로 쉬는 시간 (장비 제조사 책임 없음)</td><td>작업자 대기, 자재 대기, 지원 장비 대기, 호스트 통신 대기</td></tr>
-        <tr><td>ENG (엔지니어링 시간)</td><td>테스트 및 개선을 위해 장비 시간을 '투자'하는 개념</td><td>공정 실험, 장비 실험, 소프트웨어 업데이트</td></tr>
-        <tr><td>SDT (계획된 비가동 시간)</td><td>공장 스케줄에 미리 반영해 둔 '합법적인' 정지 시간</td><td>예방 정비 (PM), 소모품 교체, 셋업/기종 변경, 계획된 유틸리티 중단</td></tr>
-        <tr><td>UDT (계획되지 않은 비가동 시간)</td><td>돌발적인 고장으로 인한 정지 (장비 신뢰성 감점 요인)</td><td>수리, 정비 대기, 스펙 이탈</td></tr>
-        <tr><td>NST (비계획 시간)</td><td>공장 운영 달력에서 아예 제외된 시간</td><td>휴무 스킵, 설치 및 개조</td></tr>
-      </tbody>
-    </table>
-  </section>
 
-  <section class="section">
-    <h2>2장. RAM 핵심 지표와 계산 공식 (Metrics &amp; Formulas)</h2>
-    <p>SEMI E10의 궁극적인 목적은 수집된 시간 데이터를 바탕으로 장비의 성능을 객관적인 지표(KPI)로 수치화하는 것입니다.</p>
-    <h3>1. 신뢰성 (Reliability) 지표</h3>
-    <p>장비가 얼마나 '고장 없이' 버티는가를 측정합니다.</p>
-    <table>
-      <thead><tr><th>지표</th><th>공식</th><th>심층 해설</th></tr></thead>
-      <tbody>
-        <tr><td>MTBF (평균 무고장 시간)</td><td>Total Productive Time (PRD) / Number of Failures</td><td>순수하게 생산한 시간(PRD)만을 기준으로 고장 횟수를 나눕니다.</td></tr>
-        <tr><td>MTBA (평균 어시스트 간격)</td><td>Equipment Uptime / Number of Assists</td><td>사람이 개입해야 하는 자잘한 에러(Assist) 발생 주기를 측정합니다.</td></tr>
-        <tr><td>MTBI (평균 인시던트 간격)</td><td>Equipment Uptime / (Number of Failures + Number of Assists)</td><td>크고 작은 모든 트러블(고장+어시스트)의 총합 발생 주기를 봅니다.</td></tr>
-      </tbody>
-    </table>
-    <h3>2. 보전성 (Maintainability) 지표</h3>
-    <p>장비가 멈췄을 때, 얼마나 '빠르고 정확하게' 살려내는가를 측정합니다.</p>
-    <ul>
-      <li><strong>MTTR (Mean Time To Repair, 평균 수리 시간)</strong><br>공식: Total Repair Time / Number of Failures<br>심층 해설: 고장 인지, 부품 대기, 실제 수리, 검증까지 걸린 전체 UDT의 합을 나눕니다. MTTR이 높다면 예비 부품(Spare Part) 관리나 엔지니어의 스킬 부족을 의심해봐야 합니다.</li>
-    </ul>
-    <h3>3. 가용성 (Availability) 지표</h3>
-    <p>장비가 '원할 때 켜져서 돌아갈 수 있는 상태'인지를 나타냅니다.</p>
-    <ul>
-      <li><strong>Equipment Availability (EA, 장비 가용성)</strong><br>공식: (Equipment Uptime / Operations Time) * 100<br>심층 해설: 운영 시간 중 장비가 살아있는(PRD+SBY+ENG) 시간의 비율입니다.</li>
-      <li><strong>Supplier-Dependent Availability (공급자 책임 가용성)</strong><br>심층 해설: 공장 자체 유틸리티 문제나 작업자 실수를 제외하고, 순수 장비 자체 결함으로 인한 비가동 시간만 반영하여 장비 제조사(Supplier)의 책임을 평가합니다.</li>
-    </ul>
-    <h3>4. 활용도 (Utilization) 지표</h3>
-    <p>가용성이 아무리 높아도 활용하지 않으면 돈을 벌 수 없습니다.</p>
-    <ul>
-      <li><strong>Operational Utilization (운영 활용도)</strong><br>공식: (Productive Time / Operations Time) * 100<br>심층 해설: 장비 고장은 없는데(EA 높음) 활용도가 낮다면, 물류 시스템 문제(SBY-No Product) 등 팹 운영 능력의 문제입니다.</li>
-      <li><strong>Total Utilization (총 활용도)</strong><br>공식: (Productive Time / Total Time) * 100<br>심층 해설: 1년 365일(Total Time) 중 장비가 진정으로 돈을 벌어온 시간의 비율이며, 경영진의 ROI 판단 지표입니다.</li>
-    </ul>
-  </section>
+    <section id="dfd" class="section">
+      <h2>2. DFD: 데이터가 흘러가는 방식</h2>
+      <div class="flow-diagram">
+        <div class="flow-node"><strong>상태 이벤트 수집</strong><span class="tiny">Input</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>E10 상태 분류</strong><span class="tiny">Process</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>시간 구간 보정</strong><span class="tiny">Process</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>RAM 지표 계산</strong><span class="tiny">Process</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>Dashboard/Report</strong><span class="tiny">Output</span></div>
+      </div>
+      <p style="margin-top:14px">위 흐름은 E10를 프로그램으로 구현할 때의 기본 DFD입니다. 단순히 화면에 값을 보여주는 흐름이 아니라, 입력, 검증, 상태 판단, 저장, 업무 시스템 전달까지 포함합니다.</p>
+      <table>
+        <thead><tr><th>단계</th><th>처리 의미</th><th>개발 시 저장/검증 포인트</th></tr></thead>
+        <tbody><tr><td><strong>1. 상태 이벤트 수집</strong></td><td>입력 데이터 또는 시작 조건</td><td>장비, Host, 운영자, 물류 시스템에서 발생</td></tr>
+<tr><td><strong>2. E10 상태 분류</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>3. 시간 구간 보정</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>4. RAM 지표 계산</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>5. Dashboard/Report</strong></td><td>업무 시스템이 사용하는 결과</td><td>MES/EAP/대시보드/분석 시스템으로 전달</td></tr></tbody>
+      </table>
+    </section>
 
-  <section class="section">
-    <h2>3장. 실무 적용 및 데이터 수집 연동 (Implementation)</h2>
-    <p>이론적인 시간 분류와 공식을 실제 반도체 팹(Fab)에 어떻게 적용하고 데이터를 수집할 것인지에 대한 실무 가이드입니다.</p>
-    <h3>1. 데이터 수집 자동화 (SECS/GEM 통신 활용)</h3>
-    <p>과거 수작업 방식 대신, 현재는 SEMI E30 (GEM, Generic Equipment Model) 통신 표준을 이용하여 장비가 스스로 자신의 상태를 Host 시스템에 보고합니다.</p>
-    <ul>
-      <li><strong>CEID (Collection Event ID):</strong> 장비 상태가 변할 때마다(예: Processing -&gt; Standby) 장비는 특정한 이벤트 ID를 Host로 전송합니다.</li>
-      <li><strong>SVID (Status Variable ID):</strong> Host 시스템은 장비에게 현재의 E10 State 코드를 요청하여 받습니다.</li>
-    </ul>
-    <h3>2. 복합 상태 (Overlapping States) 처리의 비즈니스 룰</h3>
-    <p>SEMI E10은 한순간에 반드시 1개의 상태만 가져야 하므로 <strong>우선순위(Priority Rule)</strong>를 설정해야 합니다.</p>
-    <ul>
-      <li><strong>예시 1: SBY 중 UDT 발생</strong><br>장비가 자재 대기(SBY) 중 정전(UDT)이 발생했다면, 정전 시점부터는 SBY가 종료되고 UDT(Facilities-related)로 기록되어야 합니다. (고장/오프라인 상태가 대기 상태보다 우선함)</li>
-      <li><strong>예시 2: SDT 중 UDT 발생</strong><br>예방 정비(SDT) 중 실수로 중요 파츠를 파손하여 수리(Repair)를 해야 한다면, 원래 계획된 시간까지는 SDT로 인정하고, 초과된 수리 시간부터는 UDT로 전환해야 합니다.</li>
-    </ul>
-    <h3>3. Failure(고장) vs Assist(어시스트)의 실무적 구분</h3>
-    <p>E10에서 가장 논란이 많은 부분이며, 팹마다 기준이 조금씩 다르지만 일반적인 구분 기준은 다음과 같습니다.</p>
-    <table>
-      <thead><tr><th>구분</th><th>Failure (UDT 처리)</th><th>Assist (PRD/SBY에 포함되거나 별도 추적)</th></tr></thead>
-      <tbody>
-        <tr><td>복구 주체</td><td>전문 정비 엔지니어 (Equipment Engineer)</td><td>일반 오퍼레이터 또는 시스템 자동 리셋</td></tr>
-        <tr><td>조치 내용</td><td>부품 교체, 소프트웨어 재설치, 장비 분해</td><td>버튼 클릭, 걸린 웨이퍼 손으로 빼기</td></tr>
-        <tr><td>소요 시간</td><td>보통 6분(또는 10분) 초과</td><td>6분 이내에 복구 가능</td></tr>
-        <tr><td>영향도</td><td>장비의 재가동 전 파티클/더미 테스트 필요</td><td>즉시 원래 작업 재개 가능</td></tr>
-      </tbody>
-    </table>
-    <h3>4. SEMI E10과 SEMI E79(OEE)의 결합</h3>
-    <p>SEMI E10은 장비가 <strong>'얼마나 오래 살아서 돌았는가(시간)'</strong>만 측정합니다. 생산량이나 품질은 반영하지 못합니다.</p>
-    <p>이러한 맹점을 보완하기 위해 <strong>SEMI E79 (OEE, 설비 종합 효율)</strong>가 필요합니다.</p>
-    <div class="note">OEE = 가동률(Availability) × 성능 효율(Performance) × 양품률(Quality)</div>
-    <p>OEE 공식에서 <strong>'가동률(Availability)'</strong>에 들어가는 시간 데이터를 바로 SEMI E10이 제공합니다. 따라서 E10이 정확하게 측정되지 않으면 OEE 지표의 신뢰성도 떨어지게 됩니다.</p>
-  </section>
-  </main></body></html>
+    <section id="model" class="section">
+      <h2>3. 핵심 객체와 상태 모델</h2>
+      <p>E10 구현은 아래 객체들을 중심으로 설계하면 이해가 쉽습니다. 학생들은 각 객체가 "무엇을 식별하고", "어떤 상태를 가지며", "어떤 이벤트로 변하는지"를 먼저 그려보면 됩니다.</p>
+      <table>
+        <thead><tr><th>객체/개념</th><th>역할</th><th>수업식 해설</th></tr></thead>
+        <tbody><tr><td><strong>PRD</strong></td><td>생산 시간</td><td>가치 있는 정상 공정 수행 시간입니다.</td></tr>
+<tr><td><strong>SBY</strong></td><td>대기 시간</td><td>장비는 가능하지만 제품, 작업자, Host 지시 등 외부 사유로 기다리는 시간입니다.</td></tr>
+<tr><td><strong>ENG</strong></td><td>엔지니어링 시간</td><td>시험, 개선, 조건 조정 등 생산 외 기술 활동 시간입니다.</td></tr>
+<tr><td><strong>SDT</strong></td><td>계획 정지</td><td>PM, 계획된 setup, 정기 점검처럼 사전에 계획된 정지입니다.</td></tr>
+<tr><td><strong>UDT</strong></td><td>비계획 정지</td><td>고장, unexpected failure, 수리 대기 등 신뢰성 손실을 나타냅니다.</td></tr>
+<tr><td><strong>NST</strong></td><td>비가동 계획 제외</td><td>공장 휴무, 설치, 장기 보관처럼 분석 모수에서 제외할 수 있는 시간입니다.</td></tr></tbody>
+      </table>
+      <h3>상태 전이 관점</h3>
+      <p>상태 모델은 "현재 상태를 저장하는 테이블"과 "상태가 바뀐 이력 테이블"을 분리해서 생각해야 합니다. 현재 상태는 화면과 제어 판단에 빠르게 쓰이고, 이력은 감사, 추적, KPI 계산, 장애 분석에 쓰입니다.</p>
+      <div class="codebox">state_event_received
+  -> validate_event_order
+  -> close_previous_interval_if_needed
+  -> update_current_state
+  -> append_history
+  -> publish_business_event</div>
+    </section>
+
+    <section class="section">
+      <h2>4. 메시지와 이벤트 설계</h2>
+      <p>표준을 실제 시스템에 연결할 때는 메시지 이름보다 메시지가 만드는 업무 효과를 더 중요하게 봐야 합니다. 예를 들어 ACK가 성공이어도 실제 상태가 바뀌지 않았으면 업무적으로는 아직 완료가 아닙니다.</p>
+      <table>
+        <thead><tr><th>메시지/이벤트</th><th>의도</th><th>구현 시 확인할 점</th></tr></thead>
+        <tbody><tr><td><strong>State Change</strong></td><td>상태 전이 이벤트</td><td>시작 시간과 종료 시간을 계산하는 원천입니다.</td></tr>
+<tr><td><strong>Reason Code</strong></td><td>원인 분류</td><td>다운타임 Pareto와 책임 구분에 사용합니다.</td></tr>
+<tr><td><strong>Failure Count</strong></td><td>고장 횟수</td><td>MTBF/MTTR 계산의 분모가 됩니다.</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="database" class="section">
+      <h2>5. 권장 데이터베이스 구조</h2>
+      <p>아래 테이블은 교육용 설계 예시입니다. 실제 프로젝트에서는 장비 수, 이벤트량, 보존 기간, 고객 naming rule에 맞춰 column을 조정해야 합니다. 그래도 핵심은 원본 이벤트, 현재 상태, 이력, 설정 버전을 분리하는 것입니다.</p>
+      <table>
+        <thead><tr><th>테이블</th><th>권장 컬럼</th><th>설계 이유</th></tr></thead>
+        <tbody><tr><td><strong>equipment_state_interval</strong></td><td><code>equipment_id, e10_state, reason_code, start_time, end_time, duration_sec, source_event_id</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr>
+<tr><td><strong>availability_metric</strong></td><td><code>equipment_id, metric_name, numerator_sec, denominator_sec, value, window_start, window_end</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr>
+<tr><td><strong>downtime_reason_pareto</strong></td><td><code>equipment_id, reason_code, downtime_sec, occurrence_count, window_start, window_end</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr></tbody>
+      </table>
+      <h3>ERD를 그릴 때의 원칙</h3>
+      <ul><li>장비 ID, 표준 객체 ID, 발생 시각은 대부분의 테이블에 들어가는 기본 축입니다.</li>
+<li>현재 상태 테이블은 업데이트가 많고, 이력 테이블은 append 중심으로 설계합니다.</li>
+<li>설정값과 사전 정보는 version을 둡니다. 장비 SW 변경 후 같은 ID의 의미가 바뀌는 경우가 있습니다.</li>
+<li>원본 payload 또는 raw message 참조를 남기면 장애 분석과 재처리가 쉬워집니다.</li></ul>
+    </section>
+
+    <section id="implementation" class="section">
+      <h2>6. 구현 절차</h2>
+      <p>처음부터 전체 자동화를 만들려고 하면 복잡합니다. 수업 프로젝트나 PoC에서는 다음 순서로 구현하면 기능이 자연스럽게 쌓입니다.</p>
+      <table>
+        <thead><tr><th>순서</th><th>구현 항목</th><th>완료 기준</th></tr></thead>
+        <tbody><tr><td><strong>1</strong></td><td>상태 이벤트를 바로 KPI로 계산하지 말고 먼저 time interval로 정규화합니다. 지연 도착 이벤트와 중복 이벤트를 보정하기 쉽습니다.</td><td>입력 조건과 설정값이 화면/DB에 남는다.</td></tr>
+<tr><td><strong>2</strong></td><td>한 순간에는 하나의 E10 상태만 존재하도록 우선순위 룰을 둡니다. 예를 들어 UDT가 SBY보다 우선인지 고객과 합의합니다.</td><td>정상/오류 케이스가 테스트로 재현된다.</td></tr>
+<tr><td><strong>3</strong></td><td>MTBF의 failure count 기준은 assist와 failure를 구분해야 합니다. 짧은 operator assist를 모두 failure로 세면 신뢰성이 과소평가됩니다.</td><td>정상/오류 케이스가 테스트로 재현된다.</td></tr>
+<tr><td><strong>4</strong></td><td>대시보드에는 지표값뿐 아니라 분자/분모 시간도 같이 표시합니다. Availability 95%가 어떤 모수에서 나온 값인지 알 수 있어야 합니다.</td><td>장애 상황에서도 로그와 상태가 일관된다.</td></tr></tbody>
+      </table>
+      <h3>서비스 분리 예시</h3>
+      <div class="codebox">Controller/API
+  -> Command Validator
+  -> Standard Domain Service (E10)
+  -> State Repository
+  -> Event Publisher
+  -> Audit/Metric Writer</div>
+      <p>Domain Service 안에는 E10의 상태 전이, 권한 판단, 데이터 품질 판단 같은 표준별 규칙을 넣고, Controller에는 HTTP나 화면 요청 처리만 남기는 구조가 유지보수에 좋습니다.</p>
+    </section>
+
+    <section id="logic" class="section">
+      <h2>7. 처리 로직 상세</h2>
+      <p>아래 의사코드는 E10 이벤트를 받았을 때 공통적으로 적용할 수 있는 처리 흐름입니다. 실제 코드는 Java, C#, Python, Node.js 어느 언어로 작성해도 되지만 순서는 유지하는 편이 안전합니다.</p>
+      <div class="codebox">function handleE10Event(event):
+  assert event.equipmentId is not empty
+  assert event.eventTime is not in the future beyond allowedSkew
+  dictionary = loadDictionary(event.equipmentId, event.standardVersion)
+  normalized = normalize(event, dictionary)
+  validationResult = validateBusinessRule(normalized)
+  saveRawEvent(event)
+  if validationResult.ok:
+      updateCurrentState(normalized)
+      appendHistory(normalized)
+      publishToConsumers(normalized)
+  else:
+      createExceptionRecord(normalized, validationResult.reason)
+      notifyOperatorIfNeeded()</div>
+      <h3>예외 처리 원칙</h3>
+      <ul><li>오류 이벤트도 버리지 않습니다. raw event와 실패 이유를 저장해야 재처리와 벤더 문의가 가능합니다.</li>
+<li>장비 시간과 서버 시간이 다를 수 있으므로 허용 가능한 clock skew를 설정합니다.</li>
+<li>중복 이벤트는 idempotency key로 걸러냅니다. 보통 equipment_id, event_name, event_time, sequence를 조합합니다.</li>
+<li>업무 시스템으로 내보내기 전에 표준 상태값을 사내 공통 코드로 매핑합니다.</li></ul>
+    </section>
+
+    <section id="test" class="section">
+      <h2>8. 테스트 시나리오</h2>
+      <p>표준 구현의 품질은 정상 케이스보다 예외 케이스에서 드러납니다. 아래 테스트를 자동화하면 장비 반입과 SW 변경 검증 시간이 크게 줄어듭니다.</p>
+      <table>
+        <thead><tr><th>테스트</th><th>입력 조건</th><th>기대 결과</th></tr></thead>
+        <tbody><tr><td>TC-01</td><td>24시간 상태 구간 합계 검증</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-02</td><td>겹친 이벤트 우선순위 적용</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-03</td><td>MTBF/MTTR 수식 검증</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-04</td><td>다운타임 Pareto reason code 집계</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr></tbody>
+      </table>
+      <h3>자주 발생하는 실수</h3>
+      <div><span class="badge">상태 겹침 구간을 중복 합산</span> <span class="badge">NST를 denominator에 넣어 설비 효율을 낮게 계산</span> <span class="badge">failure와 assist 미구분</span> <span class="badge">장비 시간대와 MES 시간대 불일치</span></div>
+    </section>
+
+    <section id="ops" class="section">
+      <h2>9. 운영 화면과 모니터링 설계</h2>
+      <p>E10를 운영 시스템에 넣을 때는 개발자 로그만으로 부족합니다. 운영자가 즉시 판단할 수 있도록 현재 상태, 마지막 이벤트 시각, 실패 원인, 관련 객체 링크를 한 화면에 보여줘야 합니다.</p>
+      <div class="grid">
+        <div class="card"><strong>상태 패널</strong><span>현재 상태, 마지막 정상 이벤트, 마지막 오류 이벤트, 장비/Client 연결 상태를 표시합니다.</span></div>
+        <div class="card"><strong>이력 타임라인</strong><span>이벤트가 어떤 순서로 발생했는지 시간축으로 보여주고 raw payload까지 drill-down할 수 있게 합니다.</span></div>
+        <div class="card"><strong>품질/예외 큐</strong><span>미처리 오류, 재처리 대상, 승인 대기 예외를 운영자가 확인하고 조치합니다.</span></div>
+      </div>
+      <h3>완료 체크리스트</h3>
+      <ul><li>표준 객체와 사내 공통 코드의 매핑표가 있다.</li>
+<li>정상/오류/재처리/중복 이벤트 테스트가 자동화되어 있다.</li>
+<li>운영자가 볼 수 있는 현재 상태 화면과 이력 화면이 있다.</li>
+<li>장비 SW 또는 표준 사전 변경 시 영향 분석 절차가 있다.</li>
+<li>공식 SEMI 문서와 고객 사양서 기준으로 최종 검토했다.</li></ul>
+    </section>
+  </main>
+</body>
+</html>

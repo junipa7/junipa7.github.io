@@ -15,7 +15,7 @@ const menuConfig = [
             {
                 title: "SEMI 표준 통합 문서",
                 children: [
-                    ["SEMI E5 - SECS-II", "E5"], ["SEMI E37 - HSMS", "E37"], ["SEMI E30 - GEM", "E30"], ["GEM300", "GEM300"],
+                    ["SEMI E4 - SECS-I", "E4"], ["SEMI E5 - SECS-II", "E5"], ["SEMI E37 - HSMS", "E37"], ["SEMI E30 - GEM", "E30"], ["GEM300", "GEM300"],
                     ["SEMI E39 - Object Services", "E39"], ["SEMI E40 - Processing Management", "E40"], ["SEMI E87 - Carrier Management", "E87"],
                     ["SEMI E90 - Substrate Tracking", "E90"], ["SEMI E94 - Control Job", "E94"], ["SEMI E116 - Performance Tracking", "E116"],
                     ["SEMI E120 - Common Equipment Model", "E120"], ["SEMI E125 - Self Description", "E125"], ["SEMI E132 - Authentication", "E132"],
@@ -196,6 +196,9 @@ async function loadContent(path, mode = "auto") {
         const ext = extensionOf(path);
         if (ext === "html" || ext === "htm") {
             editorContent.innerHTML = text;
+            if (window.MathJax) {
+                MathJax.typesetPromise([editorContent]).catch(err => console.log('MathJax typeset failed: ' + err.message));
+            }
             return;
         }
 

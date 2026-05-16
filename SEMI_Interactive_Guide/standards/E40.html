@@ -1,106 +1,209 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E40 Guide</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SEMI E40 Guide - PJM</title>
+  <link rel="stylesheet" href="../semi-page.css">
+  <style>
+    .lesson-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
+    .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
+    @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E40</div>
-    <section class="hero"><h1>SEMI E40 - Processing Management</h1><p>Process Job 생성, 시작, 취소, 완료와 같은 처리 작업 관리를 정의합니다.</p><div class="chips"><span class="chip">GEM300 생산 실행</span><span class="chip">Guide &amp; Developer</span></div></section>
-    <section class="section"><h2>기능 요약</h2><p>MES/MOS의 작업 지시를 설비 내부 처리 단위로 연결합니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
-    <section class="section"><h2>표준 관계 DFD</h2>
-      <div class="flow-diagram">
-        <div class="flow-node">
-          <strong>MES Work Order</strong>
-          <span class="tiny">Input</span>
+
+    <section class="hero">
+      <h1>SEMI E40 - PJM</h1>
+      <p>Processing Job Management. SEMI E40은 장비가 실제로 어떤 공정 작업을 수행할지 정의하는 Process Job을 관리합니다. Process Job은 특정 wafer 또는 substrate 묶음, recipe, 공정 조건을 하나의 실행 단위로 묶습니다.</p>
+      <div class="chips">
+        <span class="chip">GEM300</span>
+        <span class="chip">교육용 상세 가이드</span>
+        <span class="chip">개발 설계 관점</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>학습 목표</h2>
+      <div class="lesson-index">
+        <a href="#concept">1. 표준의 역할</a>
+        <a href="#dfd">2. DFD와 데이터 흐름</a>
+        <a href="#model">3. 객체/상태 모델</a>
+        <a href="#implementation">4. 구현 설계</a>
+        <a href="#database">5. 데이터베이스</a>
+        <a href="#logic">6. 처리 로직</a>
+        <a href="#test">7. 테스트</a>
+        <a href="#ops">8. 운영 체크</a>
+      </div>
+      <div class="callout">이 문서는 수업과 시스템 설계를 돕기 위한 교육용 해설입니다. 실제 프로젝트 적용 시에는 고객 사양서, 장비 벤더 매뉴얼, 최신 SEMI 공식 문서를 함께 확인해야 합니다.</div>
+      <p><strong>수업에서 기억할 핵심:</strong> E40는 MES가 lot/wafer별 공정 recipe를 지정하고 장비가 해당 작업을 준비, 실행, 완료하도록 제어할 때 필요합니다. 이 문서를 읽을 때는 표준 번호를 외우는 것보다, 입력 데이터가 어디서 오고 어떤 상태 판단을 거쳐 어떤 업무 시스템으로 전달되는지 따라가야 합니다.</p>
+    </section>
+
+    <section id="concept" class="section">
+      <h2>1. 표준의 역할과 현장 배경</h2>
+      <p>SEMI E40은 장비가 실제로 어떤 공정 작업을 수행할지 정의하는 Process Job을 관리합니다. Process Job은 특정 wafer 또는 substrate 묶음, recipe, 공정 조건을 하나의 실행 단위로 묶습니다.</p>
+      <p>반도체 fab의 자동화 시스템은 장비, EAP, MES, FDC, APC, 물류 시스템이 동시에 움직입니다. 이때 E40 영역의 데이터가 애매하면 운영자는 같은 현상을 서로 다른 용어로 부르게 되고, 개발자는 예외 처리를 코드 곳곳에 흩뿌리게 됩니다. 따라서 먼저 표준이 다루는 경계를 정하고, 그 안에서 공통 객체와 상태를 모델링해야 합니다.</p>
+      <div class="two-col">
+        <div class="card">
+          <strong>학생에게 설명하는 비유</strong>
+          <span>E40를 하나의 교실 규칙이라고 보면 됩니다. 교사가 출석, 과제, 시험을 같은 양식으로 관리해야 학생별 이력을 비교할 수 있듯이, 장비 자동화도 Process Job ID, Recipe, Material List, PJob State 같은 핵심 요소를 같은 언어로 관리해야 합니다.</span>
         </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Process Job Manager</strong>
-          <span class="tiny">Process</span>
-        </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Recipe Manager</strong>
-          <span class="tiny">Process</span>
-        </div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node">
-          <strong>Equipment Module</strong>
-          <span class="tiny">Output</span>
+        <div class="card">
+          <strong>개발자에게 중요한 이유</strong>
+          <span>표준을 데이터 모델로 옮기면 화면, API, 이벤트 처리, 장애 분석이 같은 기준을 공유합니다. 반대로 표준을 문서로만 두면 프로젝트마다 다른 용어와 상태값이 생겨 유지보수가 어려워집니다.</span>
         </div>
       </div>
     </section>
-    <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
-  <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>process_job</strong></td><td>process_job_id, lot_id, recipe_id, substrate_selection, job_state, start_time, end_time</td></tr><tr><td><strong>process_job_event</strong></td><td>process_job_id, event_name, previous_state, next_state, event_time</td></tr></tbody></table></section>
-  <section class="section">
-    <h2>1장. SEMI E40 (Processing Management) 개요</h2>
-    <p>SEMI E40은 장비에서 <strong>"무엇을(Which Material), 어떻게(Which Recipe), 어떤 조건으로(Parameters) 가공할 것인가"</strong>를 정의하는 작업 지시 체계입니다. 핵심 개념은 <strong>Process Job (PJ)</strong>이라는 객체입니다. 호스트 시스템은 E40 규격에 맞춰 장비에 PJ를 생성(Create)하고 실행(Start)시킴으로써 가공을 제어합니다.</p>
 
-    <h3>1. 왜 Process Job이 도입되었는가?</h3>
-    <p>과거에는 "START"라는 단순한 리모트 명령(S2F41) 하나로 장비를 돌렸습니다. 하지만 300mm 팹에서는 하나의 FOUP(25장 웨이퍼) 안에 서로 다른 종류의 제품이 섞여 있을 수 있고(Multi-product), 1~12번 웨이퍼는 A레시피로, 13~25번 웨이퍼는 B레시피로 가공해야 하는 등 매우 정교한 공정 지시가 필요했습니다. E40의 PJ는 이러한 복잡한 '작업 단위'를 구조화한 것입니다.</p>
-  </section>
-
-  <section class="section">
-    <h2>2장. Process Job (PJ)의 핵심 속성과 맵핑</h2>
-    <p>호스트가 S14F9(Create Object) 메시지를 통해 PJ를 장비에 내려보낼 때, 다음과 같은 필수 속성(Attributes)을 함께 전달하여 작업을 정의합니다.</p>
-    
-    <ul>
-      <li><strong>PRProcessRecipe:</strong> 이 작업에서 실행할 레시피 이름 (예: "OXIDE_DEP_V2").</li>
-      <li><strong>PRProcessRule:</strong> 작업을 중단해야 할 경우의 룰 (예: 한 웨이퍼가 망가지면 전체를 멈출 것인지, 해당 웨이퍼만 건너뛸 것인지 지정).</li>
-      <li><strong>Material (PRMtrlNameList):</strong> 이 레시피를 적용할 웨이퍼들의 ID 또는 슬롯 위치 리스트.</li>
-      <li><strong>Recipe Parameters (PRRecipeMethod):</strong> 레시피의 기본 값을 무시하고 이 작업에만 덮어씌울 파라미터 변수들 (APC 연동 시 매우 중요함).</li>
-    </ul>
-  </section>
-
-  <section class="section">
-    <h2>3장. Process Job State Model (상태 전이 모델)</h2>
-    <p>PJ는 생성부터 소멸까지 엄격한 상태 머신(State Machine)에 따라 움직이며, 장비는 상태가 변할 때마다 S6F11(Event)로 호스트에 보고해야 합니다.</p>
-    
-    <div class="table-wrap">
+    <section id="dfd" class="section">
+      <h2>2. DFD: 데이터가 흘러가는 방식</h2>
+      <div class="flow-diagram">
+        <div class="flow-node"><strong>Process Job 생성</strong><span class="tiny">Input</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>Recipe/Material 매핑</strong><span class="tiny">Process</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>검증</strong><span class="tiny">Process</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>실행 가능 상태</strong><span class="tiny">Process</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><strong>완료/중단 보고</strong><span class="tiny">Output</span></div>
+      </div>
+      <p style="margin-top:14px">위 흐름은 E40를 프로그램으로 구현할 때의 기본 DFD입니다. 단순히 화면에 값을 보여주는 흐름이 아니라, 입력, 검증, 상태 판단, 저장, 업무 시스템 전달까지 포함합니다.</p>
       <table>
-        <thead><tr><th>PJ 상태 (State)</th><th>설명 및 트리거 조건</th><th>발생 이벤트 예시</th></tr></thead>
-        <tbody>
-          <tr>
-            <td><strong>Queued (대기)</strong></td>
-            <td>호스트가 PJ를 생성하여 장비 메모리에 등록되었으나, 아직 실행 전인 상태.</td>
-            <td>PJ Queued</td>
-          </tr>
-          <tr>
-            <td><strong>Setting Up (셋업 중)</strong></td>
-            <td>장비가 해당 레시피를 실행하기 위해 온도를 올리거나 파라미터를 맞추고 있는 준비 상태.</td>
-            <td>PJ Setting Up</td>
-          </tr>
-          <tr>
-            <td><strong>Executing (실행 중)</strong></td>
-            <td>첫 번째 웨이퍼가 챔버에 들어가 가공이 시작된 상태. 실질적인 생산(PRD) 구간입니다.</td>
-            <td>PJ Processing</td>
-          </tr>
-          <tr>
-            <td><strong>Pausing / Paused</strong></td>
-            <td>작업자나 호스트의 명령으로 작업이 일시 정지되는 중이거나 정지된 상태.</td>
-            <td>PJ Paused</td>
-          </tr>
-          <tr>
-            <td><strong>Completed (완료)</strong></td>
-            <td>정상적으로 모든 대상 웨이퍼의 가공이 끝난 최종 상태.</td>
-            <td>PJ Completed</td>
-          </tr>
-          <tr>
-            <td><strong>Aborted / Stopped</strong></td>
-            <td>에러가 발생하거나 강제 중지 명령(Abort)에 의해 작업이 비정상 종료된 상태.</td>
-            <td>PJ Aborted</td>
-          </tr>
-        </tbody>
+        <thead><tr><th>단계</th><th>처리 의미</th><th>개발 시 저장/검증 포인트</th></tr></thead>
+        <tbody><tr><td><strong>1. Process Job 생성</strong></td><td>입력 데이터 또는 시작 조건</td><td>장비, Host, 운영자, 물류 시스템에서 발생</td></tr>
+<tr><td><strong>2. Recipe/Material 매핑</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>3. 검증</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>4. 실행 가능 상태</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
+<tr><td><strong>5. 완료/중단 보고</strong></td><td>업무 시스템이 사용하는 결과</td><td>MES/EAP/대시보드/분석 시스템으로 전달</td></tr></tbody>
       </table>
-    </div>
-  </section>
+    </section>
 
-  <section class="section">
-    <h2>4장. 실무 적용 및 트러블슈팅</h2>
-    <div class="grid">
-      <div class="card">
-        <strong>APC 파라미터 적용 (Feed-forward)</strong>
-        <span>E40의 강력한 기능 중 하나는 Tuning Parameter를 내릴 수 있다는 것입니다. 이전 공정의 계측 결과를 바탕으로 EAP 시스템이 계산한 미세 보정 값(예: 식각 시간 2초 연장)을 PJ 생성 시 속성으로 밀어넣어, 동일 레시피라도 웨이퍼마다 다른 조건으로 가공(Advanced Process Control)을 구현합니다.</span>
+    <section id="model" class="section">
+      <h2>3. 핵심 객체와 상태 모델</h2>
+      <p>E40 구현은 아래 객체들을 중심으로 설계하면 이해가 쉽습니다. 학생들은 각 객체가 "무엇을 식별하고", "어떤 상태를 가지며", "어떤 이벤트로 변하는지"를 먼저 그려보면 됩니다.</p>
+      <table>
+        <thead><tr><th>객체/개념</th><th>역할</th><th>수업식 해설</th></tr></thead>
+        <tbody><tr><td><strong>Process Job ID</strong></td><td>공정 작업 식별자</td><td>작업 단위를 추적하는 고유 ID입니다.</td></tr>
+<tr><td><strong>Recipe</strong></td><td>공정 조건</td><td>장비가 수행할 프로그램 또는 조건 세트입니다.</td></tr>
+<tr><td><strong>Material List</strong></td><td>처리 대상</td><td>wafer, substrate, slot 목록을 작업에 연결합니다.</td></tr>
+<tr><td><strong>PJob State</strong></td><td>작업 상태</td><td>생성, queued, executing, completed, aborted 같은 생명주기입니다.</td></tr></tbody>
+      </table>
+      <h3>상태 전이 관점</h3>
+      <p>상태 모델은 "현재 상태를 저장하는 테이블"과 "상태가 바뀐 이력 테이블"을 분리해서 생각해야 합니다. 현재 상태는 화면과 제어 판단에 빠르게 쓰이고, 이력은 감사, 추적, KPI 계산, 장애 분석에 쓰입니다.</p>
+      <div class="codebox">state_event_received
+  -> validate_event_order
+  -> close_previous_interval_if_needed
+  -> update_current_state
+  -> append_history
+  -> publish_business_event</div>
+    </section>
+
+    <section class="section">
+      <h2>4. 메시지와 이벤트 설계</h2>
+      <p>표준을 실제 시스템에 연결할 때는 메시지 이름보다 메시지가 만드는 업무 효과를 더 중요하게 봐야 합니다. 예를 들어 ACK가 성공이어도 실제 상태가 바뀌지 않았으면 업무적으로는 아직 완료가 아닙니다.</p>
+      <table>
+        <thead><tr><th>메시지/이벤트</th><th>의도</th><th>구현 시 확인할 점</th></tr></thead>
+        <tbody><tr><td><strong>Create PJ</strong></td><td>작업 정의</td><td>처리 대상과 recipe를 장비에 등록합니다.</td></tr>
+<tr><td><strong>Select/Start</strong></td><td>작업 실행 준비</td><td>Control Job과 연결되어 실제 시작됩니다.</td></tr>
+<tr><td><strong>PJ Complete Event</strong></td><td>결과 보고</td><td>성공, 실패, abort 원인을 Host에 전달합니다.</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="database" class="section">
+      <h2>5. 권장 데이터베이스 구조</h2>
+      <p>아래 테이블은 교육용 설계 예시입니다. 실제 프로젝트에서는 장비 수, 이벤트량, 보존 기간, 고객 naming rule에 맞춰 column을 조정해야 합니다. 그래도 핵심은 원본 이벤트, 현재 상태, 이력, 설정 버전을 분리하는 것입니다.</p>
+      <table>
+        <thead><tr><th>테이블</th><th>권장 컬럼</th><th>설계 이유</th></tr></thead>
+        <tbody><tr><td><strong>process_job</strong></td><td><code>pjob_id, equipment_id, recipe_id, state, created_by, created_at, completed_at</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr>
+<tr><td><strong>process_job_material</strong></td><td><code>pjob_id, carrier_id, slot_no, substrate_id, expected_result, actual_result</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr></tbody>
+      </table>
+      <h3>ERD를 그릴 때의 원칙</h3>
+      <ul><li>장비 ID, 표준 객체 ID, 발생 시각은 대부분의 테이블에 들어가는 기본 축입니다.</li>
+<li>현재 상태 테이블은 업데이트가 많고, 이력 테이블은 append 중심으로 설계합니다.</li>
+<li>설정값과 사전 정보는 version을 둡니다. 장비 SW 변경 후 같은 ID의 의미가 바뀌는 경우가 있습니다.</li>
+<li>원본 payload 또는 raw message 참조를 남기면 장애 분석과 재처리가 쉬워집니다.</li></ul>
+    </section>
+
+    <section id="implementation" class="section">
+      <h2>6. 구현 절차</h2>
+      <p>처음부터 전체 자동화를 만들려고 하면 복잡합니다. 수업 프로젝트나 PoC에서는 다음 순서로 구현하면 기능이 자연스럽게 쌓입니다.</p>
+      <table>
+        <thead><tr><th>순서</th><th>구현 항목</th><th>완료 기준</th></tr></thead>
+        <tbody><tr><td><strong>1</strong></td><td>Process Job 생성 전 recipe 존재 여부, carrier/slot mapping, 장비 online 상태를 검증합니다.</td><td>입력 조건과 설정값이 화면/DB에 남는다.</td></tr>
+<tr><td><strong>2</strong></td><td>MES lot ID와 장비 Process Job ID를 분리하되 추적 테이블에서 연결합니다. 현장에서는 하나의 lot이 여러 PJ로 나뉘는 경우가 많습니다.</td><td>정상/오류 케이스가 테스트로 재현된다.</td></tr>
+<tr><td><strong>3</strong></td><td>작업 취소와 장비 abort를 구분합니다. 전자는 Host 의도이고 후자는 장비/공정 문제일 수 있습니다.</td><td>정상/오류 케이스가 테스트로 재현된다.</td></tr>
+<tr><td><strong>4</strong></td><td>PJob 상태 변경은 E90 substrate 상태와 함께 저장하면 wafer 단위 분석이 쉬워집니다.</td><td>장애 상황에서도 로그와 상태가 일관된다.</td></tr></tbody>
+      </table>
+      <h3>서비스 분리 예시</h3>
+      <div class="codebox">Controller/API
+  -> Command Validator
+  -> Standard Domain Service (E40)
+  -> State Repository
+  -> Event Publisher
+  -> Audit/Metric Writer</div>
+      <p>Domain Service 안에는 E40의 상태 전이, 권한 판단, 데이터 품질 판단 같은 표준별 규칙을 넣고, Controller에는 HTTP나 화면 요청 처리만 남기는 구조가 유지보수에 좋습니다.</p>
+    </section>
+
+    <section id="logic" class="section">
+      <h2>7. 처리 로직 상세</h2>
+      <p>아래 의사코드는 E40 이벤트를 받았을 때 공통적으로 적용할 수 있는 처리 흐름입니다. 실제 코드는 Java, C#, Python, Node.js 어느 언어로 작성해도 되지만 순서는 유지하는 편이 안전합니다.</p>
+      <div class="codebox">function handleE40Event(event):
+  assert event.equipmentId is not empty
+  assert event.eventTime is not in the future beyond allowedSkew
+  dictionary = loadDictionary(event.equipmentId, event.standardVersion)
+  normalized = normalize(event, dictionary)
+  validationResult = validateBusinessRule(normalized)
+  saveRawEvent(event)
+  if validationResult.ok:
+      updateCurrentState(normalized)
+      appendHistory(normalized)
+      publishToConsumers(normalized)
+  else:
+      createExceptionRecord(normalized, validationResult.reason)
+      notifyOperatorIfNeeded()</div>
+      <h3>예외 처리 원칙</h3>
+      <ul><li>오류 이벤트도 버리지 않습니다. raw event와 실패 이유를 저장해야 재처리와 벤더 문의가 가능합니다.</li>
+<li>장비 시간과 서버 시간이 다를 수 있으므로 허용 가능한 clock skew를 설정합니다.</li>
+<li>중복 이벤트는 idempotency key로 걸러냅니다. 보통 equipment_id, event_name, event_time, sequence를 조합합니다.</li>
+<li>업무 시스템으로 내보내기 전에 표준 상태값을 사내 공통 코드로 매핑합니다.</li></ul>
+    </section>
+
+    <section id="test" class="section">
+      <h2>8. 테스트 시나리오</h2>
+      <p>표준 구현의 품질은 정상 케이스보다 예외 케이스에서 드러납니다. 아래 테스트를 자동화하면 장비 반입과 SW 변경 검증 시간이 크게 줄어듭니다.</p>
+      <table>
+        <thead><tr><th>테스트</th><th>입력 조건</th><th>기대 결과</th></tr></thead>
+        <tbody><tr><td>TC-01</td><td>정상 PJ 생성/완료</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-02</td><td>없는 recipe로 생성 실패</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-03</td><td>실행 중 abort</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
+<tr><td>TC-04</td><td>slot mapping 불일치 검출</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr></tbody>
+      </table>
+      <h3>자주 발생하는 실수</h3>
+      <div><span class="badge">lot 단위와 wafer 단위를 혼동</span> <span class="badge">recipe validation 없이 PJ 생성</span> <span class="badge">PJ 완료 전에 carrier unload 허용</span></div>
+    </section>
+
+    <section id="ops" class="section">
+      <h2>9. 운영 화면과 모니터링 설계</h2>
+      <p>E40를 운영 시스템에 넣을 때는 개발자 로그만으로 부족합니다. 운영자가 즉시 판단할 수 있도록 현재 상태, 마지막 이벤트 시각, 실패 원인, 관련 객체 링크를 한 화면에 보여줘야 합니다.</p>
+      <div class="grid">
+        <div class="card"><strong>상태 패널</strong><span>현재 상태, 마지막 정상 이벤트, 마지막 오류 이벤트, 장비/Client 연결 상태를 표시합니다.</span></div>
+        <div class="card"><strong>이력 타임라인</strong><span>이벤트가 어떤 순서로 발생했는지 시간축으로 보여주고 raw payload까지 drill-down할 수 있게 합니다.</span></div>
+        <div class="card"><strong>품질/예외 큐</strong><span>미처리 오류, 재처리 대상, 승인 대기 예외를 운영자가 확인하고 조치합니다.</span></div>
       </div>
-      <div class="card">
-        <strong>멀티 레시피/멀티 잡 (Multi-Job) 처리 충돌</strong>
-        <span>하나의 Load Port에 물린 FOUP에 대해 2개 이상의 PJ가 동시에 Queued 상태로 존재할 때, 장비 내부 스케줄러(Scheduler) 로직에 버그가 있으면 데드락(Deadlock)에 빠져 로봇이 움직이지 않는 경우가 많습니다. 벤더의 E40 사양서에서 다중 잡 처리 스케줄링 룰을 꼼꼼히 확인해야 합니다.</span>
-      </div>
-    </div>
-  </section>
-  </main></body></html>
+      <h3>완료 체크리스트</h3>
+      <ul><li>표준 객체와 사내 공통 코드의 매핑표가 있다.</li>
+<li>정상/오류/재처리/중복 이벤트 테스트가 자동화되어 있다.</li>
+<li>운영자가 볼 수 있는 현재 상태 화면과 이력 화면이 있다.</li>
+<li>장비 SW 또는 표준 사전 변경 시 영향 분석 절차가 있다.</li>
+<li>공식 SEMI 문서와 고객 사양서 기준으로 최종 검토했다.</li></ul>
+    </section>
+  </main>
+</body>
+</html>
