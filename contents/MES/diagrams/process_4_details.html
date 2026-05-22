@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Process 4.0 상세: OEE 및 효율 산출 계산</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #121212;
+            overflow: auto;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+        .header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #2d2d2d;
+        }
+        .header h2 {
+            margin: 0 0 5px 0;
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 0;
+            color: #888888;
+            font-size: 0.9rem;
+        }
+        .viewer-wrapper {
+            flex: 1;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            border: 1px solid #2d2d2d;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            padding: 10px;
+            overflow: auto;
+            position: relative;
+        }
+        /* Custom styles to override draw.io dark mode appearance */
+        .mxgraph {
+            background-color: transparent !important;
+        }
+        /* Style the toolbar for premium dark feel */
+        .geToolbarContainer {
+            background-color: #252525 !important;
+            border-color: #333333 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Process 4.0 상세: OEE 및 효율 산출 계산</h2>
+            <p>마우스 휠로 확대/축소, 마우스 드래그로 화면 이동이 가능합니다.</p>
+        </div>
+        <div class="viewer-wrapper">
+            <div class="mxgraph" style="max-width:100%; border:1px solid transparent;" 
+                 data-mxgraph="{&quot;highlight&quot;:&quot;#007acc&quot;,&quot;dark-mode&quot;:&quot;dark&quot;,&quot;xml&quot;:&quot;\u003cmxfile\u003e\u003cdiagram name=\&quot;Process 4.0 상세: OEE 및 효율 산출 계산\&quot; id=\&quot;process_4_details\&quot;\u003e\u003cmxGraphModel dx=\&quot;5333\&quot; dy=\&quot;1922\&quot; grid=\&quot;1\&quot; gridSize=\&quot;10\&quot; guides=\&quot;1\&quot; tooltips=\&quot;1\&quot; connect=\&quot;1\&quot; arrows=\&quot;1\&quot; fold=\&quot;1\&quot; page=\&quot;1\&quot; pageScale=\&quot;1\&quot; pageWidth=\&quot;827\&quot; pageHeight=\&quot;1169\&quot; math=\&quot;0\&quot; shadow=\&quot;0\&quot;\u003e\u003croot\u003e\u003cmxCell id=\&quot;0\&quot; /\u003e\u003cmxCell id=\&quot;1\&quot; parent=\&quot;0\&quot; /\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-219\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;4.1 시간가동율 산출 \u0026#xA; (Availability)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;35\&quot; width=\&quot;167\&quot; x=\&quot;78\&quot; y=\&quot;150\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-216\&quot; parent=\&quot;1\&quot; style=\&quot;shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;E10 State DB \u0026#xA; Process 1.0 제공\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;60\&quot; width=\&quot;167\&quot; x=\&quot;78\&quot; y=\&quot;20\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-221\&quot; parent=\&quot;1\&quot; style=\&quot;ellipse;aspect=fixed;strokeWidth=2;whiteSpace=wrap;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;4.3 종합설비효율 산출 \u0026#xA; (OEE)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;125\&quot; width=\&quot;125\&quot; x=\&quot;257.5\&quot; y=\&quot;210\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-220\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;4.2 성능가동율 산출 \u0026#xA; (Performance)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;35\&quot; width=\&quot;167\&quot; x=\&quot;390\&quot; y=\&quot;150\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-218\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;Dashboard (UI)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;35\&quot; width=\&quot;167\&quot; x=\&quot;390\&quot; y=\&quot;390\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-214\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);labelPosition=center;verticalLabelPosition=top;align=left;verticalAlign=bottom;\&quot; value=\&quot;Process 4.0: E79 Performance Calc\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;219\&quot; width=\&quot;600\&quot; x=\&quot;20\&quot; y=\&quot;131\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-215\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;정제된 생산 데이터 (D_clean) \u0026#xA; Process 3.0 제공\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;35\&quot; width=\&quot;167\&quot; x=\&quot;390\&quot; y=\&quot;20\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-217\&quot; parent=\&quot;1\&quot; style=\&quot;shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;E79 Efficiency DB \u0026#xA; (MES 연동)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;66\&quot; width=\&quot;167\&quot; x=\&quot;78\&quot; y=\&quot;359\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-223\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-219\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0;entryY=0.21;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-221\&quot; value=\&quot;시간가동율 지표\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-228\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-221\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=1;exitY=0.73;entryX=0.5;entryY=0.01;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-218\&quot; value=\&quot;실시간 성능 모니터링\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; x=\&quot;810.0016\&quot; as=\&quot;geometry\&quot;\u003e\u003cmxPoint as=\&quot;offset\&quot; /\u003e\u003c/mxGeometry\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-227\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-221\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=0;exitY=0.71;entryX=0.5;entryY=0;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-217\&quot; value=\&quot;최종 산출 OEE (양품율 제외)\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-226\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-220\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=1;entryY=0.01;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-221\&quot; value=\&quot;성능가동율 지표\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-225\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-215\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=0.71;exitY=1;entryX=0.84;entryY=0;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-220\&quot; value=\&quot;Product Time 기반 표준시간\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-224\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-215\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=0.29;exitY=1;entryX=0.16;entryY=0;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-220\&quot; value=\&quot;KLL 추정 중위 속도 (Median CT)\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-222\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-216\&quot; style=\&quot;curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1.01;entryX=0.5;entryY=0;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-219\&quot; value=\&quot;총 가동시간 및 정지시간\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; x=\&quot;809.5714\&quot; as=\&quot;geometry\&quot;\u003e\u003cmxPoint as=\&quot;offset\&quot; /\u003e\u003cArray as=\&quot;points\&quot; /\u003e\u003c/mxGeometry\u003e\u003c/mxCell\u003e\u003c/root\u003e\u003c/mxGraphModel\u003e\u003c/diagram\u003e\u003c/mxfile\u003e&quot;,&quot;nav&quot;:true,&quot;edit&quot;:&quot;_blank&quot;,&quot;toolbar&quot;:&quot;zoom layers tags lightbox&quot;,&quot;resize&quot;:true}"></div>
+        </div>
+    </div>
+    <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
+</body>
+</html>

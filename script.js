@@ -204,6 +204,28 @@ const isa95Standard = {
     ]
 };
 
+const mesDiagrams = {
+    title: "MES 실시간 DFD / 아키텍처",
+    children: [
+        iframeItem("전체 아키텍처 개요 DFD (Level 0)", "contents/MES/diagrams/dfd_level_0.html"),
+        iframeItem("SEMI E10 장비 상태 트리", "contents/MES/diagrams/e10_ram_states.html"),
+        iframeItem("실시간 데이터 수집 및 EES 스트림 분배", "contents/MES/diagrams/stream_storage.html"),
+        iframeItem("Process 1.0 상세: SECS/GEM 이벤트 파싱", "contents/MES/diagrams/process_1_details.html"),
+        iframeItem("Process 2.0 상세: 실시간 특징 추출 엔진", "contents/MES/diagrams/process_2_details.html"),
+        iframeItem("Process 3.0 상세: 기하/통계적 이상치 필터", "contents/MES/diagrams/process_3_details.html"),
+        iframeItem("Process 4.0 상세: OEE 및 효율 산출 계산", "contents/MES/diagrams/process_4_details.html")
+    ]
+};
+
+const algorithmFlowcharts = {
+    title: "알고리즘 상세 흐름도",
+    children: [
+        iframeItem("Chan 볼록 껍질 알고리즘 흐름도", "contents/MES/diagrams/chan_algorithm_flow.html"),
+        iframeItem("KLL Sketch 데이터 압축 루프 흐름도", "contents/MES/diagrams/kll_compaction_flow.html"),
+        iframeItem("분위수 및 통계 비동기 질의 흐름도", "contents/MES/diagrams/asynchronous_query.html")
+    ]
+};
+
 const menuConfig = [
     {
         title: "소개",
@@ -225,8 +247,9 @@ const menuConfig = [
                 title: "MES 분석 / 참고 문서",
                 children: [
                     htmlItem("Chan Algorithm과 KLL Sketch", "contents/MES/chankll.html"),
-                    htmlItem("MES Diagram", "contents/MES/drawio.xml"),
-                    htmlItem("OEE Diagram", "contents/MES/OEE_Diagram.xml"),
+                    mesDiagrams,
+                    algorithmFlowcharts,
+                    iframeItem("OEE 실시간 DFD (High-Level)", "contents/MES/diagrams/oee_realtime_dfd.html"),
                     htmlItem("OEE 설비종합효율", "contents/oee.html"),
                     htmlItem("데이터베이스", "contents/database.html")
                 ]

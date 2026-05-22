@@ -1,0 +1,74 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>분위수 및 통계 비동기 질의 흐름도</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #121212;
+            overflow: auto;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+        .header {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #2d2d2d;
+        }
+        .header h2 {
+            margin: 0 0 5px 0;
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 0;
+            color: #888888;
+            font-size: 0.9rem;
+        }
+        .viewer-wrapper {
+            flex: 1;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            border: 1px solid #2d2d2d;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            padding: 10px;
+            overflow: auto;
+            position: relative;
+        }
+        /* Custom styles to override draw.io dark mode appearance */
+        .mxgraph {
+            background-color: transparent !important;
+        }
+        /* Style the toolbar for premium dark feel */
+        .geToolbarContainer {
+            background-color: #252525 !important;
+            border-color: #333333 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>분위수 및 통계 비동기 질의 흐름도</h2>
+            <p>마우스 휠로 확대/축소, 마우스 드래그로 화면 이동이 가능합니다.</p>
+        </div>
+        <div class="viewer-wrapper">
+            <div class="mxgraph" style="max-width:100%; border:1px solid transparent;" 
+                 data-mxgraph="{&quot;highlight&quot;:&quot;#007acc&quot;,&quot;dark-mode&quot;:&quot;dark&quot;,&quot;xml&quot;:&quot;\u003cmxfile\u003e\u003cdiagram name=\&quot;분위수 및 통계 비동기 질의 흐름도\&quot; id=\&quot;asynchronous_query\&quot;\u003e\u003cmxGraphModel dx=\&quot;5333\&quot; dy=\&quot;1922\&quot; grid=\&quot;1\&quot; gridSize=\&quot;10\&quot; guides=\&quot;1\&quot; tooltips=\&quot;1\&quot; connect=\&quot;1\&quot; arrows=\&quot;1\&quot; fold=\&quot;1\&quot; page=\&quot;1\&quot; pageScale=\&quot;1\&quot; pageWidth=\&quot;827\&quot; pageHeight=\&quot;1169\&quot; math=\&quot;0\&quot; shadow=\&quot;0\&quot;\u003e\u003croot\u003e\u003cmxCell id=\&quot;0\&quot; /\u003e\u003cmxCell id=\&quot;1\&quot; parent=\&quot;0\&quot; /\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-76\&quot; parent=\&quot;v9g5RWL5hW_TE3o1-Q30-107\&quot; style=\&quot;rounded=1;whiteSpace=wrap;arcSize=50;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;P99, Median 등 분위수 질의\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;40\&quot; width=\&quot;150\&quot; x=\&quot;19.99839137645108\&quot; y=\&quot;17\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-77\&quot; parent=\&quot;v9g5RWL5hW_TE3o1-Q30-107\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;모든 레벨의 살아있는 데이터와\u0026#xA;가중치(Weight)를 통합하여 정렬\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;40\&quot; width=\&quot;170\&quot; x=\&quot;204.00111111111113\&quot; y=\&quot;17\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-107\&quot; connectable=\&quot;0\&quot; parent=\&quot;1\&quot; style=\&quot;group\&quot; value=\&quot;\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;70\&quot; width=\&quot;760\&quot; x=\&quot;20\&quot; y=\&quot;20\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-75\&quot; parent=\&quot;v9g5RWL5hW_TE3o1-Q30-107\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;verticalAlign=bottom;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);container=0;labelPosition=center;verticalLabelPosition=top;align=left;\&quot; value=\&quot;지표 조회 요청 (Asynchronous)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;70\&quot; width=\&quot;760\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-79\&quot; parent=\&quot;v9g5RWL5hW_TE3o1-Q30-107\&quot; style=\&quot;rounded=1;whiteSpace=wrap;arcSize=50;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;최종 통계 추정치 반환\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;40\&quot; width=\&quot;150\&quot; x=\&quot;590.0033333333333\&quot; y=\&quot;17\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-78\&quot; parent=\&quot;v9g5RWL5hW_TE3o1-Q30-107\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;누적 분포 함수(CDF) 근사치 계산\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;40\&quot; width=\&quot;150\&quot; x=\&quot;410.0022222222222\&quot; y=\&quot;17\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-80\&quot; edge=\&quot;1\&quot; parent=\&quot;v9g5RWL5hW_TE3o1-Q30-107\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-76\&quot; style=\&quot;curved=1;startArrow=none;endArrow=block;exitX=1;exitY=0.49;entryX=0;entryY=0.5;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-77\&quot; value=\&quot;\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;\u003e\u003cArray as=\&quot;points\&quot; /\u003e\u003c/mxGeometry\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-82\&quot; edge=\&quot;1\&quot; parent=\&quot;v9g5RWL5hW_TE3o1-Q30-107\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-78\&quot; style=\&quot;curved=1;startArrow=none;endArrow=block;exitX=1;exitY=0.5;entryX=0;entryY=0.49;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-79\&quot; value=\&quot;\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;\u003e\u003cArray as=\&quot;points\&quot; /\u003e\u003c/mxGeometry\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-81\&quot; edge=\&quot;1\&quot; parent=\&quot;v9g5RWL5hW_TE3o1-Q30-107\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-77\&quot; style=\&quot;curved=1;startArrow=none;endArrow=block;exitX=1;exitY=0.5;entryX=0;entryY=0.5;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-78\&quot; value=\&quot;\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;\u003e\u003cArray as=\&quot;points\&quot; /\u003e\u003c/mxGeometry\u003e\u003c/mxCell\u003e\u003c/root\u003e\u003c/mxGraphModel\u003e\u003c/diagram\u003e\u003c/mxfile\u003e&quot;,&quot;nav&quot;:true,&quot;edit&quot;:&quot;_blank&quot;,&quot;toolbar&quot;:&quot;zoom layers tags lightbox&quot;,&quot;resize&quot;:true}"></div>
+        </div>
+    </div>
+    <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
+</body>
+</html>
