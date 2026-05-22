@@ -433,6 +433,8 @@ a:hover {
     margin: 0;
     padding: 16px;
     overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
     color: #dbe3ef;
     font-family: Consolas, monospace;
     font-size: 13px;

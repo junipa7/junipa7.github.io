@@ -3,15 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <title>실시간 데이터 수집 및 EES 스트림 분배</title>
-    <style>
+        <style>
+        :root {
+            --bg-color: #ffffff;
+            --container-bg: #f8fafc;
+            --border-color: #e2e8f0;
+            --text-title: #0f172a;
+            --text-muted: #64748b;
+            --viewer-bg: #ffffff;
+            --toolbar-bg: #f1f5f9;
+            --toolbar-border: #e2e8f0;
+            color-scheme: light dark;
+        }
+        body.dark-mode {
+            --bg-color: #121212;
+            --container-bg: #121212;
+            --border-color: #2d2d2d;
+            --text-title: #ffffff;
+            --text-muted: #888888;
+            --viewer-bg: #1e1e1e;
+            --toolbar-bg: #252525;
+            --toolbar-border: #333333;
+        }
         html, body {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
-            background-color: #121212;
+            background-color: var(--bg-color);
+            color: var(--text-title);
             overflow: auto;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
         }
         .container {
             display: flex;
@@ -20,41 +43,51 @@
             height: 100%;
             box-sizing: border-box;
             padding: 20px;
+            background-color: var(--container-bg);
+            transition: background-color 0.3s;
         }
         .header {
             margin-bottom: 15px;
             padding-bottom: 10px;
-            border-bottom: 1px solid #2d2d2d;
+            border-bottom: 1px solid var(--border-color);
+            transition: border-bottom-color 0.3s;
         }
         .header h2 {
             margin: 0 0 5px 0;
-            color: #ffffff;
+            color: var(--text-title);
             font-size: 1.5rem;
             font-weight: 600;
+            transition: color 0.3s;
         }
         .header p {
             margin: 0;
-            color: #888888;
+            color: var(--text-muted);
             font-size: 0.9rem;
+            transition: color 0.3s;
         }
         .viewer-wrapper {
             flex: 1;
-            background-color: #1e1e1e;
+            background-color: var(--viewer-bg);
             border-radius: 8px;
-            border: 1px solid #2d2d2d;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
             padding: 10px;
             overflow: auto;
             position: relative;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        body.dark-mode .viewer-wrapper {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
         /* Custom styles to override draw.io dark mode appearance */
         .mxgraph {
             background-color: transparent !important;
         }
-        /* Style the toolbar for premium dark feel */
+        /* Style the toolbar for premium feel */
         .geToolbarContainer {
-            background-color: #252525 !important;
-            border-color: #333333 !important;
+            background-color: var(--toolbar-bg) !important;
+            border-color: var(--toolbar-border) !important;
+            transition: background-color 0.3s, border-color 0.3s;
         }
     </style>
 </head>
@@ -66,7 +99,7 @@
         </div>
         <div class="viewer-wrapper">
             <div class="mxgraph" style="max-width:100%; border:1px solid transparent;" 
-                 data-mxgraph="{&quot;highlight&quot;:&quot;#007acc&quot;,&quot;dark-mode&quot;:&quot;dark&quot;,&quot;xml&quot;:&quot;\u003cmxfile\u003e\u003cdiagram name=\&quot;실시간 데이터 수집 및 EES 스트림 분배\&quot; id=\&quot;stream_storage\&quot;\u003e\u003cmxGraphModel dx=\&quot;5333\&quot; dy=\&quot;1922\&quot; grid=\&quot;1\&quot; gridSize=\&quot;10\&quot; guides=\&quot;1\&quot; tooltips=\&quot;1\&quot; connect=\&quot;1\&quot; arrows=\&quot;1\&quot; fold=\&quot;1\&quot; page=\&quot;1\&quot; pageScale=\&quot;1\&quot; pageWidth=\&quot;827\&quot; pageHeight=\&quot;1169\&quot; math=\&quot;0\&quot; shadow=\&quot;0\&quot;\u003e\u003croot\u003e\u003cmxCell id=\&quot;0\&quot; /\u003e\u003cmxCell id=\&quot;1\&quot; parent=\&quot;0\&quot; /\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-239\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;OEE Calculator\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;30\&quot; width=\&quot;200\&quot; x=\&quot;210\&quot; y=\&quot;301\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-230\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);labelPosition=center;verticalLabelPosition=top;align=left;verticalAlign=bottom;\&quot; value=\&quot;해외법인(별도의 집계서버 구축필요)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;155\&quot; width=\&quot;580\&quot; x=\&quot;20\&quot; y=\&quot;20\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-237\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;KLL Engine (통계적 P99 및 Median)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;30\&quot; width=\&quot;200\&quot; x=\&quot;365\&quot; y=\&quot;127\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-231\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);labelPosition=center;verticalLabelPosition=top;align=left;verticalAlign=bottom;\&quot; value=\&quot;Stream Processing \u0026amp; Storage (데이터 센터)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;280\&quot; width=\&quot;580\&quot; x=\&quot;20\&quot; y=\&quot;230\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-238\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;통합 이상치 필터\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;30\&quot; width=\&quot;200\&quot; x=\&quot;210\&quot; y=\&quot;240\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-241\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;Dashboard (UI)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;30\&quot; width=\&quot;200\&quot; x=\&quot;210\&quot; y=\&quot;465\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-240\&quot; parent=\&quot;1\&quot; style=\&quot;shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;Oracle / MSSQL (MES DB)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;51\&quot; width=\&quot;200\&quot; x=\&quot;210\&quot; y=\&quot;374\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-236\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;Chan Engine (기하학적 가동 범위)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;30\&quot; width=\&quot;200\&quot; x=\&quot;55\&quot; y=\&quot;127\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-235\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;EES (Stream Processor)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;30\&quot; width=\&quot;200\&quot; x=\&quot;210\&quot; y=\&quot;40\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-246\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-236\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.12;entryY=0;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=1;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-238\&quot; value=\&quot;정상 가동 범위 (Convex Hull)\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-250\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-240\&quot; style=\&quot;curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1.01;entryX=0.5;entryY=0.01;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-241\&quot; value=\&quot;지표 시각화\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;\u003e\u003cArray as=\&quot;points\&quot; /\u003e\u003c/mxGeometry\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-248\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-238\&quot; style=\&quot;curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-239\&quot; value=\&quot;정제된 순수 성능 데이터\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;\u003e\u003cArray as=\&quot;points\&quot; /\u003e\u003c/mxGeometry\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-249\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-239\&quot; style=\&quot;curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-240\&quot; value=\&quot;OEE 산출 (시간가동율 &#215; 성능가동율)\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;\u003e\u003cArray as=\&quot;points\&quot; /\u003e\u003c/mxGeometry\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-247\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-237\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.88;entryY=0;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=1;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-238\&quot; value=\&quot;P99 임계값 및 P50\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-244\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-235\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=0.19;exitY=1;entryX=0.5;entryY=0;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=1;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-236\&quot; value=\&quot;공정 파라미터 전송\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-245\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-235\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=0.81;exitY=1;entryX=0.5;entryY=0;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=1;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-237\&quot; value=\&quot;Cycle Time 전송\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003c/root\u003e\u003c/mxGraphModel\u003e\u003c/diagram\u003e\u003c/mxfile\u003e&quot;,&quot;nav&quot;:true,&quot;edit&quot;:&quot;_blank&quot;,&quot;toolbar&quot;:&quot;zoom layers tags lightbox&quot;,&quot;resize&quot;:true}"></div>
+                 data-mxgraph="{&quot;highlight&quot;:&quot;#007acc&quot;,&quot;dark-mode&quot;:&quot;auto&quot;,&quot;xml&quot;:&quot;\u003cmxfile\u003e\u003cdiagram name=\&quot;실시간 데이터 수집 및 EES 스트림 분배\&quot; id=\&quot;stream_storage\&quot;\u003e\u003cmxGraphModel dx=\&quot;5333\&quot; dy=\&quot;1922\&quot; grid=\&quot;1\&quot; gridSize=\&quot;10\&quot; guides=\&quot;1\&quot; tooltips=\&quot;1\&quot; connect=\&quot;1\&quot; arrows=\&quot;1\&quot; fold=\&quot;1\&quot; page=\&quot;1\&quot; pageScale=\&quot;1\&quot; pageWidth=\&quot;827\&quot; pageHeight=\&quot;1169\&quot; math=\&quot;0\&quot; shadow=\&quot;0\&quot;\u003e\u003croot\u003e\u003cmxCell id=\&quot;0\&quot; /\u003e\u003cmxCell id=\&quot;1\&quot; parent=\&quot;0\&quot; /\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-239\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;OEE Calculator\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;30\&quot; width=\&quot;200\&quot; x=\&quot;210\&quot; y=\&quot;301\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-230\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);labelPosition=center;verticalLabelPosition=top;align=left;verticalAlign=bottom;\&quot; value=\&quot;해외법인(별도의 집계서버 구축필요)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;155\&quot; width=\&quot;580\&quot; x=\&quot;20\&quot; y=\&quot;20\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-237\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;KLL Engine (통계적 P99 및 Median)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;30\&quot; width=\&quot;200\&quot; x=\&quot;365\&quot; y=\&quot;127\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-231\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);labelPosition=center;verticalLabelPosition=top;align=left;verticalAlign=bottom;\&quot; value=\&quot;Stream Processing \u0026amp; Storage (데이터 센터)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;280\&quot; width=\&quot;580\&quot; x=\&quot;20\&quot; y=\&quot;230\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-238\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;통합 이상치 필터\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;30\&quot; width=\&quot;200\&quot; x=\&quot;210\&quot; y=\&quot;240\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-241\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;Dashboard (UI)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;30\&quot; width=\&quot;200\&quot; x=\&quot;210\&quot; y=\&quot;465\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-240\&quot; parent=\&quot;1\&quot; style=\&quot;shape=cylinder3;boundedLbl=1;backgroundOutline=1;size=10;strokeWidth=2;whiteSpace=wrap;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;Oracle / MSSQL (MES DB)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;51\&quot; width=\&quot;200\&quot; x=\&quot;210\&quot; y=\&quot;374\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-236\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;Chan Engine (기하학적 가동 범위)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;30\&quot; width=\&quot;200\&quot; x=\&quot;55\&quot; y=\&quot;127\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-235\&quot; parent=\&quot;1\&quot; style=\&quot;whiteSpace=wrap;strokeWidth=2;fillColor=light-dark(#eeeeee,#1f2020);strokeColor=light-dark(#999999,#cccccc);fontColor=light-dark(#333333,#cccccc);\&quot; value=\&quot;EES (Stream Processor)\&quot; vertex=\&quot;1\&quot;\u003e\u003cmxGeometry height=\&quot;30\&quot; width=\&quot;200\&quot; x=\&quot;210\&quot; y=\&quot;40\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-246\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-236\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.12;entryY=0;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=1;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-238\&quot; value=\&quot;정상 가동 범위 (Convex Hull)\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-250\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-240\&quot; style=\&quot;curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1.01;entryX=0.5;entryY=0.01;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-241\&quot; value=\&quot;지표 시각화\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;\u003e\u003cArray as=\&quot;points\&quot; /\u003e\u003c/mxGeometry\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-248\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-238\&quot; style=\&quot;curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-239\&quot; value=\&quot;정제된 순수 성능 데이터\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;\u003e\u003cArray as=\&quot;points\&quot; /\u003e\u003c/mxGeometry\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-249\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-239\&quot; style=\&quot;curved=1;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.5;entryY=0;rounded=0;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-240\&quot; value=\&quot;OEE 산출 (시간가동율 &#215; 성능가동율)\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;\u003e\u003cArray as=\&quot;points\&quot; /\u003e\u003c/mxGeometry\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-247\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-237\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=0.5;exitY=1;entryX=0.88;entryY=0;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=1;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-238\&quot; value=\&quot;P99 임계값 및 P50\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-244\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-235\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=0.19;exitY=1;entryX=0.5;entryY=0;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=1;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-236\&quot; value=\&quot;공정 파라미터 전송\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003cmxCell id=\&quot;v9g5RWL5hW_TE3o1-Q30-245\&quot; edge=\&quot;1\&quot; parent=\&quot;1\&quot; source=\&quot;v9g5RWL5hW_TE3o1-Q30-235\&quot; style=\&quot;startArrow=none;endArrow=block;exitX=0.81;exitY=1;entryX=0.5;entryY=0;rounded=0;edgeStyle=orthogonalEdgeStyle;curved=1;\&quot; target=\&quot;v9g5RWL5hW_TE3o1-Q30-237\&quot; value=\&quot;Cycle Time 전송\&quot;\u003e\u003cmxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot; /\u003e\u003c/mxCell\u003e\u003c/root\u003e\u003c/mxGraphModel\u003e\u003c/diagram\u003e\u003c/mxfile\u003e&quot;,&quot;nav&quot;:true,&quot;edit&quot;:&quot;_blank&quot;,&quot;toolbar&quot;:&quot;zoom layers tags lightbox&quot;,&quot;resize&quot;:true}"></div>
         </div>
     </div>
     <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>

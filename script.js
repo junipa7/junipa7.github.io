@@ -374,7 +374,7 @@ async function loadContent(path, mode = "auto") {
         editorContent.scrollTop = 0;
 
         if (mode === "iframe") {
-            editorContent.innerHTML = `<iframe class="content-frame" src="${path}" title="${escapeHtml(path)}" scrolling="no" onload="this.style.height=this.contentWindow.document.documentElement.scrollHeight + 30 + 'px'"></iframe>`;
+            editorContent.innerHTML = `<iframe class="content-frame" src="${path}" title="${escapeHtml(path)}" scrolling="no" onload="this.style.height=this.contentWindow.document.documentElement.scrollHeight + 30 + 'px'; if(document.body.classList.contains('dark-mode')){this.contentWindow.document.body.classList.add('dark-mode');}"></iframe>`;
             return;
         }
 
@@ -441,8 +441,13 @@ function setAllCollapsed(collapsed) {
 
 if (themeToggle) {
     themeToggle.addEventListener("click", () => {
-        document.body.classList.toggle("dark-mode");
-        themeToggle.textContent = document.body.classList.contains("dark-mode") ? "Light" : "Dark";
+        const isDark = document.body.classList.toggle("dark-mode");
+        themeToggle.textContent = isDark ? "Light" : "Dark";
+        
+        const iframe = editorContent.querySelector("iframe");
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.document.body.classList.toggle("dark-mode", isDark);
+        }
     });
 }
 

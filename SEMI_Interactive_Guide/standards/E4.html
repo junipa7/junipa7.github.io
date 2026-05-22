@@ -1,209 +1,615 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SEMI E4 Guide - SECS-I</title>
-  <link rel="stylesheet" href="../semi-page.css">
-  <style>
-    .lesson-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-    .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
-    .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
-    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
-    .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
-    @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEMI E4 인터랙티브 마스터 대시보드 - SECS-I</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Slate & Warm Neutrals & Functional SECS-I Connection Colors -->
+    <!-- Application Structure Plan: 본 SPA는 SEMI E4 (SECS-I) 직렬 통신의 복잡한 바이트 패킷 흐름과 타이머 규격을 대화식 대시보드로 재구성했습니다. 사용자는 1) '프레임의 계층 구조'를 클릭하며 원본 SECS-II 메시지가 헤더, 체크섬 등으로 어떻게 포장되는지 시각적 블록을 통해 파악하고, 2) '4대 타이머 및 제어 문자' 탭을 통해 T1~T4와 ENQ/EOT 등의 상세 스펙을 직관적으로 탐색합니다. 3) '실시간 링크 성능 시뮬레이터'에서는 노이즈 수준 및 전송 시나리오를 슬라이더로 직접 모의 작동하여 가용성과 대역폭 KPI가 어떻게 역동적으로 변화하는지 Chart.js 데이터 시각화와 함께 학습합니다. 마지막으로 4) '현장 실무 룰'과 'SECS-I vs HSMS 상세 비교표'를 통해 현장 트러블슈팅의 핵심 가이드를 제공합니다. -->
+    
+    <style>
+        body {
+            background-color: #fafaf9;
+            color: #292524;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+
+        .bg-ok { background-color: #10b981; color: white; }
+        .bg-retry { background-color: #f59e0b; color: white; }
+        .bg-err { background-color: #ef4444; color: white; }
+        .bg-noise { background-color: #8b5cf6; color: white; }
+        .bg-t1 { background-color: #3b82f6; color: white; }
+        .bg-t2 { background-color: #6366f1; color: white; }
+
+        .text-ok { color: #10b981; }
+        .text-retry { color: #f59e0b; }
+        .text-err { color: #ef4444; }
+        .text-noise { color: #8b5cf6; }
+        .text-t1 { color: #3b82f6; }
+        .text-t2 { color: #6366f1; }
+
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hierarchy-block {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+        .hierarchy-block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn {
+            transition: all 0.2s ease;
+            opacity: 0.6;
+        }
+        .tab-btn.active {
+            opacity: 1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .kpi-card {
+            border-left-width: 4px;
+            transition: transform 0.2s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+        }
+    </style>
 </head>
-<body>
-  <main class="page">
-    <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E4</div>
+<body class="antialiased">
 
-    <section class="hero">
-      <h1>SEMI E4 - SECS-I</h1>
-      <p>RS-232 기반 저속 장비 통신 계층. SEMI E4는 오래된 장비에서 아직 많이 만나는 직렬 통신 기반의 SECS 물리/전송 계층입니다. 학생 관점에서는 &#39;메시지 내용&#39;보다 먼저 바이트가 어떻게 프레임으로 묶이고, 누가 언제 재전송하며, 연결 불안정 상황을 어떻게 복구하는지 배우는 표준입니다.</p>
-      <div class="chips">
-        <span class="chip">Basic SECS/GEM</span>
-        <span class="chip">교육용 상세 가이드</span>
-        <span class="chip">개발 설계 관점</span>
-      </div>
-    </section>
-
-    <section class="section">
-      <h2>학습 목표</h2>
-      <div class="lesson-index">
-        <a href="#concept">1. 표준의 역할</a>
-        <a href="#dfd">2. DFD와 데이터 흐름</a>
-        <a href="#model">3. 객체/상태 모델</a>
-        <a href="#implementation">4. 구현 설계</a>
-        <a href="#database">5. 데이터베이스</a>
-        <a href="#logic">6. 처리 로직</a>
-        <a href="#test">7. 테스트</a>
-        <a href="#ops">8. 운영 체크</a>
-      </div>
-      <div class="callout">이 문서는 수업과 시스템 설계를 돕기 위한 교육용 해설입니다. 실제 프로젝트 적용 시에는 고객 사양서, 장비 벤더 매뉴얼, 최신 SEMI 공식 문서를 함께 확인해야 합니다.</div>
-      <p><strong>수업에서 기억할 핵심:</strong> E4는 구형 계측기, 오래된 세정/검사 장비, RS-232 컨버터를 사용하는 레거시 설비를 EAP 또는 TC와 연결할 때 필요합니다. 이 문서를 읽을 때는 표준 번호를 외우는 것보다, 입력 데이터가 어디서 오고 어떤 상태 판단을 거쳐 어떤 업무 시스템으로 전달되는지 따라가야 합니다.</p>
-    </section>
-
-    <section id="concept" class="section">
-      <h2>1. 표준의 역할과 현장 배경</h2>
-      <p>SEMI E4는 오래된 장비에서 아직 많이 만나는 직렬 통신 기반의 SECS 물리/전송 계층입니다. 학생 관점에서는 &#39;메시지 내용&#39;보다 먼저 바이트가 어떻게 프레임으로 묶이고, 누가 언제 재전송하며, 연결 불안정 상황을 어떻게 복구하는지 배우는 표준입니다.</p>
-      <p>반도체 fab의 자동화 시스템은 장비, EAP, MES, FDC, APC, 물류 시스템이 동시에 움직입니다. 이때 E4 영역의 데이터가 애매하면 운영자는 같은 현상을 서로 다른 용어로 부르게 되고, 개발자는 예외 처리를 코드 곳곳에 흩뿌리게 됩니다. 따라서 먼저 표준이 다루는 경계를 정하고, 그 안에서 공통 객체와 상태를 모델링해야 합니다.</p>
-      <div class="two-col">
-        <div class="card">
-          <strong>비유설명</strong>
-          <span>E4를 하나의 교실 규칙이라고 보면 됩니다. 교사가 출석, 과제, 시험을 같은 양식으로 관리해야 학생별 이력을 비교할 수 있듯이, 장비 자동화도 Block, Device ID, T1/T2/T3/T4, ACK/NAK 같은 핵심 요소를 같은 언어로 관리해야 합니다.</span>
+    <header class="bg-slate-900 text-stone-50 py-12 shadow-md">
+        <div class="container mx-auto px-4 max-w-6xl">
+            <div class="inline-block bg-slate-700 text-xs font-bold px-3 py-1 rounded mb-3 tracking-widest uppercase">Interactive Standard Guide</div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">SEMI E4 마스터 가이드 (SECS-I)</h1>
+            <p class="text-stone-300 text-lg md:text-xl max-w-3xl leading-relaxed">
+                RS-232 기반 레거시 설비 전송 물리 계층의 글로벌 표준. 긴 SECS-II 메시지가 어떻게 프레임 블록으로 쪼개어지고, 재전송과 타임아웃 메커니즘을 통해 직렬 노이즈를 뚫고 안정적으로 전달되는지 탐색해 보십시오.
+            </p>
         </div>
-        <div class="card">
-          <strong>개발자에게 중요한 이유</strong>
-          <span>표준을 데이터 모델로 옮기면 화면, API, 이벤트 처리, 장애 분석이 같은 기준을 공유합니다. 반대로 표준을 문서로만 두면 프로젝트마다 다른 용어와 상태값이 생겨 유지보수가 어려워집니다.</span>
-        </div>
-      </div>
-    </section>
+    </header>
 
-    <section id="dfd" class="section">
-      <h2>2. DFD: 데이터가 흘러가는 방식</h2>
-      <div class="flow-diagram">
-        <div class="flow-node"><strong>장비 RS-232 포트</strong><span class="tiny">Input</span></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node"><strong>문자/블록 프레임</strong><span class="tiny">Process</span></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node"><strong>ACK/NAK 및 타임아웃</strong><span class="tiny">Process</span></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node"><strong>SECS-II 디코더</strong><span class="tiny">Process</span></div>
-        <div class="flow-arrow">→</div>
-        <div class="flow-node"><strong>Host Application</strong><span class="tiny">Output</span></div>
-      </div>
-      <p style="margin-top:14px">위 흐름은 E4를 프로그램으로 구현할 때의 기본 DFD입니다. 단순히 화면에 값을 보여주는 흐름이 아니라, 입력, 검증, 상태 판단, 저장, 업무 시스템 전달까지 포함합니다.</p>
-      <table>
-        <thead><tr><th>단계</th><th>처리 의미</th><th>개발 시 저장/검증 포인트</th></tr></thead>
-        <tbody><tr><td><strong>1. 장비 RS-232 포트</strong></td><td>입력 데이터 또는 시작 조건</td><td>장비, Host, 운영자, 물류 시스템에서 발생</td></tr>
-<tr><td><strong>2. 문자/블록 프레임</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
-<tr><td><strong>3. ACK/NAK 및 타임아웃</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
-<tr><td><strong>4. SECS-II 디코더</strong></td><td>검증, 변환, 상태 판단을 수행하는 처리 단계</td><td>중간 결과를 로그와 상태 테이블에 남김</td></tr>
-<tr><td><strong>5. Host Application</strong></td><td>업무 시스템이 사용하는 결과</td><td>MES/EAP/대시보드/분석 시스템으로 전달</td></tr></tbody>
-      </table>
-    </section>
+    <main class="container mx-auto px-4 max-w-6xl mt-12 space-y-16 pb-20">
 
-    <section id="model" class="section">
-      <h2>3. 핵심 객체와 상태 모델</h2>
-      <p>E4 구현은 아래 객체들을 중심으로 설계하면 이해가 쉽습니다. 학생들은 각 객체가 "무엇을 식별하고", "어떤 상태를 가지며", "어떤 이벤트로 변하는지"를 먼저 그려보면 됩니다.</p>
-      <table>
-        <thead><tr><th>객체/개념</th><th>역할</th><th>수업식 해설</th></tr></thead>
-        <tbody><tr><td><strong>Block</strong></td><td>전송 단위</td><td>긴 SECS-II 메시지를 작은 블록으로 나누어 전송합니다.</td></tr>
-<tr><td><strong>Device ID</strong></td><td>상대 식별</td><td>한 물리 회선에 연결된 장비 또는 호스트 논리 주소를 구분합니다.</td></tr>
-<tr><td><strong>T1/T2/T3/T4</strong></td><td>타이머</td><td>문자 간 지연, 블록 응답, Reply 대기, 세션 유지 판단에 사용합니다.</td></tr>
-<tr><td><strong>ACK/NAK</strong></td><td>흐름 제어</td><td>정상 수신 또는 오류 수신을 상대에게 알립니다.</td></tr></tbody>
-      </table>
-      <h3>상태 전이 관점</h3>
-      <p>상태 모델은 "현재 상태를 저장하는 테이블"과 "상태가 바뀐 이력 테이블"을 분리해서 생각해야 합니다. 현재 상태는 화면과 제어 판단에 빠르게 쓰이고, 이력은 감사, 추적, KPI 계산, 장애 분석에 쓰입니다.</p>
-      <div class="codebox">state_event_received // 장비 상태 이벤트 수신
-  -> validate_event_order // 이벤트 순서 및 유효성 검증
-  -> close_previous_interval_if_needed // 이전 구간 마감 처리 (필요시)
-  -> update_current_state // 현재 상태 업데이트
-  -> append_history // 이력 테이블에 저장
-  -> publish_business_event // 상위 시스템으로 비즈니스 이벤트 발행</div>
-    </section>
+        <!-- Section 1. SECS-I 프레임 포장 계층 구조 (Frame Stack) -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-stone-800 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">1</span>
+                    프레임의 계층 구조 (Frame Stack)
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">SECS-II 페이로드가 물리 포트로 전송되기 위해 바이트 단위 패킷으로 묶이는 아키텍처입니다. 아래의 어두운 블록을 순서대로 클릭하여 세분화해 보세요.</p>
+            </div>
 
-    <section class="section">
-      <h2>4. 메시지와 이벤트 설계</h2>
-      <p>표준을 실제 시스템에 연결할 때는 메시지 이름보다 메시지가 만드는 업무 효과를 더 중요하게 봐야 합니다. 예를 들어 ACK가 성공이어도 실제 상태가 바뀌지 않았으면 업무적으로는 아직 완료가 아닙니다.</p>
-      <table>
-        <thead><tr><th>메시지/이벤트</th><th>의도</th><th>구현 시 확인할 점</th></tr></thead>
-        <tbody><tr><td><strong>수신</strong></td><td>STX 이후 길이와 체크섬을 검증</td><td>프레임이 깨지면 NAK를 보내고 상위 메시지로 올리지 않습니다.</td></tr>
-<tr><td><strong>송신</strong></td><td>블록 번호와 마지막 블록 표시 설정</td><td>긴 메시지는 순서가 보존되어야 합니다.</td></tr>
-<tr><td><strong>오류</strong></td><td>타이머 만료 또는 체크섬 오류</td><td>재전송 횟수 초과 시 통신 장애 알람을 올립니다.</td></tr></tbody>
-      </table>
-    </section>
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 md:p-10">
+                <div class="space-y-4 text-center font-semibold text-stone-800">
+                    <div id="h-level-1" class="hierarchy-block bg-slate-800 text-white py-5 rounded-xl text-xl shadow-md border-b-4 border-slate-950" onclick="expandHierarchy(2)">
+                        SECS-II Message Payload (SxFy 원본 내용)
+                        <div class="text-xs font-normal text-stone-300 mt-1">클릭하여 프레임 포장 ▼</div>
+                    </div>
+                    
+                    <div id="h-level-2" class="hidden flex-col md:flex-row gap-4 fade-in">
+                        <div class="hierarchy-block flex-[3] bg-slate-600 text-white py-5 rounded-xl shadow-sm border-b-4 border-slate-700" onclick="expandHierarchy(3)">
+                            SECS-I Block Frame (메시지 분할 블록)
+                            <div class="text-xs font-normal text-stone-300 mt-1">클릭하여 세부 바이트 구조 분할 ▼</div>
+                        </div>
+                        <div class="flex-[1] bg-amber-600 text-white py-5 rounded-xl shadow-sm border-b-4 border-amber-700 opacity-90 cursor-default">
+                            ENQ / EOT<br><span class="text-xs font-normal opacity-80">송신 권한 핸드셰이크</span>
+                        </div>
+                    </div>
 
-    <section id="database" class="section">
-      <h2>5. 권장 데이터베이스 구조</h2>
-      <p>아래 테이블은 교육용 설계 예시입니다. 실제 프로젝트에서는 장비 수, 이벤트량, 보존 기간, 고객 naming rule에 맞춰 column을 조정해야 합니다. 그래도 핵심은 원본 이벤트, 현재 상태, 이력, 설정 버전을 분리하는 것입니다.</p>
-      <table>
-        <thead><tr><th>테이블</th><th>권장 컬럼</th><th>설계 이유</th></tr></thead>
-        <tbody><tr><td><strong>secs_link_config</strong></td><td><code>equipment_id, port_name, baud_rate, parity, data_bits, stop_bits, t1_ms, t2_ms, retry_limit</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr>
-<tr><td><strong>secs_frame_log</strong></td><td><code>log_id, equipment_id, direction, block_no, raw_hex, checksum_ok, created_at</code></td><td>운영 화면, 이력 추적, 장애 분석, 재처리를 분리하기 위한 기본 저장소입니다.</td></tr></tbody>
-      </table>
-      <h3>ERD를 그릴 때의 원칙</h3>
-      <ul><li>장비 ID, 표준 객체 ID, 발생 시각은 대부분의 테이블에 들어가는 기본 축입니다.</li>
-<li>현재 상태 테이블은 업데이트가 많고, 이력 테이블은 append 중심으로 설계합니다.</li>
-<li>설정값과 사전 정보는 version을 둡니다. 장비 SW 변경 후 같은 ID의 의미가 바뀌는 경우가 있습니다.</li>
-<li>원본 payload 또는 raw message 참조를 남기면 장애 분석과 재처리가 쉬워집니다.</li></ul>
-    </section>
+                    <div id="h-level-3" class="hidden flex-col md:flex-row gap-4 fade-in">
+                        <div class="hierarchy-block flex-[2] bg-teal-700 text-white py-4 rounded-xl shadow-sm border-b-4 border-teal-800" onclick="expandHierarchy(4)">
+                            Length &amp; 10-byte Header (헤더 바이트)
+                            <div class="text-xs font-normal text-teal-200 mt-1">클릭하여 헤더 상세 분석 ▼</div>
+                        </div>
+                        <div class="flex-[1] bg-sky-800 text-white py-4 rounded-xl shadow-sm border-b-4 border-sky-900 cursor-default">
+                            Text Payload<br><span class="text-xs font-normal text-sky-200">실제 분할 데이터 (최대 244바이트)</span>
+                        </div>
+                        <div class="hierarchy-block flex-[1] bg-rose-800 text-white py-4 rounded-xl shadow-sm border-b-4 border-rose-900" onclick="expandHierarchy(5)">
+                            2-byte Checksum<br><span class="text-xs font-normal text-rose-200">데이터 무결성 검증 (오류 감지)</span>
+                        </div>
+                    </div>
 
-    <section id="implementation" class="section">
-      <h2>6. 구현 절차</h2>
-      <p>처음부터 전체 자동화를 만들려고 하면 복잡합니다. 수업 프로젝트나 PoC에서는 다음 순서로 구현하면 기능이 자연스럽게 쌓입니다.</p>
-      <table>
-        <thead><tr><th>순서</th><th>구현 항목</th><th>완료 기준</th></tr></thead>
-        <tbody><tr><td><strong>1</strong></td><td>포트 설정은 벤더 매뉴얼과 현장 케이블 배선을 함께 확인합니다. 같은 RS-232라도 null modem 여부가 다르면 통신이 전혀 되지 않습니다.</td><td>입력 조건과 설정값이 화면/DB에 남는다.</td></tr>
-<tr><td><strong>2</strong></td><td>프레임 파서는 문자 단위 state machine으로 작성합니다. STX, length, header, body, checksum, ETX를 한 번에 문자열 split으로 처리하면 깨진 바이트에 취약합니다.</td><td>정상/오류 케이스가 테스트로 재현된다.</td></tr>
-<tr><td><strong>3</strong></td><td>재전송 정책과 알람 정책을 분리합니다. 전송 계층은 재시도만 담당하고, 운영 알람은 EAP/통신 관리자 모듈에서 판단하게 만드는 편이 좋습니다.</td><td>정상/오류 케이스가 테스트로 재현된다.</td></tr>
-<tr><td><strong>4</strong></td><td>수신 로그에는 원본 HEX를 보존합니다. 장애 분석에서 사람이 해석한 값보다 원본 바이트가 더 중요할 때가 많습니다.</td><td>장애 상황에서도 로그와 상태가 일관된다.</td></tr></tbody>
-      </table>
-      <h3>서비스 분리 예시</h3>
-      <div class="codebox">Controller/API // 외부 요청 및 이벤트 접수
-  -> Command Validator // 명령어 형식 및 기본 검증
-  -> Standard Domain Service (E4) // 표준 비즈니스 로직 및 상태 전이 판단
-  -> State Repository // 현재 상태 DB 저장 및 조회
-  -> Event Publisher // 처리 결과 이벤트 발행
-  -> Audit/Metric Writer // 감사 로그 및 성능 지표 기록</div>
-      <p>Domain Service 안에는 E4의 상태 전이, 권한 판단, 데이터 품질 판단 같은 표준별 규칙을 넣고, Controller에는 HTTP나 화면 요청 처리만 남기는 구조가 유지보수에 좋습니다.</p>
-    </section>
+                    <div id="h-level-4" class="hidden flex-col md:flex-row gap-3 fade-in">
+                        <div class="flex-[2] flex gap-2">
+                            <div class="flex-1 bg-ok py-4 rounded-lg shadow-sm border-b-4 border-emerald-700 cursor-default">Device ID<div class="text-xs font-normal">장비 논리 주소 (2B)</div></div>
+                            <div class="flex-1 bg-retry py-4 rounded-lg shadow-sm border-b-4 border-amber-600 cursor-default">Message ID<div class="text-xs font-normal">Stream / Function (2B)</div></div>
+                            <div class="flex-1 bg-t1 py-4 rounded-lg shadow-sm border-b-4 border-blue-700 cursor-default">Block No &amp; Ebit<div class="text-xs font-normal">순서 및 마지막 유무 (2B)</div></div>
+                            <div class="flex-1 bg-t2 py-4 rounded-lg shadow-sm border-b-4 border-indigo-700 cursor-default">System Bytes<div class="text-xs font-normal">동일 식별 일련번호 (4B)</div></div>
+                        </div>
+                        <div class="flex-[1] border-2 border-dashed border-stone-200 rounded-xl flex items-center justify-center text-stone-400 text-sm">Text Payload 영역</div>
+                        <div id="h-level-5" class="flex-[1] hidden flex gap-1 fade-in">
+                            <div class="flex-1 bg-red-600 text-white py-4 rounded-lg shadow-sm border-b-4 border-red-800 cursor-default">CS High</div>
+                            <div class="flex-1 bg-red-600 text-white py-4 rounded-lg shadow-sm border-b-4 border-red-800 cursor-default">CS Low</div>
+                        </div>
+                        <div id="h-level-5-placeholder" class="flex-[1] border-2 border-dashed border-stone-200 rounded-xl flex items-center justify-center text-stone-400 text-sm">Checksum 영역</div>
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                    <button onclick="resetHierarchy()" class="text-sm text-stone-500 hover:text-stone-800 transition underline decoration-dotted">계층 구조 초기화</button>
+                </div>
+            </div>
+        </section>
 
-    <section id="logic" class="section">
-      <h2>7. 처리 로직 상세</h2>
-      <p>아래 의사코드는 E4 이벤트를 받았을 때 공통적으로 적용할 수 있는 처리 흐름입니다. 실제 코드는 Java, C#, Python, Node.js 어느 언어로 작성해도 되지만 순서는 유지하는 편이 안전합니다.</p>
-      <div class="codebox">function handleE4Event(event): // 표준 이벤트 처리 진입점
-  assert event.equipmentId is not empty // 설비 식별자 존재 여부 확인
-  assert event.eventTime is not in the future beyond allowedSkew // 발생 시간이 미래인지(허용 오차 내) 확인
-  dictionary = loadDictionary(event.equipmentId, event.standardVersion) // 설비별/표준버전별 사전(Dictionary) 로드
-  normalized = normalize(event, dictionary) // 사전 기반 데이터 정규화 및 표준화
-  validationResult = validateBusinessRule(normalized) // 표준 비즈니스 룰 기반 유효성 검증
-  saveRawEvent(event) // 원본 이벤트 로우 데이터 저장
-  if validationResult.ok: // 검증 통과 시
-      updateCurrentState(normalized) // 현재 상태 DB 반영
-      appendHistory(normalized) // 이력 DB에 추가
-      publishToConsumers(normalized) // 구독 시스템(분석, UI 등)에 데이터 발행
-  else: // 조건 불만족 시
-      createExceptionRecord(normalized, validationResult.reason) // 예외 상황 및 실패 사유 기록
-      notifyOperatorIfNeeded() // 필요 시 작업자에게 알림 발송</div>
-      <h3>예외 처리 원칙</h3>
-      <ul><li>오류 이벤트도 버리지 않습니다. raw event와 실패 이유를 저장해야 재처리와 벤더 문의가 가능합니다.</li>
-<li>장비 시간과 서버 시간이 다를 수 있으므로 허용 가능한 clock skew를 설정합니다.</li>
-<li>중복 이벤트는 idempotency key로 걸러냅니다. 보통 equipment_id, event_name, event_time, sequence를 조합합니다.</li>
-<li>업무 시스템으로 내보내기 전에 표준 상태값을 사내 공통 코드로 매핑합니다.</li></ul>
-    </section>
+        <!-- Section 2. E4 핵심 4대 타이머 & 제어 문자 탐색기 -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-stone-800 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">2</span>
+                    4대 타이머 및 핵심 제어문자 탐색기
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">SECS-I 프로토콜의 안정성을 규정하는 4가지 타이머와 전송 신호 제어 문자의 정합성 정의를 탭을 통해 확인하세요.</p>
+            </div>
 
-    <section id="test" class="section">
-      <h2>8. 테스트 시나리오</h2>
-      <p>표준 구현의 품질은 정상 케이스보다 예외 케이스에서 드러납니다. 아래 테스트를 자동화하면 장비 반입과 SW 변경 검증 시간이 크게 줄어듭니다.</p>
-      <table>
-        <thead><tr><th>테스트</th><th>입력 조건</th><th>기대 결과</th></tr></thead>
-        <tbody><tr><td>TC-01</td><td>정상 S1F1 프레임 송수신</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
-<tr><td>TC-02</td><td>체크섬 오류 프레임 NAK</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
-<tr><td>TC-03</td><td>T2 만료 후 재전송</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr>
-<tr><td>TC-04</td><td>중간 블록 유실 시 메시지 폐기</td><td>상태, 이력, 알람 또는 ACK가 설계 문서와 일치해야 합니다.</td></tr></tbody>
-      </table>
-      <h3>자주 발생하는 실수</h3>
-      <div><span class="badge">USB-to-Serial 컨버터의 드라이버 지연을 타이머 오류로 오판</span> <span class="badge">체크섬 계산 범위 불일치</span> <span class="badge">장비 전원 재기동 후 첫 프레임 쓰레기 바이트 미처리</span></div>
-    </section>
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                <div class="grid grid-cols-3 md:grid-cols-6 border-b border-stone-200 bg-stone-50">
+                    <button onclick="selectState('T1')" id="tab-T1" class="tab-btn active bg-t1 p-4 font-bold text-center border-b-4 border-blue-700 text-white">T1 타이머</button>
+                    <button onclick="selectState('T2')" id="tab-T2" class="tab-btn bg-t2 p-4 font-bold text-center border-b-4 border-indigo-700 text-white">T2 타이머</button>
+                    <button onclick="selectState('T3')" id="tab-T3" class="tab-btn bg-slate-600 p-4 font-bold text-center border-b-4 border-slate-800 text-white">T3 타이머</button>
+                    <button onclick="selectState('T4')" id="tab-T4" class="tab-btn bg-slate-600 p-4 font-bold text-center border-b-4 border-slate-800 text-white">T4 타이머</button>
+                    <button onclick="selectState('CTRL')" id="tab-CTRL" class="tab-btn bg-retry p-4 font-bold text-center border-b-4 border-amber-600 text-white">제어 문자</button>
+                    <button onclick="selectState('TYPE')" id="tab-TYPE" class="tab-btn bg-ok p-4 font-bold text-center border-b-4 border-emerald-700 text-white">프레임 종류</button>
+                </div>
+                <div id="state-content-panel" class="p-6 md:p-8 min-h-[300px] bg-white"></div>
+            </div>
+        </section>
 
-    <section id="ops" class="section">
-      <h2>9. 운영 화면과 모니터링 설계</h2>
-      <p>E4를 운영 시스템에 넣을 때는 개발자 로그만으로 부족합니다. 운영자가 즉시 판단할 수 있도록 현재 상태, 마지막 이벤트 시각, 실패 원인, 관련 객체 링크를 한 화면에 보여줘야 합니다.</p>
-      <div class="grid">
-        <div class="card"><strong>상태 패널</strong><span>현재 상태, 마지막 정상 이벤트, 마지막 오류 이벤트, 장비/Client 연결 상태를 표시합니다.</span></div>
-        <div class="card"><strong>이력 타임라인</strong><span>이벤트가 어떤 순서로 발생했는지 시간축으로 보여주고 raw payload까지 drill-down할 수 있게 합니다.</span></div>
-        <div class="card"><strong>품질/예외 큐</strong><span>미처리 오류, 재처리 대상, 승인 대기 예외를 운영자가 확인하고 조치합니다.</span></div>
-      </div>
-      <h3>완료 체크리스트</h3>
-      <ul><li>표준 객체와 사내 공통 코드의 매핑표가 있다.</li>
-<li>정상/오류/재처리/중복 이벤트 테스트가 자동화되어 있다.</li>
-<li>운영자가 볼 수 있는 현재 상태 화면과 이력 화면이 있다.</li>
-<li>장비 SW 또는 표준 사전 변경 시 영향 분석 절차가 있다.</li>
-<li>공식 SEMI 문서와 고객 사양서 기준으로 최종 검토했다.</li></ul>
-    </section>
-  </main>
+        <!-- Section 3. 실시간 링크 성능 & 가용성 시뮬레이터 -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-stone-800 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">3</span>
+                    실시간 SECS-I 링크 성능 시뮬레이터
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">슬라이더를 조작하여 RS-232 회선의 가상 노이즈 수준(Noise Level)을 변화시켜 보세요. 에러 발생 빈도에 따른 가용성과 재시도 지표가 실시간으로 재계산됩니다.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Left: Chart.js Doughnut -->
+                <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-stone-200 p-6 flex flex-col items-center">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4 w-full">실시간 프레임 전송 통계</h3>
+                    
+                    <!-- Controller Slider -->
+                    <div class="w-full mb-6 bg-stone-50 p-4 rounded-xl border border-stone-200">
+                        <label for="noiseRange" class="block text-sm font-bold text-stone-700 mb-2 flex justify-between">
+                            <span>가상 직렬 노이즈 수준 (Noise Level)</span>
+                            <span id="noiseVal" class="text-noise font-mono font-bold">15%</span>
+                        </label>
+                        <input type="range" id="noiseRange" min="0" max="60" value="15" class="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-purple-600" oninput="updateSimulation(this.value)">
+                        <div class="text-xs text-stone-500 mt-2 leading-relaxed">노이즈가 높을수록 체크섬 오류 및 T1/T2 타임아웃 사고 비율이 급증합니다.</div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="kpiChart"></canvas>
+                    </div>
+                    
+                    <div class="mt-8 grid grid-cols-2 gap-x-6 gap-y-3 text-sm font-mono w-full bg-stone-50 p-4 rounded-xl border border-stone-200">
+                        <div class="flex justify-between border-b border-stone-200 pb-1"><span class="text-ok font-bold">정상 수신</span><span id="stat-ok">85 블록</span></div>
+                        <div class="flex justify-between border-b border-stone-200 pb-1"><span class="text-retry font-bold">재시도 (Retry)</span><span id="stat-retry">10 블록</span></div>
+                        <div class="flex justify-between border-b border-stone-200 pb-1"><span class="text-err font-bold">T2 타임아웃</span><span id="stat-t2">3 블록</span></div>
+                        <div class="flex justify-between pb-1"><span class="text-noise font-bold">체크섬 불량</span><span id="stat-cs">2 블록</span></div>
+                    </div>
+                </div>
+
+                <!-- Right: KPI Cards -->
+                <div class="lg:col-span-2 grid sm:grid-cols-2 gap-4">
+                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm kpi-card border-l-emerald-500 hover:bg-emerald-50">
+                        <div class="text-xs font-bold text-emerald-600 uppercase mb-1 tracking-wider">Link Reliability (회선 신뢰성)</div>
+                        <h4 class="font-bold text-stone-800 mb-2">Link Success Rate (전송 성공률)</h4>
+                        <div class="flex justify-between items-end mb-2">
+                            <div id="kpi-success" class="text-3xl font-mono font-bold text-emerald-700">85.0<span class="text-lg">%</span></div>
+                        </div>
+                        <div class="text-xs text-stone-600 bg-stone-100 p-2 rounded mb-2 font-mono">정상 블록 (85) / 총 프레임 (100)</div>
+                        <p class="text-xs text-stone-500 leading-tight">재전송이나 데이터 누실 없이 한 번에 완벽하게 수신되어 상위 SECS-II 디코더로 안착된 비율입니다.</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm kpi-card border-l-amber-500 hover:bg-amber-50">
+                        <div class="text-xs font-bold text-amber-600 uppercase mb-1 tracking-wider">Transmission Cost (전송 비용)</div>
+                        <h4 class="font-bold text-stone-800 mb-2">Average Retry Rate (평균 재시도율)</h4>
+                        <div class="flex justify-between items-end mb-2">
+                            <div id="kpi-retry" class="text-3xl font-mono font-bold text-amber-700">10.0<span class="text-lg">%</span></div>
+                        </div>
+                        <div class="text-xs text-stone-600 bg-stone-100 p-2 rounded mb-2 font-mono">재시도 건수 (10) / 총 프레임 (100)</div>
+                        <p class="text-xs text-stone-500 leading-tight">선로 노이즈로 NAK를 수신해 다시 쏘거나 ENQ 충돌로 인해 발생한 임시 재시도 비율입니다. 대역폭 지연 요인입니다.</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm kpi-card border-l-red-500 hover:bg-red-50">
+                        <div class="text-xs font-bold text-red-600 uppercase mb-1 tracking-wider">Connection Failure (통신 정지)</div>
+                        <h4 class="font-bold text-stone-800 mb-2">Timeout Incident Rate (타임아웃 발생률)</h4>
+                        <div class="flex justify-between items-end mb-2">
+                            <div id="kpi-timeout" class="text-3xl font-mono font-bold text-red-700">3.0<span class="text-lg">%</span></div>
+                        </div>
+                        <div class="text-xs text-stone-600 bg-stone-100 p-2 rounded mb-2 font-mono">T2 정지 (3) / 총 프레임 (100)</div>
+                        <p class="text-xs text-stone-500 leading-tight">ENQ 송신 후 장비가 먹통이 되거나 응답 문자 전송 지연으로 T2 타이머(10초)가 최종 만료되어 통신 세션이 유실된 비율입니다.</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm kpi-card border-l-purple-500 hover:bg-purple-50">
+                        <div class="text-xs font-bold text-purple-600 uppercase mb-1 tracking-wider">Data Quality (데이터 품질)</div>
+                        <h4 class="font-bold text-stone-800 mb-2">Checksum Failure Rate (체크섬 오류율)</h4>
+                        <div class="flex justify-between items-end mb-2">
+                            <div id="kpi-checksum" class="text-3xl font-mono font-bold text-purple-700">2.0<span class="text-lg">%</span></div>
+                        </div>
+                        <div class="text-xs text-stone-600 bg-stone-100 p-2 rounded mb-2 font-mono">체크섬 에러 (2) / 총 프레임 (100)</div>
+                        <p class="text-xs text-stone-500 leading-tight">물리 회선 상의 감쇄 현상이나 고주파 간섭으로 패킷 바이트의 일부 비트가 손실 및 변형되어 거부당한 비율입니다.</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm kpi-card border-l-blue-500 hover:bg-blue-50 sm:col-span-2">
+                        <div class="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Estimated Bandwidth Efficiency (대역폭 사용 효율)</div>
+                        <h4 class="font-bold text-stone-800 mb-2">Transmission Overhead Ratio (전송 오버헤드 비율)</h4>
+                        <div class="flex justify-between items-end mb-2">
+                            <div id="kpi-overhead" class="text-3xl font-mono font-bold text-blue-700">12.5<span class="text-lg">%</span></div>
+                        </div>
+                        <div class="text-xs text-stone-600 bg-stone-100 p-2 rounded mb-2 font-mono">기본 헤더(11B) + 재시도 손실 시간 환산값 / Payload 바이트</div>
+                        <p class="text-xs text-stone-500 leading-tight">직렬 통신(9,600bps)의 느린 속도 하에서, 헤더(10B)와 길이바이트(1B), 체크섬(2B) 및 NAK로 인한 재전송 시간 지연이 원래 순수 데이터 대비 유발한 성능 손실 오버헤드입니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4. 현장 실무 적용 및 비즈니스 룰 -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-stone-800 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">4</span>
+                    현장 실무 적용 및 트러블슈팅 룰
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">SECS-I 직렬 설비 구축 시 현장에서 자주 발생하는 난제와 대처 방안입니다.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Troubleshooting Rule -->
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-8">
+                    <div class="flex items-center mb-4">
+                        <div class="w-2 h-6 bg-slate-800 mr-3"></div>
+                        <h3 class="text-xl font-bold text-stone-800">예외 상황 우선순위 룰</h3>
+                    </div>
+                    <p class="text-stone-600 text-sm mb-6 leading-relaxed">직렬 통신(SECS-I)은 패킷 유실 및 타이밍 왜곡이 빈발하므로, 예외 상황에 대한 명확한 하드웨어 소프트웨어 처리 기준이 필수적입니다.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                            <div class="font-bold text-amber-600 mb-1">상황 A: USB-to-Serial 컨버터의 드라이버 지연 (T1 에러 오판)</div>
+                            <p class="text-sm text-stone-700">현대 PC에는 직렬 포트가 없어 USB 컨버터를 사용하는데, 가상 컴포트 드라이버의 내부 버퍼 덤프 주기가 느려 T1 문자 간 타임아웃(0.5초) 오류를 띄웁니다.</p>
+                            <div class="mt-2 text-sm font-bold text-stone-800 bg-white inline-block px-3 py-1 rounded border border-stone-200">➔ 컨버터 드라이버 속성에서 "대기 시간(Latency Timer)"을 1ms로 강제 하향 설정</div>
+                        </div>
+                        <div class="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                            <div class="font-bold text-purple-600 mb-1">상황 B: 장비 전원 재부팅 직후 쓰레기 바이트(Noise Byte) 유입</div>
+                            <p class="text-sm text-stone-700">장비가 켜지면서 물리 선로 전압 요동으로 임의의 가짜 쓰레기 바이트들이 EAP 수신 버퍼에 쌓입니다. 다음 정상 송수신 시 포맷 에러가 발생합니다.</p>
+                            <div class="mt-2 text-sm font-bold text-stone-800 bg-white inline-block px-3 py-1 rounded border border-stone-200">➔ Frame Parser 시작단(STX 검출 루프) 진입 전 버퍼 전체를 강제 Flush 및 클리어 수행</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison Table -->
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-8">
+                    <div class="flex items-center mb-4">
+                        <div class="w-2 h-6 bg-blue-500 mr-3"></div>
+                        <h3 class="text-xl font-bold text-stone-800">SECS-I (E4) vs HSMS (E37) 대조 분석</h3>
+                    </div>
+                    <p class="text-stone-600 text-sm mb-6 leading-relaxed">현대 자동화 설계 시 물리 인터페이스 결정을 돕기 위한 특성 대조군 테이블입니다.</p>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left border-collapse">
+                            <thead class="bg-stone-100 text-stone-700">
+                                <tr>
+                                    <th class="p-3 border-b-2 border-stone-200">구분 기준</th>
+                                    <th class="p-3 border-b-2 border-stone-200 text-slate-800 font-bold">SECS-I (E4)</th>
+                                    <th class="p-3 border-b-2 border-stone-200 text-blue-600 font-bold">HSMS (E37)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-stone-700">
+                                <tr class="hover:bg-stone-50 transition">
+                                    <td class="p-3 border-b font-bold bg-white">물리 매체</td>
+                                    <td class="p-3 border-b">RS-232C 직렬 케이블 (D-Sub 9핀)</td>
+                                    <td class="p-3 border-b">Ethernet 케이블 (RJ-45 UTP/광케이블)</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition">
+                                    <td class="p-3 border-b font-bold bg-white">전송 속도</td>
+                                    <td class="p-3 border-b">9,600 ~ 19,200 bps (매우 느림)</td>
+                                    <td class="p-3 border-b">100M ~ 1Gbps (초고속 대용량)</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition">
+                                    <td class="p-3 border-b font-bold bg-white">전송 세션</td>
+                                    <td class="p-3 border-b">ENQ/EOT 하드웨어 핸드셰이크 제어</td>
+                                    <td class="p-3 border-b">TCP/IP 소켓 세션 및 Select/Linktest</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition">
+                                    <td class="p-3 border-b font-bold bg-white">최대 전송 거리</td>
+                                    <td class="p-3 border-b">표준 규격상 15m 내외 권장</td>
+                                    <td class="p-3 border-b">허브 및 망 연동을 통해 무제한 확장</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition">
+                                    <td class="p-3 border-b font-bold bg-white">주요 대상 설비</td>
+                                    <td class="p-3 border-b">레거시 세정, 구형 계측기, 저속 센서기</td>
+                                    <td class="p-3 border-b">300mm 신형 핵심 노광/식각/박막 대형 설비</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5. 권장 테이블 구성 및 의사코드 -->
+        <section class="fade-in grid md:grid-cols-2 gap-8">
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                <h3 class="text-xl font-bold text-stone-800 mb-4">E4 권장 데이터베이스 테이블</h3>
+                <div class="overflow-x-auto text-xs">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-stone-100 text-stone-700">
+                                <th class="p-2 border">테이블</th>
+                                <th class="p-2 border">권장 컬럼</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-2 border font-bold">secs_link_config</td>
+                                <td class="p-2 border font-mono bg-stone-50">equipment_id, port_name, baud_rate, parity, data_bits, stop_bits, t1_ms, t2_ms, retry_limit</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border font-bold">secs_frame_log</td>
+                                <td class="p-2 border font-mono bg-stone-50">log_id, equipment_id, direction, block_no, raw_hex, checksum_ok, created_at</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                <h3 class="text-xl font-bold text-stone-800 mb-4">E4 프레임 유효성 검증 의사코드 (Pseudo-code)</h3>
+                <pre class="bg-slate-950 text-slate-200 text-xs p-4 rounded-lg font-mono overflow-auto max-h-48 leading-relaxed">
+function handleE4Event(event):
+    assert event.equipmentId is not empty
+    assert event.eventTime is not in the future
+    
+    // Checksum &amp; STX byte verification
+    if event.rawBytes[0] != STX:
+        sendNAK(event.port)
+        return ERROR_STX
+        
+    calculatedCS = calculate16BitSum(event.payload)
+    if calculatedCS != event.checksum:
+        sendNAK(event.port)
+        return ERROR_CHECKSUM
+        
+    sendACK(event.port)
+    saveRawEvent(event)
+    publishToSecsIIDecoder(event.payload)</pre>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-stone-400 py-10 text-center text-sm">
+        <p>SEMI E4: Specification for Definition and Measurement of SECS-I Protocol Layer</p>
+        <p class="mt-2 text-stone-500">본 직렬 바이트 스트림 데이터가 해독되면 SECS-II(E5) 메시지로 파싱되며, 최종적으로 GEM(E30)의 제어 시나리오로 변환됩니다.</p>
+    </footer>
+
+    <script>
+        const stateDescriptions = {
+            'T1': {
+                title: 'T1 타이머 (Inter-Character Timeout)', colorText: 'text-t1', colorBg: 'bg-blue-50', border: 'border-blue-200',
+                desc: '한 프레임 블록 내에서 문자(Byte)와 문자 사이의 수신 지연 허용 임계 시간입니다. 규격 권장값은 0.5초입니다.',
+                substates: [
+                    { name: '주요 목적', desc: '직렬 회선의 단선 유무 및 전송 끊김을 바이트 단위 수준에서 즉시 감지' },
+                    { name: '만료 상황', desc: '바이트 유실이나 노이즈 칩셋 불량으로 약속된 문자 간 간격이 0.5초를 초과했을 때' },
+                    { name: '복구 동작', desc: '현재까지 수신 중이던 프레임을 즉각 무효화 및 폐기하고 버퍼 Flush 수행' }
+                ]
+            },
+            'T2': {
+                title: 'T2 타이머 (Protocol Parameter Timeout)', colorText: 'text-t2', colorBg: 'bg-indigo-50', border: 'border-indigo-200',
+                desc: '송수신 신호 간의 응답 대기 임계 시간입니다. 규격 권장값은 10초입니다.',
+                substates: [
+                    { name: '주요 목적', desc: 'ENQ 송신 후 상대의 EOT 수신 대기 및 블록 송신 완료 후 상대의 ACK/NAK 수신 대기' },
+                    { name: '만료 상황', desc: '회선이 단절되었거나 수신 장비 측의 하드웨어 버퍼가 가득 차 응답을 보내지 못할 때' },
+                    { name: '복구 동작', desc: '재전송 제한(Retry Limit) 횟수 내에서 ENQ 혹은 블록을 다시 재송신 시도' }
+                ]
+            },
+            'T3': {
+                title: 'T3 타이머 (Reply Timeout)', colorText: 'text-slate-800', colorBg: 'bg-slate-50', border: 'border-slate-200',
+                desc: 'SxFy 송신 후 SxFy+1 (Reply) 응답 메시지가 날아올 때까지 대기하는 시간입니다. 규격 권장값은 45초입니다.',
+                substates: [
+                    { name: '주요 목적', desc: '상위 어플리케이션(EAP/호스트 또는 장비 제어 컴퓨터)의 응답 지연을 방어' },
+                    { name: '만료 상황', desc: '장비 내부에서 레시피 분석이나 데이터 쿼리 처리가 지연되어 응답을 못 만들 때' },
+                    { name: '복구 동작', desc: 'T3 만료 에러 이벤트를 발생시키고 상위 레이어에 거래 취소(Transaction Cancel) 통보' }
+                ]
+            },
+            'T4': {
+                title: 'T4 타이머 (Inter-Block Timeout)', colorText: 'text-slate-800', colorBg: 'bg-slate-50', border: 'border-slate-200',
+                desc: '다중 블록(Multi-block) 메시지 수신 시, 이전 블록을 받은 뒤 다음 블록이 수신될 때까지의 대기 시간입니다. 규격 권장값은 45초입니다.',
+                substates: [
+                    { name: '주요 목적', desc: '여러 개로 조각난 거대 패킷 수신 중 중간 조각의 실종 방지' },
+                    { name: '만료 상황', desc: '상대가 송신 중 특정 블록 데이터를 가공하느라 지나치게 시간을 허비했을 때' },
+                    { name: '복구 동작', desc: '이전에 임시로 합치고 있던 모든 블록 데이터를 즉시 폐기 및 통신 거래 실패 처리' }
+                ]
+            },
+            'CTRL': {
+                title: 'SECS-I 4대 핵심 제어 문자 (Control Characters)', colorText: 'text-retry', colorBg: 'bg-amber-50', border: 'border-amber-200',
+                desc: '직렬 회선상에서 충돌을 방지하고 바이트 흐름을 제어하기 위해 교환되는 1바이트 크기의 통신용 약속 문자입니다.',
+                substates: [
+                    { name: 'ENQ (0x05) / EOT (0x04)', desc: '송신권한을 요청(ENQ)하고 이에 동의(EOT)하여 회선 충돌(Contention) 방어' },
+                    { name: 'ACK (0x06) / NAK (0x15)', desc: '블록 프레임을 이상 없이 정상 수신(ACK)했거나 오류가 발생(NAK)했음을 통보' },
+                    { name: 'STX (0x02) / ETX (0x03)', desc: '프레임의 시작 바이트(STX) 표시 및 종결을 지시하는 식별 문자' }
+                ]
+            },
+            'TYPE': {
+                title: '프레임 전송 규격 종류 (Frame Types)', colorText: 'text-ok', colorBg: 'bg-emerald-50', border: 'border-emerald-200',
+                desc: 'SECS-II 페이로드의 크기에 따라 물리적으로 어떻게 프레임을 쪼개어 전달하는지 규정합니다.',
+                substates: [
+                    { name: 'Single-Block', desc: '데이터 페이로드가 244바이트 미만인 경우 1개의 헤더와 1개의 프레임으로 가볍게 전송 완료' },
+                    { name: 'Multi-Block', desc: '데이터가 244바이트 이상으로 길어 여러 블록(최대 32,767개)으로 쪼갠 뒤 E-bit(마지막 표시)와 블록번호를 매겨 보냄' },
+                    { name: '회선 충돌 (Contention)', desc: '양측이 동시에 ENQ를 날렸을 때, Host가 우선권을 가지고 장비는 ENQ를 취소 및 EOT를 보내 양보하도록 규정' }
+                ]
+            }
+        };
+
+        let myChartInstance = null;
+
+        function expandHierarchy(level) {
+            const el = document.getElementById(`h-level-${level}`);
+            if(el) {
+                el.classList.remove('hidden');
+                el.classList.add('flex');
+            }
+            if(level === 5) {
+                document.getElementById('h-level-5-placeholder').classList.add('hidden');
+            }
+        }
+
+        function resetHierarchy() {
+            [2, 3, 4, 5].forEach(lvl => {
+                const el = document.getElementById(`h-level-${lvl}`);
+                if(el) {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                }
+            });
+            document.getElementById('h-level-5-placeholder').classList.remove('hidden');
+        }
+
+        function selectState(stateKey) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tab-${stateKey}`).classList.add('active');
+
+            const data = stateDescriptions[stateKey];
+            const panel = document.getElementById('state-content-panel');
+            
+            let htmlStr = `
+                <div class="fade-in">
+                    <h3 class="text-2xl font-bold ${data.colorText} mb-3">${data.title}</h3>
+                    <p class="text-stone-700 text-lg mb-6">${data.desc}</p>
+                    <div class="grid md:grid-cols-3 gap-4">
+            `;
+            
+            data.substates.forEach(sub => {
+                htmlStr += `
+                    <div class="${data.colorBg} border ${data.border} p-4 rounded-xl shadow-sm">
+                        <div class="font-bold text-stone-800 mb-2 border-b border-stone-200/50 pb-1">${sub.name}</div>
+                        <div class="text-sm text-stone-700">${sub.desc}</div>
+                    </div>
+                `;
+            });
+            
+            htmlStr += `</div></div>`;
+            panel.innerHTML = htmlStr;
+        }
+
+        function updateSimulation(noiseVal) {
+            // Update Noise percentage label
+            document.getElementById('noiseVal').innerText = noiseVal + '%';
+
+            // Calculate mock variables based on noise
+            const noise = parseFloat(noiseVal);
+            
+            // Total frames = 100
+            const total = 100;
+            
+            // Checksum Failures increase linearly with noise
+            const cs = Math.round(noise * 0.2); 
+            
+            // T2 timeouts increase exponentially with noise
+            const t2 = Math.round(Math.pow(noise, 1.4) * 0.03);
+            
+            // Retries increase linearly with noise
+            const retry = Math.round(noise * 0.8);
+            
+            // Clean frames
+            const ok = Math.max(0, total - cs - t2 - retry);
+
+            // Update stats labels
+            document.getElementById('stat-ok').innerText = ok + ' 블록';
+            document.getElementById('stat-retry').innerText = retry + ' 블록';
+            document.getElementById('stat-t2').innerText = t2 + ' 블록';
+            document.getElementById('stat-cs').innerText = cs + ' 블록';
+
+            // Update KPI Cards
+            document.getElementById('kpi-success').innerHTML = ok.toFixed(1) + '<span class="text-lg">%</span>';
+            document.getElementById('kpi-retry').innerHTML = retry.toFixed(1) + '<span class="text-lg">%</span>';
+            document.getElementById('kpi-timeout').innerHTML = t2.toFixed(1) + '<span class="text-lg">%</span>';
+            document.getElementById('kpi-checksum').innerHTML = cs.toFixed(1) + '<span class="text-lg">%</span>';
+
+            // Overhead Calculation
+            const overhead = 11.0 + (retry * 2.5); // base overhead plus retry cost
+            document.getElementById('kpi-overhead').innerHTML = overhead.toFixed(1) + '<span class="text-lg">%</span>';
+
+            // Dynamic KPI Card Formulas
+            document.querySelector('.border-l-emerald-500 .font-mono').innerText = `정상 블록 (${ok}) / 총 프레임 (100)`;
+            document.querySelector('.border-l-amber-500 .font-mono').innerText = `재시도 건수 (${retry}) / 총 프레임 (100)`;
+            document.querySelector('.border-l-red-500 .font-mono').innerText = `T2 정지 (${t2}) / 총 프레임 (100)`;
+            document.querySelector('.border-l-purple-500 .font-mono').innerText = `체크섬 에러 (${cs}) / 총 프레임 (100)`;
+
+            // Update Chart.js Data
+            if (myChartInstance) {
+                myChartInstance.data.datasets[0].data = [ok, retry, t2, cs];
+                myChartInstance.data.labels = [`정상 수신 (${ok}블록)`, `재시도 (${retry}블록)`, `T2 타임아웃 (${t2}블록)`, `체크섬 불량 (${cs}블록)`];
+                myChartInstance.update();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            selectState('T1');
+
+            const ctx = document.getElementById('kpiChart').getContext('2d');
+            myChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['정상 수신 (85블록)', '재시도 (10블록)', 'T2 타임아웃 (3블록)', '체크섬 불량 (2블록)'],
+                    datasets: [{
+                        data: [85, 10, 3, 2],
+                        backgroundColor: [
+                            '#10b981', // OK
+                            '#f59e0b', // Retry
+                            '#ef4444', // T2 Timeout
+                            '#8b5cf6'  // Checksum Error
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { family: "'Pretendard', sans-serif", size: 11 },
+                                boxWidth: 12,
+                                padding: 15
+                            }
+                        }
+                    },
+                    animation: { animateScale: true }
+                }
+            });
+
+            // Trigger initial calculation
+            updateSimulation(15);
+        });
+    </script>
 </body>
 </html>

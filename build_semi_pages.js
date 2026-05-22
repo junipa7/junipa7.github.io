@@ -12,6 +12,7 @@ for (const dir of [guideDir, developerDir, guideStandardsDir, developerAlgorithm
 }
 
 const standards = [
+  ["E4", "SEMI E4", "SECS-I", "SECS/GEM 기본", "RS-232 기반 저속 장비 통신 계층. SEMI E4는 오래된 장비에서 아직 많이 만나는 직렬 통신 기반의 SECS 물리/전송 계층입니다.", "오래된 장비에서 바이트가 어떻게 프레임으로 묶이고, 누가 언제 재전송하며, 연결 불안정 상황을 어떻게 복구하는지 제어합니다.", ["장비 RS-232 포트", "문자/블록 프레임", "ACK/NAK 및 타임아웃", "SECS-II 디코더", "Host Application"], [["secs_link_config", "equipment_id, port_name, baud_rate, parity, data_bits, stop_bits, t1_ms, t2_ms, retry_limit"], ["secs_frame_log", "log_id, equipment_id, direction, block_no, raw_hex, checksum_ok, created_at"]]],
   ["E5", "SEMI E5", "SECS-II Message Content", "SECS/GEM 기본", "Stream/Function, List, Binary, ASCII, U/I/F 타입 등 SECS 메시지의 구조와 의미를 정의합니다.", "장비 이벤트, 알람, 변수 조회, 레시피, Remote Command를 공통 메시지 언어로 표현합니다.", ["Equipment Controller", "SECS-II Encoder/Decoder", "Host Message Broker", "TC/EAP"], [["secs_message_log", "message_id, direction, stream, function, wait_bit, system_bytes, raw_payload, parsed_json, event_time"], ["secs_item_dictionary", "item_name, secs_type, length_rule, semantic_name, unit, owner_standard"]]],
   ["E37", "SEMI E37", "HSMS Generic Services", "SECS/GEM 기본", "TCP/IP 기반으로 SECS-II Payload를 운반하는 세션, Select, Linktest, Separate, Timeout 규칙을 정의합니다.", "Serial SECS-I 대신 Ethernet 기반 장비 통신 채널을 구성합니다.", ["Equipment HSMS Passive", "TCP Session", "HSMS State Manager", "Host HSMS Active"], [["hsms_session", "session_id, equipment_id, ip, port, active_passive, selected_state, last_linktest_at"], ["connection_health", "session_id, latency_ms, retry_count, disconnect_reason, measured_at"]]],
   ["E30", "SEMI E30", "GEM", "SECS/GEM 기본", "제조 장비와 Host 사이의 공통 제어 모델입니다. Collection Event, Report, Alarm, Variable, Remote Command, Process Program 관리의 기본 틀을 제공합니다.", "TC/EAP가 설비를 제어하고 상태를 수집하는 기본 계약입니다.", ["Equipment GEM Service", "Event/Alarm/Variable", "TC/EAP", "MES Context Adapter"], [["gem_collection_event", "equipment_id, ceid, event_name, enabled, linked_report_id, description"], ["gem_report_variable", "report_id, vid, variable_name, variable_type, unit, sample_rule"], ["gem_alarm_history", "equipment_id, alid, alarm_text, set_clear, severity, occurred_at"]]],
@@ -158,19 +159,258 @@ const algorithms = [
     `,
     scenarios: `
       <ul>
-        <li><strong>실시간 OEE 모니터링:</strong> 설비에서 발생하는 수백만 건의 Cycle Time 데이터를 DB에 다 쌓지 않고도, 메모리 내에서 즉시 95% 신뢰 구간의 성능 지표를 산출할 수 있습니다.</li>
-        <li><strong>이상치(Outlier) 필터링:</strong> 성능 효율을 계산할 때, 비정상적으로 길게 측정된 Cycle Time을 KLL의 분위수 기반 필터링(예: 상위 99% 제외)을 통해 자동 제거하여 데이터의 정밀도를 높일 수 있습니다.</li>
-        <li><strong>분산 데이터 통합:</strong> 여러 대의 설비(Equipment)에서 각각 생성된 KLL Sketch를 중앙 서버로 보내기만 하면, 추가 연산 없이 '병합(Merge)'하여 라인 전체의 통합 통계 데이터를 얻을 수 있습니다.</li>
-      </ul>
-    `,
-    mathematics: `
-      <h4>수식적 이해와 오차 보장</h4>
-      <p>KLL 알고리즘의 가장 큰 장점은 메모리 사용량과 오차 범위 사이의 관계를 수학적으로 증명했다는 점입니다.</p>
-      <ul>
-        <li><strong>레벨별 용량 설정 (\\(k_i\\))</strong>
-          <p>메모리를 효율적으로 쓰기 위해 상위 레벨로 갈수록 버퍼 크기를 기하급수적으로 줄입니다.</p>
-          <div class="math-box">
-            \\(k_i \\approx k \\cdot c^{H-i}\\)
+        <li><strong>실시간 OEE 모니터링:</strong> 설비에서 발생�function standardUnifiedPage(s) {
+  const dfd_steps = s.dfd;
+  const gap = 190;
+  const width = Math.max(900, 105 + dfd_steps.length * gap);
+
+  const nodes = dfd_steps.map((step, i) => {
+    const x = 40 + i * gap;
+    const role = i === 0 ? "Input" : (i === dfd_steps.length - 1 ? "Output" : "Process");
+    let bg_color = "#f1f5f9";
+    let border_color = "#cbd5e1";
+    let text_color = "#1e293b";
+    if (role === "Input") {
+      bg_color = "#f0fdfa";
+      border_color = "#99f6e4";
+      text_color = "#0f766e";
+    } else if (role === "Output") {
+      bg_color = "#eff6ff";
+      border_color = "#bfdbfe";
+      text_color = "#1d4ed8";
+    }
+
+    return `
+    <g class="node cursor-pointer transition-transform hover:scale-105 duration-200" onclick="showDfdDetail(${i}, '${esc(step)}')">
+        <rect x="${x}" y="34" width="160" height="76" rx="12" fill="${bg_color}" stroke="${border_color}" stroke-width="2"></rect>
+        <text x="${x + 80}" y="68" text-anchor="middle" font-size="13" font-weight="bold" fill="${text_color}">${esc(step)}</text>
+        <text class="tiny" x="${x + 80}" y="90" text-anchor="middle" font-size="10" fill="#64748b" font-weight="normal">${role}</text>
+    </g>
+    `;
+  }).join("");
+
+  const arrows = dfd_steps.slice(1).map((_, i) => {
+    return `<path class="arrow" d="M${200 + i * gap} 72 H${230 + i * gap}" stroke="#0284c7" stroke-width="2" fill="none" marker-end="url(#arrow)"></path>`;
+  }).join("");
+
+  const svg_diagram = `
+  <div class="overflow-x-auto bg-white border border-stone-200 rounded-2xl p-6 shadow-sm">
+      <svg viewBox="0 0 ${width} 144" class="w-full min-w-[880px] h-auto block">
+          <defs>
+              <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+                  <path d="M0,0 L0,6 L6,3 z" fill="#0284c7"></path>
+              </marker>
+          </defs>
+          ${nodes}
+          ${arrows}
+      </svg>
+      <div id="dfd-detail-panel" class="mt-4 p-4 bg-slate-50 border border-slate-100 rounded-xl text-sm text-slate-600 hidden fade-in">
+          <strong class="text-slate-800">선택된 단계:</strong> <span id="dfd-step-name"></span>
+          <p class="mt-1">해당 단계는 ${esc(s.code)} 프로세스의 주요 데이터 흐름 계층 중 하나입니다. 설비 이벤트 및 상태 파이프라인에서 상위 시스템으로 연동되는 실시간 메커니즘을 정의합니다.</p>
+      </div>
+  </div>
+  `;
+
+  // 테이블 행 생성
+  const table_rows = s.tables.map(r => {
+    const columns = r[1].split(",").map(c => c.trim());
+    const colored_cols = columns.map(col => `<span class="inline-block bg-slate-100 text-slate-700 text-xs font-semibold px-2 py-1 rounded-md border border-slate-200 m-0.5">${esc(col)}</span>`).join("");
+    return `
+    <tr class="hover:bg-slate-50 transition-colors">
+        <td class="p-4 border-b border-stone-100 font-bold text-slate-800 text-left w-1/3">
+            <div class="flex items-center">
+                <span class="w-2.5 h-2.5 rounded-full bg-teal-500 mr-2.5"></span>
+                ${esc(r[0])}
+            </div>
+        </td>
+        <td class="p-4 border-b border-stone-100 text-left">
+            <div class="flex flex-wrap gap-1">
+                ${colored_cols}
+            </div>
+        </td>
+    </tr>
+    `;
+  }).join("");
+
+  const body = `
+  <body class="antialiased bg-stone-50">
+      <header class="bg-slate-900 text-stone-50 py-12 shadow-md">
+          <div class="container mx-auto px-4 max-w-6xl">
+              <div class="crumbs text-xs text-stone-400 mb-3">
+                  <a href="../SEMI_Data_Flow_Main.html" class="hover:text-stone-200 transition">SEMI Guide</a> / <span class="text-stone-300">${esc(s.code)}</span>
+              </div>
+              <div class="inline-block bg-teal-900 text-teal-100 text-xs font-bold px-3 py-1 rounded mb-3 tracking-widest uppercase">
+                  Interactive Standard Guide
+              </div>
+              <h1 class="text-4xl md:text-5xl font-bold mb-4">${esc(s.code)} - ${esc(s.name)}</h1>
+              <p class="text-stone-300 text-lg md:text-xl max-w-3xl leading-relaxed">
+                  ${esc(s.summary)}
+              </p>
+          </div>
+      </header>
+
+      <main class="container mx-auto px-4 max-w-6xl mt-12 space-y-16 pb-20">
+          <!-- Section 1. 기능 및 역할 요약 -->
+          <section class="fade-in">
+              <div class="mb-6">
+                  <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                      <span class="bg-teal-700 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">1</span>
+                      표준 역할 & 개발 기능 요약
+                  </h2>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div class="md:col-span-2 bg-white rounded-2xl shadow-sm border border-stone-200 p-8 flex flex-col justify-between">
+                      <div>
+                          <h3 class="text-xl font-bold text-slate-800 mb-3">개발 관점의 표준 정의</h3>
+                          <p class="text-stone-600 leading-relaxed text-lg">
+                              ${esc(s.role)}
+                          </p>
+                      </div>
+                      <div class="mt-6 border-t border-stone-100 pt-6">
+                          <span class="inline-block bg-teal-50 text-teal-700 text-xs font-bold px-3 py-1.5 rounded-full border border-teal-100 uppercase tracking-wider">
+                              분류: ${esc(s.group)}
+                          </span>
+                      </div>
+                  </div>
+
+                  <div class="bg-teal-900 text-stone-100 rounded-2xl shadow-sm p-8 flex flex-col justify-between border-b-8 border-teal-950">
+                      <div>
+                          <h3 class="text-xl font-bold mb-3">💡 업무 적용 포인트</h3>
+                          <p class="text-teal-200 text-sm leading-relaxed">
+                              설비 이벤트 및 상태 파이프라인에서 상위 시스템으로 연동되는 실시간 메커니즘을 정의합니다. 원문 표준 문서 개정판을 공식 채널에서 반드시 크로스체크 하세요.
+                          </p>
+                      </div>
+                      <div class="mt-6 text-xs text-teal-300/80 border-t border-teal-800 pt-4">
+                          SECS/GEM & GEM300 공통 개발 설계
+                      </div>
+                  </div>
+              </div>
+          </section>
+
+          <!-- Section 2. DFD -->
+          <section class="fade-in">
+              <div class="mb-6">
+                  <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                      <span class="bg-teal-700 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">2</span>
+                      데이터 흐름도 (Data Flow Diagram)
+                  </h2>
+                  <p class="text-stone-600 mt-2 text-lg">
+                      설비 원시 데이터 수집부터 최종 데이터 처리 레이어까지 전달되는 데이터 흐름 단계를 추적합니다. 각 단계를 클릭하여 세부 사항을 확인해 보세요.
+                  </p>
+              </div>
+              ${svg_diagram}
+          </section>
+
+          <!-- Section 3. 업무 적용 체크포인트 -->
+          <section class="fade-in">
+              <div class="mb-6">
+                  <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                      <span class="bg-teal-700 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">3</span>
+                      핵심 3대 업무 체크포인트
+                  </h2>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div class="kpi-card bg-white rounded-2xl border-l-4 border-l-teal-600 border border-stone-200 p-6 shadow-sm">
+                      <h4 class="text-lg font-bold text-stone-800 mb-2">적용 범위 & 위치</h4>
+                      <p class="text-stone-600 text-sm leading-relaxed">
+                          설비 제어기 내부, TC/EAP 서버, EES/APC/FDC 분석 계층 및 KPI 연동 시스템 중 해당 표준이 주로 작동하는 논리 레이어의 물리적 한계를 점검합니다.
+                      </p>
+                  </div>
+
+                  <div class="kpi-card bg-white rounded-2xl border-l-4 border-l-sky-600 border border-stone-200 p-6 shadow-sm">
+                      <h4 class="text-lg font-bold text-stone-800 mb-2">사양서 검토 대상</h4>
+                      <p class="text-stone-600 text-sm leading-relaxed">
+                          표준 사양 번호(SEMI E-시리즈), 고객사 요구 사양서, 장비 제작사별 실제 구현 범위 및 커스텀 구현(예외 승인) 필요 여부를 초기 프로젝트 킥오프 시 선제 파악합니다.
+                      </p>
+                  </div>
+
+                  <div class="kpi-card bg-white rounded-2xl border-l-4 border-l-indigo-600 border border-stone-200 p-6 shadow-sm">
+                      <h4 class="text-lg font-bold text-stone-800 mb-2">운영 및 지표 영향도</h4>
+                      <p class="text-stone-600 text-sm leading-relaxed">
+                          데이터 전송 가용성, 설비 병목 시간 추적 무결성, 보안 무단 접근 차단율 등 해당 표준의 고장 또는 지연 상황이 상위 공정 분석 지표에 미치는 영향을 사전에 검토합니다.
+                      </p>
+                  </div>
+              </div>
+          </section>
+
+          <!-- Section 4. 권장 테이블 구성 -->
+          <section class="fade-in">
+              <div class="mb-6">
+                  <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                      <span class="bg-teal-700 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">4</span>
+                      데이터베이스 권장 테이블 스키마 설계안
+                  </h2>
+                  <p class="text-stone-600 mt-2 text-lg">
+                      현장 표준을 수용하고 확장 가능한 형태의 모범적 관계형 DB 테이블 컬럼 설계 제안서입니다.
+                  </p>
+              </div>
+
+              <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                  <div class="overflow-x-auto">
+                      <table class="w-full border-collapse">
+                          <thead>
+                              <tr class="bg-slate-900 text-white">
+                                  <th class="p-4 font-semibold text-left w-1/3">권장 테이블명</th>
+                                  <th class="p-4 font-semibold text-left">핵심 권장 컬럼군 (Schema)</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                              ${table_rows}
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
+          </section>
+      </main>
+
+      <script>
+          function showDfdDetail(index, stepName) {
+              const panel = document.getElementById('dfd-detail-panel');
+              const stepSpan = document.getElementById('dfd-step-name');
+              stepSpan.innerText = stepName;
+              panel.classList.remove('hidden');
+              
+              // 간단한 micro-animation 트리거
+              panel.style.animation = 'none';
+              panel.offsetHeight; // reflow 트리거
+              panel.style.animation = null;
+          }
+      </script>
+  </body>
+  `;
+
+  return `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${esc(s.code)} - ${esc(s.name)}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+      body {
+          background-color: #fafaf9;
+          color: #292524;
+          font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+      @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+      }
+      .kpi-card {
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .kpi-card:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+      }
+  </style>
+</head>
+${body}
+</html>`;
+} \\cdot c^{H-i}\\)
           </div>
           <p>(여기서 k는 전체 파라미터, c는 1보다 작은 상수(약 2/3)입니다.)</p>
         </li>
@@ -309,7 +549,7 @@ function algorithmPage(a) {
 
 function overviewPage(type) {
   const isDev = type === "developer";
-  const base = isDev ? "standards" : "standards";
+  const base = isDev ? "../SEMI_Interactive_Guide/standards" : "standards";
   const links = standards.map(s => `<a href="${base}/${s.id}.html"><strong>${esc(s.code)}</strong><span class="muted">${esc(s.name)} · ${esc(s.group)}</span></a>`).join("");
   const algo = algorithms.map(a => `<a href="algorithms/${a.id}.html"><strong>${esc(a.code)}</strong><span class="muted">${esc(a.name)}</span></a>`).join("");
   return shell(isDev ? "SEMI Developer" : "SEMI Guide", "", `
@@ -321,6 +561,7 @@ function overviewPage(type) {
 }
 
 for (const s of standards) {
+  if (["E4", "E5", "E37"].includes(s.id)) continue;
   fs.writeFileSync(path.join(guideStandardsDir, `${s.id}.html`), standardUnifiedPage(s), "utf8");
 }
 for (const a of algorithms) {

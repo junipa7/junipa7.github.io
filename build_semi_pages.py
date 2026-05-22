@@ -11,6 +11,7 @@ for d in [guideDir, developerDir, guideStandardsDir, developerAlgorithmsDir]:
     os.makedirs(d, exist_ok=True)
 
 standards_raw = [
+  ["E4", "SEMI E4", "SECS-I", "SECS/GEM 기본", "RS-232 기반 저속 장비 통신 계층. SEMI E4는 오래된 장비에서 아직 많이 만나는 직렬 통신 기반의 SECS 물리/전송 계층입니다.", "오래된 장비에서 바이트가 어떻게 프레임으로 묶이고, 누가 언제 재전송하며, 연결 불안정 상황을 어떻게 복구하는지 제어합니다.", ["장비 RS-232 포트", "문자/블록 프레임", "ACK/NAK 및 타임아웃", "SECS-II 디코더", "Host Application"], [["secs_link_config", "equipment_id, port_name, baud_rate, parity, data_bits, stop_bits, t1_ms, t2_ms, retry_limit"], ["secs_frame_log", "log_id, equipment_id, direction, block_no, raw_hex, checksum_ok, created_at"]]],
   ["E5", "SEMI E5", "SECS-II Message Content", "SECS/GEM 기본", "Stream/Function, List, Binary, ASCII, U/I/F 타입 등 SECS 메시지의 구조와 의미를 정의합니다.", "장비 이벤트, 알람, 변수 조회, 레시피, Remote Command를 공통 메시지 언어로 표현합니다.", ["Equipment Controller", "SECS-II Encoder/Decoder", "Host Message Broker", "TC/EAP"], [["secs_message_log", "message_id, direction, stream, function, wait_bit, system_bytes, raw_payload, parsed_json, event_time"], ["secs_item_dictionary", "item_name, secs_type, length_rule, semantic_name, unit, owner_standard"]]],
   ["E37", "SEMI E37", "HSMS Generic Services", "SECS/GEM 기본", "TCP/IP 기반으로 SECS-II Payload를 운반하는 세션, Select, Linktest, Separate, Timeout 규칙을 정의합니다.", "Serial SECS-I 대신 Ethernet 기반 장비 통신 채널을 구성합니다.", ["Equipment HSMS Passive", "TCP Session", "HSMS State Manager", "Host HSMS Active"], [["hsms_session", "session_id, equipment_id, ip, port, active_passive, selected_state, last_linktest_at"], ["connection_health", "session_id, latency_ms, retry_count, disconnect_reason, measured_at"]]],
   ["E30", "SEMI E30", "GEM", "SECS/GEM 기본", "제조 장비와 Host 사이의 공통 제어 모델입니다. Collection Event, Report, Alarm, Variable, Remote Command, Process Program 관리의 기본 틀을 제공합니다.", "TC/EAP가 설비를 제어하고 상태를 수집하는 기본 계약입니다.", ["Equipment GEM Service", "Event/Alarm/Variable", "TC/EAP", "MES Context Adapter"], [["gem_collection_event", "equipment_id, ceid, event_name, enabled, linked_report_id, description"], ["gem_report_variable", "report_id, vid, variable_name, variable_type, unit, sample_rule"], ["gem_alarm_history", "equipment_id, alid, alarm_text, set_clear, severity, occurred_at"]]],
@@ -235,14 +236,257 @@ def shell(title, subtitle, body, cssPath = "../semi-page.css"):
     return f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{esc(title)}</title><link rel="stylesheet" href="{cssPath}"></head><body><main class="page">{body}</main></body></html>'
 
 def standardUnifiedPage(s):
-    return shell(f'{s["code"]} Standard', s["name"], f"""
-    <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / {esc(s["code"])}</div>
-    <section class="hero"><h1>{esc(s["code"])} - {esc(s["name"])}</h1><p>{esc(s["summary"])}</p><div class="chips"><span class="chip">{esc(s["group"])}</span><span class="chip">Guide & Developer</span></div></section>
-    <section class="section"><h2>기능 요약</h2><p>{esc(s["role"])}</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
-    <section class="section"><h2>데이터 흐름 (DFD)</h2><div class="diagram">{diagram(s["dfd"])}</div></section>
-    <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
-    <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody>{tableRows(s["tables"])}</tbody></table></section>
-    """)
+    # DFD 단계별 둥글고 예쁜 박스를 생성하는 HTML
+    dfd_steps = s["dfd"]
+    gap = 190
+    width = max(900, 105 + len(dfd_steps) * gap)
+    
+    nodes = []
+    for i, step in enumerate(dfd_steps):
+        x = 40 + i * gap
+        role = "Input" if i == 0 else ("Output" if i == len(dfd_steps) - 1 else "Process")
+        bg_color = "#f1f5f9"
+        border_color = "#cbd5e1"
+        text_color = "#1e293b"
+        if role == "Input":
+            bg_color = "#f0fdfa"
+            border_color = "#99f6e4"
+            text_color = "#0f766e"
+        elif role == "Output":
+            bg_color = "#eff6ff"
+            border_color = "#bfdbfe"
+            text_color = "#1d4ed8"
+            
+        nodes.append(f"""
+        <g class="node cursor-pointer transition-transform hover:scale-105 duration-200" onclick="showDfdDetail({i}, '{esc(step)}')">
+            <rect x="{x}" y="34" width="160" height="76" rx="12" fill="{bg_color}" stroke="{border_color}" stroke-width="2"></rect>
+            <text x="{x + 80}" y="68" text-anchor="middle" font-size="13" font-weight="bold" fill="{text_color}">{esc(step)}</text>
+            <text class="tiny" x="{x + 80}" y="90" text-anchor="middle" font-size="10" fill="#64748b" font-weight="normal">{role}</text>
+        </g>
+        """)
+    
+    arrows = []
+    for i in range(len(dfd_steps) - 1):
+        arrows.append(f'<path class="arrow" d="M{200 + i * gap} 72 H{230 + i * gap}" stroke="#0284c7" stroke-width="2" fill="none" marker-end="url(#arrow)"></path>')
+        
+    svg_diagram = f"""
+    <div class="overflow-x-auto bg-white border border-stone-200 rounded-2xl p-6 shadow-sm">
+        <svg viewBox="0 0 {width} 144" class="w-full min-w-[880px] h-auto block">
+            <defs>
+                <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,6 L6,3 z" fill="#0284c7"></path>
+                </marker>
+            </defs>
+            {"".join(nodes)}
+            {"".join(arrows)}
+        </svg>
+        <div id="dfd-detail-panel" class="mt-4 p-4 bg-slate-50 border border-slate-100 rounded-xl text-sm text-slate-600 hidden fade-in">
+            <strong class="text-slate-800">선택된 단계:</strong> <span id="dfd-step-name"></span>
+            <p class="mt-1">해당 단계는 {esc(s["code"])} 프로세스의 주요 데이터 흐름 계층 중 하나입니다. 설비 이벤트 및 상태 파이프라인에서 상위 시스템으로 연동되는 실시간 메커니즘을 정의합니다.</p>
+        </div>
+    </div>
+    """
+
+    # 테이블 행 생성
+    table_rows = []
+    for r in s["tables"]:
+        columns = [c.strip() for c in r[1].split(",")]
+        colored_cols = " ".join([f'<span class="inline-block bg-slate-100 text-slate-700 text-xs font-semibold px-2 py-1 rounded-md border border-slate-200 m-0.5">{col}</span>' for col in columns])
+        table_rows.append(f"""
+        <tr class="hover:bg-slate-50 transition-colors">
+            <td class="p-4 border-b border-stone-100 font-bold text-slate-800 text-left w-1/3">
+                <div class="flex items-center">
+                    <span class="w-2.5 h-2.5 rounded-full bg-teal-500 mr-2.5"></span>
+                    {esc(r[0])}
+                </div>
+            </td>
+            <td class="p-4 border-b border-stone-100 text-left">
+                <div class="flex flex-wrap gap-1">
+                    {colored_cols}
+                </div>
+            </td>
+        </tr>
+        """)
+
+    body = f"""
+    <body class="antialiased bg-stone-50">
+        <header class="bg-slate-900 text-stone-50 py-12 shadow-md">
+            <div class="container mx-auto px-4 max-w-6xl">
+                <div class="crumbs text-xs text-stone-400 mb-3">
+                    <a href="../SEMI_Data_Flow_Main.html" class="hover:text-stone-200 transition">SEMI Guide</a> / <span class="text-stone-300">{esc(s["code"])}</span>
+                </div>
+                <div class="inline-block bg-teal-900 text-teal-100 text-xs font-bold px-3 py-1 rounded mb-3 tracking-widest uppercase">
+                    Interactive Standard Guide
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">{esc(s["code"])} - {esc(s["name"])}</h1>
+                <p class="text-stone-300 text-lg md:text-xl max-w-3xl leading-relaxed">
+                    {esc(s["summary"])}
+                </p>
+            </div>
+        </header>
+
+        <main class="container mx-auto px-4 max-w-6xl mt-12 space-y-16 pb-20">
+            <!-- Section 1. 기능 및 역할 요약 -->
+            <section class="fade-in">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                        <span class="bg-teal-700 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">1</span>
+                        표준 역할 & 개발 기능 요약
+                    </h2>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-2 bg-white rounded-2xl shadow-sm border border-stone-200 p-8 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800 mb-3">개발 관점의 표준 정의</h3>
+                            <p class="text-stone-600 leading-relaxed text-lg">
+                                {esc(s["role"])}
+                            </p>
+                        </div>
+                        <div class="mt-6 border-t border-stone-100 pt-6">
+                            <span class="inline-block bg-teal-50 text-teal-700 text-xs font-bold px-3 py-1.5 rounded-full border border-teal-100 uppercase tracking-wider">
+                                분류: {esc(s["group"])}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="bg-teal-900 text-stone-100 rounded-2xl shadow-sm p-8 flex flex-col justify-between border-b-8 border-teal-950">
+                        <div>
+                            <h3 class="text-xl font-bold mb-3">💡 업무 적용 포인트</h3>
+                            <p class="text-teal-200 text-sm leading-relaxed">
+                                설비 이벤트 및 상태 파이프라인에서 상위 시스템으로 연동되는 실시간 메커니즘을 정의합니다. 원문 표준 문서 개정판을 공식 채널에서 반드시 크로스체크 하세요.
+                            </p>
+                        </div>
+                        <div class="mt-6 text-xs text-teal-300/80 border-t border-teal-800 pt-4">
+                            SECS/GEM & GEM300 공통 개발 설계
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 2. DFD -->
+            <section class="fade-in">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                        <span class="bg-teal-700 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">2</span>
+                        데이터 흐름도 (Data Flow Diagram)
+                    </h2>
+                    <p class="text-stone-600 mt-2 text-lg">
+                        설비 원시 데이터 수집부터 최종 데이터 처리 레이어까지 전달되는 데이터 흐름 단계를 추적합니다. 각 단계를 클릭하여 세부 사항을 확인해 보세요.
+                    </p>
+                </div>
+                {svg_diagram}
+            </section>
+
+            <!-- Section 3. 업무 적용 체크포인트 -->
+            <section class="fade-in">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                        <span class="bg-teal-700 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">3</span>
+                        핵심 3대 업무 체크포인트
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="kpi-card bg-white rounded-2xl border-l-4 border-l-teal-600 border border-stone-200 p-6 shadow-sm">
+                        <h4 class="text-lg font-bold text-stone-800 mb-2">적용 범위 & 위치</h4>
+                        <p class="text-stone-600 text-sm leading-relaxed">
+                            설비 제어기 내부, TC/EAP 서버, EES/APC/FDC 분석 계층 및 KPI 연동 시스템 중 해당 표준이 주로 작동하는 논리 레이어의 물리적 한계를 점검합니다.
+                        </p>
+                    </div>
+
+                    <div class="kpi-card bg-white rounded-2xl border-l-4 border-l-sky-600 border border-stone-200 p-6 shadow-sm">
+                        <h4 class="text-lg font-bold text-stone-800 mb-2">사양서 검토 대상</h4>
+                        <p class="text-stone-600 text-sm leading-relaxed">
+                            표준 사양 번호(SEMI E-시리즈), 고객사 요구 사양서, 장비 제작사별 실제 구현 범위 및 커스텀 구현(예외 승인) 필요 여부를 초기 프로젝트 킥오프 시 선제 파악합니다.
+                        </p>
+                    </div>
+
+                    <div class="kpi-card bg-white rounded-2xl border-l-4 border-l-indigo-600 border border-stone-200 p-6 shadow-sm">
+                        <h4 class="text-lg font-bold text-stone-800 mb-2">운영 및 지표 영향도</h4>
+                        <p class="text-stone-600 text-sm leading-relaxed">
+                            데이터 전송 가용성, 설비 병목 시간 추적 무결성, 보안 무단 접근 차단율 등 해당 표준의 고장 또는 지연 상황이 상위 공정 분석 지표에 미치는 영향을 사전에 검토합니다.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 4. 권장 테이블 구성 -->
+            <section class="fade-in">
+                <div class="mb-6">
+                    <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                        <span class="bg-teal-700 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">4</span>
+                        데이터베이스 권장 테이블 스키마 설계안
+                    </h2>
+                    <p class="text-stone-600 mt-2 text-lg">
+                        현장 표준을 수용하고 확장 가능한 형태의 모범적 관계형 DB 테이블 컬럼 설계 제안서입니다.
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse">
+                            <thead>
+                                <tr class="bg-slate-900 text-white">
+                                    <th class="p-4 font-semibold text-left w-1/3">권장 테이블명</th>
+                                    <th class="p-4 font-semibold text-left">핵심 권장 컬럼군 (Schema)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {"".join(table_rows)}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <footer class="container mx-auto px-4 max-w-6xl pb-12 text-center text-stone-400 text-sm">
+            © 2024 SEMI Standard Development Guide. All rights reserved.
+        </footer>
+        <script>
+            function showDfdDetail(index, stepName) {{
+                const panel = document.getElementById('dfd-detail-panel');
+                const stepSpan = document.getElementById('dfd-step-name');
+                stepSpan.innerText = stepName;
+                panel.classList.remove('hidden');
+                
+                panel.style.animation = 'none';
+                panel.offsetHeight;
+                panel.style.animation = null;
+            }}
+        </script>
+    </body>
+    """
+    
+    return f"""<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{esc(s["code"])} - {esc(s["name"])}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {{
+            background-color: #fafaf9;
+            color: #292524;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }}
+        .fade-in {{ animation: fadeIn 0.4s ease-out forwards; }}
+        @keyframes fadeIn {{
+            from {{ opacity: 0; transform: translateY(10px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
+        .kpi-card {{
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }}
+        .kpi-card:hover {{
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }}
+    </style>
+</head>
+{body}
+</html>"""
 
 def algorithmPage(a):
     introSec = f'<section class="section"><h2>알고리즘 상세 개요</h2>{a["introduction"]}</section>' if "introduction" in a else ""
@@ -322,7 +566,7 @@ def algorithmPage(a):
 
 def overviewPage(type):
     isDev = type == "developer"
-    base = "standards"
+    base = "../SEMI_Interactive_Guide/standards" if isDev else "standards"
     links = []
     for s in standards:
         links.append(f'<a href="{base}/{s["id"]}.html"><strong>{esc(s["code"])}</strong><span class="muted">{esc(s["name"])} · {esc(s["group"])}</span></a>')
@@ -343,6 +587,8 @@ def overviewPage(type):
     """, "semi-page.css")
 
 for s in standards:
+    if s["id"] in ["E4", "E5", "E37"]:
+        continue
     with open(os.path.join(guideStandardsDir, f'{s["id"]}.html'), "w", encoding="utf8") as f:
         f.write(standardUnifiedPage(s))
 

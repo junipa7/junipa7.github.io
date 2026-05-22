@@ -1,8 +1,721 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SEMI E37 Standard</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
-    <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SEMI E37</div>
-    <section class="hero"><h1>SEMI E37 - HSMS Generic Services</h1><p>TCP/IP 기반으로 SECS-II Payload를 운반하는 세션, Select, Linktest, Separate, Timeout 규칙을 정의합니다.</p><div class="chips"><span class="chip">SECS/GEM 기본</span><span class="chip">Guide & Developer</span></div></section>
-    <section class="section"><h2>기능 요약</h2><p>Serial SECS-I 대신 Ethernet 기반 장비 통신 채널을 구성합니다.</p><div class="note">원문 표준 문서는 SEMI 공식 표준 문서 또는 SEMIViews에서 개정판을 확인해야 합니다. 개발 및 업무 적용 포인트를 함께 확인하세요.</div></section>
-    <section class="section"><h2>데이터 흐름 (DFD)</h2><div class="diagram"><svg viewBox="0 0 900 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">Equipment HSMS Passive</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">TCP Session</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">HSMS State Manager</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">Host HSMS Active</text><text class="tiny" x="685" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path></svg></div></section>
-    <section class="section"><h2>업무 적용 체크포인트</h2><div class="grid"><div class="card"><strong>적용 위치</strong><span>설비, TC/EAP, EES/APC/FDC, MOS/MES, KPI 시스템 중 관련 계층을 확인합니다.</span></div><div class="card"><strong>검토 대상</strong><span>표준 번호, 개정판, 고객 사양서, 벤더 구현 범위, 예외 승인 항목을 함께 봅니다.</span></div><div class="card"><strong>운영 영향</strong><span>장비 상태, 생산 문맥, 데이터 품질, 보안 요구사항이 상위 지표에 미치는 영향을 검토합니다.</span></div></div></section>
-    <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>hsms_session</strong></td><td>session_id, equipment_id, ip, port, active_passive, selected_state, last_linktest_at</td></tr><tr><td><strong>connection_health</strong></td><td>session_id, latency_ms, retry_count, disconnect_reason, measured_at</td></tr></tbody></table></section>
-    </main></body></html>
+DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEMI E37 인터랙티브 마스터 대시보드 - HSMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chosen Palette: Slate & Warm Teal & Functional HSMS State Colors -->
+    <!-- Application Structure Plan: 본 SPA는 SEMI E37 (HSMS Generic Services) TCP/IP 기반 반도체 통신 프로토콜 표준의 상태 전이 머신과 연결 라이프사이클을 입체적 대시보드로 재구성했습니다. 사용자는 1) 'HSMS 상태 전이 머신 탐색기'를 클릭해 물리 세션 수립 과정(Not Connected ➜ Connected ➜ Not Selected ➜ Selected)을 직관적으로 이해하고, 2) '핵심 타이머 및 제어 메시지' 탭을 통해 T5~T8 타이머 및 Select/Linktest 등의 제어 메시지 사양을 편리하게 파악합니다. 3) '실시간 네트워크 가용성 및 지연 시뮬레이터'에서는 패킷 손실률, RTT, TPS를 조작해 가상 에러율, 대역폭 효율, 무결성 점수를 Chart.js 차트 애니메이션과 실시간 연동해 모의 작동하며 학습합니다. 마지막으로 4) '현장 실무 트러블슈팅', '상태 분석 표', '의사코드 및 데이터 테이블 설계안'을 통해 최상의 실전 해결책을 도출합니다. -->
+    
+    <style>
+        body {
+            background-color: #fafaf9;
+            color: #292524;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container { height: 400px; }
+        }
+
+        .bg-ok { background-color: #0f766e; color: white; }
+        .bg-retry { background-color: #f59e0b; color: white; }
+        .bg-err { background-color: #ef4444; color: white; }
+        .bg-t6 { background-color: #3b82f6; color: white; }
+        .bg-t7 { background-color: #8b5cf6; color: white; }
+
+        .text-ok { color: #0f766e; }
+        .text-retry { color: #f59e0b; }
+        .text-err { color: #ef4444; }
+        .text-t6 { color: #3b82f6; }
+        .text-t7 { color: #8b5cf6; }
+
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hierarchy-block {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+        .hierarchy-block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-btn {
+            transition: all 0.2s ease;
+            opacity: 0.6;
+        }
+        .tab-btn.active {
+            opacity: 1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .kpi-card {
+            border-left-width: 4px;
+            transition: transform 0.2s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-slate-900 text-stone-50 py-12 shadow-md">
+        <div class="container mx-auto px-4 max-w-6xl">
+            <div class="crumbs text-xs text-stone-400 mb-3"><a href="../SEMI_Data_Flow_Main.html" class="hover:text-stone-200 transition">SEMI Guide</a> / <span class="text-stone-300">SEMI E37</span></div>
+            <div class="inline-block bg-teal-900 text-stone-100 text-xs font-bold px-3 py-1 rounded mb-3 tracking-widest uppercase">Interactive HSMS Generic Services Guide</div>
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">SEMI E37 마스터 가이드 (HSMS)</h1>
+            <p class="text-stone-300 text-lg md:text-xl max-w-3xl leading-relaxed">
+                TCP/IP 기반 초고속 반도체 설비 통신 서비스를 위한 글로벌 표준. 복잡한 세션 상태 전이 기계(State Machine)와 각종 통신 타이머 규격을 직접 모의 시뮬레이션해 보세요.
+            </p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 max-w-6xl mt-12 space-y-16 pb-20">
+
+        <!-- Section 1. HSMS 상태 전이 머신 탐색기 (State Machine Stack) -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-teal-700 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">1</span>
+                    HSMS 상태 전이 머신 (State Machine Stack)
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">HSMS는 TCP/IP 연결 위에서 엄격한 논리 연결 절차를 거칩니다. 아래의 어두운 블록을 순서대로 클릭하여 상태 전이 과정을 탐색해 보세요.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 md:p-10">
+                <div class="space-y-4 text-center font-semibold text-stone-800">
+                    <div id="h-level-1" class="hierarchy-block bg-slate-800 text-white py-5 rounded-xl text-xl shadow-md border-b-4 border-slate-950" onclick="expandHierarchy(2)">
+                        NOT CONNECTED (물리/세션 연결 준비 상태)
+                        <div class="text-xs font-normal text-stone-300 mt-1">클릭하여 TCP 연결 수립 시도 ▼</div>
+                    </div>
+                    
+                    <div id="h-level-2" class="hidden flex-col md:flex-row gap-4 fade-in">
+                        <div class="hierarchy-block flex-[2] bg-teal-800 text-white py-5 rounded-xl shadow-sm border-b-4 border-teal-950" onclick="expandHierarchy(3)">
+                            CONNECTED (TCP 3-way Handshake 완료)
+                            <div class="text-xs font-normal text-teal-200 mt-1">클릭하여 세션 결합 및 상태 세분화 ▼</div>
+                        </div>
+                        <div class="flex-[1] bg-amber-600 text-white py-5 rounded-xl shadow-sm border-b-4 border-amber-700 opacity-90 cursor-default">
+                            T5 Timer (10s)<br><span class="text-xs font-normal opacity-80">연결 끊김 시 재시도 지연 대기</span>
+                        </div>
+                    </div>
+
+                    <div id="h-level-3" class="hidden flex-col md:flex-row gap-4 fade-in">
+                        <div class="hierarchy-block flex-[2] bg-indigo-700 text-white py-4 rounded-xl shadow-sm border-b-4 border-indigo-850" onclick="expandHierarchy(4)">
+                            NOT SELECTED (TCP 연결됨 / HSMS 세션 미수립)
+                            <div class="text-xs font-normal text-indigo-200 mt-1">클릭하여 Select 핸드셰이크 처리 ▼</div>
+                        </div>
+                        <div class="flex-[1] bg-purple-800 text-white py-4 rounded-xl shadow-sm border-b-4 border-purple-900 cursor-default">
+                            T7 Timer (10s)<br><span class="text-xs font-normal text-purple-200">Select.req 대기 시간 (초과 시 단절)</span>
+                        </div>
+                    </div>
+
+                    <div id="h-level-4" class="hidden flex-col md:flex-row gap-3 fade-in">
+                        <div class="flex-[1] border-2 border-dashed border-stone-200 rounded-xl flex items-center justify-center text-stone-400 text-sm py-4">TCP/IP Socket 연결 완료</div>
+                        <div class="flex-[2] bg-ok py-4 rounded-lg shadow-sm border-b-4 border-teal-900 cursor-default">
+                            SELECTED (최종 완료 - 데이터 메시지 교환 가용)<br>
+                            <span class="text-xs font-normal text-teal-100">Select.req 송신 ➔ Select.rsp(0x00) 정상 수신 완료 시 진입</span>
+                        </div>
+                        <div class="flex-[1] bg-blue-800 text-white py-4 rounded-lg shadow-sm border-b-4 border-blue-900 cursor-default">
+                            Linktest 활성화<br><span class="text-xs font-normal">T6 대기 회선 건전성 체크</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                    <button onclick="resetHierarchy()" class="text-sm text-stone-500 hover:text-stone-800 transition underline decoration-dotted">계층 구조 초기화</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2. E37 핵심 4대 타이머 & 제어 메시지 탐색기 -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-teal-700 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">2</span>
+                    핵심 타이머 및 제어 메시지 탐색기
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">HSMS 생명 주기 및 연결 무결성을 결정하는 4대 타이머와 특수 제어 메시지 스펙을 확인하세요.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                <div class="grid grid-cols-3 md:grid-cols-6 border-b border-stone-200 bg-stone-50 text-xs md:text-sm">
+                    <button onclick="selectState('T5')" id="tab-T5" class="tab-btn active bg-slate-800 p-4 font-bold text-center border-b-4 border-slate-950 text-white">T5 타이머</button>
+                    <button onclick="selectState('T6')" id="tab-T6" class="tab-btn bg-t6 p-4 font-bold text-center border-b-4 border-blue-700 text-white">T6 타이머</button>
+                    <button onclick="selectState('T7')" id="tab-T7" class="tab-btn bg-t7 p-4 font-bold text-center border-b-4 border-purple-700 text-white">T7 타이머</button>
+                    <button onclick="selectState('T8')" id="tab-T8" class="tab-btn bg-slate-600 p-4 font-bold text-center border-b-4 border-slate-800 text-white">T8 타이머</button>
+                    <button onclick="selectState('CTRL1')" id="tab-CTRL1" class="tab-btn bg-ok p-4 font-bold text-center border-b-4 border-teal-900 text-white">Select/Linktest</button>
+                    <button onclick="selectState('CTRL2')" id="tab-CTRL2" class="tab-btn bg-retry p-4 font-bold text-center border-b-4 border-amber-600 text-white">Separate/Reject</button>
+                </div>
+                <div id="state-content-panel" class="p-6 md:p-8 min-h-[300px] bg-white"></div>
+            </div>
+        </section>
+
+        <!-- Section 3. 실시간 HSMS 가용성 및 성능 시뮬레이터 -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-teal-700 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">3</span>
+                    실시간 HSMS 네트워크 가용성 시뮬레이터
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">슬라이더를 조작하여 가상 네트워크의 이더넷 패킷 손실률과 지연 속도(RTT)를 변화시켜 보세요. T6 타임아웃 발생률 및 세션 무결성이 실시간 계산됩니다.</p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Left: Chart.js Doughnut -->
+                <div class="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-stone-200 p-6 flex flex-col items-center">
+                    <h3 class="text-lg font-bold text-stone-800 mb-4 w-full">가상 네트워크 통신 통계</h3>
+                    
+                    <!-- Controllers -->
+                    <div class="w-full space-y-4 mb-6 bg-stone-50 p-4 rounded-xl border border-stone-200 text-xs md:text-sm">
+                        <div>
+                            <label for="lossRange" class="block font-bold text-stone-700 mb-2 flex justify-between">
+                                <span>가상 패킷 손실률 (Packet Loss)</span>
+                                <span id="lossVal" class="text-err font-mono font-bold">1.0%</span>
+                            </label>
+                            <input type="range" id="lossRange" min="0" max="100" value="10" class="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-red-600" oninput="updateSimulation()">
+                            <div class="text-[10px] text-stone-500 mt-1">10은 1.0%를 의미합니다. (최대 10.0%)</div>
+                        </div>
+
+                        <div>
+                            <label for="rttRange" class="block font-bold text-stone-700 mb-2 flex justify-between">
+                                <span>네트워크 지연 시간 (RTT)</span>
+                                <span id="rttVal" class="text-t6 font-mono font-bold">20 ms</span>
+                            </label>
+                            <input type="range" id="rttRange" min="1" max="500" value="20" class="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-blue-600" oninput="updateSimulation()">
+                        </div>
+
+                        <div>
+                            <label for="tpsRange" class="block font-bold text-stone-700 mb-2 flex justify-between">
+                                <span>초당 트랜잭션 빈도 (TPS)</span>
+                                <span id="tpsVal" class="text-ok font-mono font-bold">100 tps</span>
+                            </label>
+                            <input type="range" id="tpsRange" min="10" max="2000" value="100" class="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-teal-600" oninput="updateSimulation()">
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <canvas id="healthChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Right: KPI Cards -->
+                <div class="lg:col-span-2 grid sm:grid-cols-2 gap-4">
+                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm kpi-card border-l-emerald-500 hover:bg-emerald-50">
+                        <div class="text-xs font-bold text-emerald-600 uppercase mb-1 tracking-wider">Session Integrity (세션 무결성 점수)</div>
+                        <h4 class="font-bold text-stone-800 mb-2">Link Integrity Score</h4>
+                        <div class="flex justify-between items-end mb-2">
+                            <div id="kpi-integrity" class="text-3xl font-mono font-bold text-emerald-700">92.0<span class="text-lg">%</span></div>
+                        </div>
+                        <div class="text-xs text-stone-600 bg-stone-100 p-2 rounded mb-2 font-mono">가상 패킷 무결 지수 환산</div>
+                        <p class="text-xs text-stone-500 leading-tight">패킷 손실 및 RTT 지연을 고려해 세션이 정상 가동될 수 있는 종합적 건전성 지표입니다. **80% 하락 시 경보**</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm kpi-card border-l-blue-500 hover:bg-blue-50">
+                        <div class="text-xs font-bold text-blue-600 uppercase mb-1 tracking-wider">Message Latency (평균 메시지 응답 시간)</div>
+                        <h4 class="font-bold text-stone-800 mb-2">Average Message Latency</h4>
+                        <div class="flex justify-between items-end mb-2">
+                            <div id="kpi-latency" class="text-3xl font-mono font-bold text-blue-700">20.1<span class="text-lg"> ms</span></div>
+                        </div>
+                        <div class="text-xs text-stone-600 bg-stone-100 p-2 rounded mb-2 font-mono">RTT (20ms) + 재전송 보정 지연</div>
+                        <p class="text-xs text-stone-500 leading-tight">데이터 수집 메시지를 던진 뒤 상대방 드라이버의 HSMS 레벨 디코딩 응답을 받기까지 평균 소요 시간입니다.</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm kpi-card border-l-red-500 hover:bg-red-50">
+                        <div class="text-xs font-bold text-red-600 uppercase mb-1 tracking-wider">Control Failure (제어 타임아웃 비율)</div>
+                        <h4 class="font-bold text-stone-800 mb-2">T6 Timeout Incident Rate</h4>
+                        <div class="flex justify-between items-end mb-2">
+                            <div id="kpi-t6err" class="text-3xl font-mono font-bold text-red-700">0.05<span class="text-lg">%</span></div>
+                        </div>
+                        <div class="text-xs text-stone-600 bg-stone-100 p-2 rounded mb-2 font-mono">제어 트랜잭션 타임아웃 발생률</div>
+                        <p class="text-xs text-stone-500 leading-tight">Linktest.req 등 제어 메시지 유실로 인해 5초간 응답이 오지 않아 세션 차단 트리거가 발생한 비율입니다.</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm kpi-card border-l-purple-500 hover:bg-purple-50">
+                        <div class="text-xs font-bold text-purple-600 uppercase mb-1 tracking-wider">Network Efficiency (네트워크 효율성)</div>
+                        <h4 class="font-bold text-stone-800 mb-2">Bandwidth Efficiency</h4>
+                        <div class="flex justify-between items-end mb-2">
+                            <div id="kpi-efficiency" class="text-3xl font-mono font-bold text-purple-700">88.0<span class="text-lg">%</span></div>
+                        </div>
+                        <div class="text-xs text-stone-600 bg-stone-100 p-2 rounded mb-2 font-mono">TCP 수신 윈도우 및 RTT 환산값</div>
+                        <p class="text-xs text-stone-500 leading-tight">RTT와 손실로 인해 발생하는 패킷 재전송 오버헤드를 제외하고, 순수 SECS-II 데이터를 전달하기 위해 사용되는 유효 대역폭 효율입니다.</p>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm kpi-card border-l-amber-500 hover:bg-amber-50 sm:col-span-2">
+                        <div class="text-xs font-bold text-amber-600 uppercase mb-1 tracking-wider">Session Stability (세션 안정성 판정)</div>
+                        <h4 class="font-bold text-stone-800 mb-2">Overall Connection Stability Status</h4>
+                        <div class="flex justify-between items-end mb-2">
+                            <div id="kpi-status" class="text-3xl font-mono font-bold text-amber-700">STABLE</div>
+                        </div>
+                        <div class="text-xs text-stone-600 bg-stone-100 p-2 rounded mb-2 font-mono">물리 선로 건전성 및 세션 라이프사이클 종합 진단</div>
+                        <p class="text-xs text-stone-500 leading-tight">현재 가상 노이즈 및 RTT 수준 하에서 HSMS 세션의 안정성 평가입니다. **Stable(안정), Warning(경고), Critical(위험)** 3단계 판정을 받습니다.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4. 데이터 흐름 (DFD) -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-teal-700 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">4</span>
+                    데이터 흐름 (DFD)
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">설비 측 HSMS Passive 포트 리슨 상태부터 TCP 소켓 핸드셰이크 수립, 그리고 상위 Host Active 연결 시도의 데이터 지향 흐름입니다.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 md:p-10 flex flex-col items-center">
+                <div class="w-full max-w-4xl">
+                    <svg viewBox="0 0 900 164" class="w-full h-auto" aria-label="DFD">
+                        <defs>
+                            <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                                <path d="M0,0 L0,6 L9,3 z" fill="#0f766e"></path>
+                            </marker>
+                        </defs>
+                        <g class="node">
+                            <rect x="40" y="44" width="150" height="76" rx="10" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"></rect>
+                            <text x="115" y="78" text-anchor="middle" font-weight="bold" fill="#334155">Equipment Passive</text>
+                            <text class="tiny" x="115" y="101" text-anchor="middle" fill="#64748b" font-size="11">Listening Port (5001)</text>
+                        </g>
+                        <g class="node">
+                            <rect x="240" y="44" width="150" height="76" rx="10" fill="#ccfbf1" stroke="#99f6e4" stroke-width="2"></rect>
+                            <text x="315" y="78" text-anchor="middle" font-weight="bold" fill="#0f766e">TCP Session</text>
+                            <text class="tiny" x="315" y="101" text-anchor="middle" fill="#0f766e" font-size="11">3-Way Handshake</text>
+                        </g>
+                        <g class="node">
+                            <rect x="440" y="44" width="150" height="76" rx="10" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"></rect>
+                            <text x="515" y="78" text-anchor="middle" font-weight="bold" fill="#334155">HSMS State Manager</text>
+                            <text class="tiny" x="515" y="101" text-anchor="middle" fill="#64748b" font-size="11">T7 / Select Message</text>
+                        </g>
+                        <g class="node">
+                            <rect x="640" y="44" width="150" height="76" rx="10" fill="#f0fdfa" stroke="#a7f3d0" stroke-width="2"></rect>
+                            <text x="715" y="78" text-anchor="middle" font-weight="bold" fill="#0f766e">Host HSMS Active</text>
+                            <text class="tiny" x="715" y="101" text-anchor="middle" fill="#0d9488" font-size="11">Active Connect Client</text>
+                        </g>
+                        <path d="M190 82 H240" fill="none" stroke="#0f766e" stroke-width="2" marker-end="url(#arrow)"></path>
+                        <path d="M390 82 H440" fill="none" stroke="#0f766e" stroke-width="2" marker-end="url(#arrow)"></path>
+                        <path d="M590 82 H640" fill="none" stroke="#0f766e" stroke-width="2" marker-end="url(#arrow)"></path>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 5. 현장 실무 트러블슈팅 및 예외 룰 -->
+        <section class="fade-in">
+            <div class="mb-6">
+                <h2 class="text-3xl font-bold text-stone-800 flex items-center">
+                    <span class="bg-teal-700 text-white w-8 h-8 flex items-center justify-center rounded-full text-lg mr-3">5</span>
+                    현장 실무 트러블슈팅 및 예외 룰
+                </h2>
+                <p class="text-stone-600 mt-2 text-lg">고속 이더넷 망으로 변하면서 현장 셋업 및 공정 기동 시에 빈발하는 통신 오류와 극복 가이드입니다.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Troubleshooting Rules -->
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-8">
+                    <div class="flex items-center mb-4">
+                        <div class="w-2 h-6 bg-slate-800 mr-3"></div>
+                        <h3 class="text-xl font-bold text-stone-800">세션 제어 정합성 예외 상황</h3>
+                    </div>
+                    <p class="text-stone-600 text-sm mb-6 leading-relaxed">이더넷 기반 HSMS 통신은 물리 속도는 빠르나, 네트워크 구성 요소와 타이머 셋업 오설정으로 인해 대단위 장애가 흔히 납니다.</p>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                            <div class="font-bold text-amber-600 mb-1">상황 A: Active / Passive 포트 바인딩 충돌 (TCP 미연결)</div>
+                            <p class="text-sm text-stone-700">양측 장치 엔지니어가 설정 시 통신 역할을 혼동하여 호스트(EAP)와 장비(GEM) 둘 다 Active(클라이언트) 혹은 둘 다 Passive(서버 리슨) 상태로 두어 TCP 포트가 아예 붙지 않는 경우입니다.</p>
+                            <div class="mt-2 text-sm font-bold text-stone-800 bg-white inline-block px-3 py-1 rounded border border-stone-200">➔ 표준 규칙에 맞춰 설비 측을 Passive(포트 리슨: 5001 등), 호스트 EAP 측을 Active로 이원화 설정 확립</div>
+                        </div>
+                        <div class="bg-stone-50 p-4 rounded-lg border border-stone-200">
+                            <div class="font-bold text-purple-600 mb-1">상황 B: T7 타임아웃 단절 루프 및 소켓 리소스 고갈</div>
+                            <p class="text-sm text-stone-700">TCP 소켓은 매끄럽게 연결되나, 상위 핸드셰이크 신호인 Select.req를 제한 시간(T7: 10초) 내에 수신하지 못하여 매 10초마다 세션 단절과 소켓 재생성을 무한 반복하여 네트워크 버퍼 리소스를 폭발시키는 루프입니다.</p>
+                            <div class="mt-2 text-sm font-bold text-stone-800 bg-white inline-block px-3 py-1 rounded border border-stone-200">➔ EAP 드라이버 단에서 소켓이 바인딩됨과 동시에 Select.req를 선제 송신(Active 역할)하도록 소켓 리셋 주기와 이벤트 동기화 보완</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Session State Table -->
+                <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-8">
+                    <div class="flex items-center mb-4">
+                        <div class="w-2 h-6 bg-teal-500 mr-3"></div>
+                        <h3 class="text-xl font-bold text-stone-800">HSMS vs SECS-I 통신 특성 대조</h3>
+                    </div>
+                    <p class="text-stone-600 text-sm mb-6 leading-relaxed">현장 물리 회선 전환 결정 시 기술 참조가 되는 두 표준 계층의 정량적 비교 테이블입니다.</p>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left border-collapse">
+                            <thead class="bg-stone-100 text-stone-700">
+                                <tr>
+                                    <th class="p-3 border-b-2 border-stone-200">구분 기준</th>
+                                    <th class="p-3 border-b-2 border-stone-200 text-teal-800 font-bold">HSMS (SEMI E37)</th>
+                                    <th class="p-3 border-b-2 border-stone-200 text-amber-700 font-bold">SECS-I (SEMI E4)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-stone-700">
+                                <tr class="hover:bg-stone-50 transition">
+                                    <td class="p-3 border-b font-bold bg-white">물리적 계층</td>
+                                    <td class="p-3 border-b">Ethernet TCP/IP (소켓 인터페이스)</td>
+                                    <td class="p-3 border-b">RS-232C 직렬 통신 (D-Sub 9핀)</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition">
+                                    <td class="p-3 border-b font-bold bg-white">최대 속도</td>
+                                    <td class="p-3 border-b font-mono">100 Mbps ~ 1 Gbps (대용량)</td>
+                                    <td class="p-3 border-b font-mono">9600 ~ 19200 bps (저속 제한)</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition">
+                                    <td class="p-3 border-b font-bold bg-white">세션 상태 모델</td>
+                                    <td class="p-3 border-b">Select / Deselect 기반 엄격한 상태 전이</td>
+                                    <td class="p-3 border-b">ENQ / EOT 단방향 신호 핸드셰이크</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition">
+                                    <td class="p-3 border-b font-bold bg-white">전송 오버헤드</td>
+                                    <td class="p-3 border-b">4B Length + 10B Header (매우 낮음)</td>
+                                    <td class="p-3 border-b">1B Length + 10B Header + 2B Checksum</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50 transition">
+                                    <td class="p-3 border-b font-bold bg-white">주요 타이머</td>
+                                    <td class="p-3 border-b">T5, T6, T7, T8 (5초 ~ 10초 범위)</td>
+                                    <td class="p-3 border-b">T1, T2, T3, T4 (문자 간 0.5초 극단 감지)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6. 권장 테이블 구성 및 의사코드 -->
+        <section class="fade-in grid md:grid-cols-2 gap-8">
+            <!-- Table Configuration -->
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                <h3 class="text-xl font-bold text-stone-800 mb-4">E37 권장 데이터베이스 테이블</h3>
+                <div class="overflow-x-auto text-xs">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-stone-100 text-stone-700">
+                                <th class="p-2 border">테이블명</th>
+                                <th class="p-2 border">추천 컬럼 세부 내역 및 데이터 타입</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-stone-700">
+                            <tr>
+                                <td class="p-2 border font-bold">hsms_session</td>
+                                <td class="p-2 border font-mono bg-stone-50 leading-relaxed">
+                                    session_id (BIGINT, PK),<br>
+                                    equipment_id (VARCHAR(64)),<br>
+                                    ip_address (VARCHAR(45)),<br>
+                                    port_no (INT),<br>
+                                    active_passive (VARCHAR(8)), // e.g. ACTIVE / PASSIVE<br>
+                                    selected_state (VARCHAR(16)), // e.g. SELECTED, NOT_SELECTED<br>
+                                    last_linktest_at (TIMESTAMP WITH TIME ZONE)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border font-bold">connection_health</td>
+                                <td class="p-2 border font-mono bg-stone-50 leading-relaxed">
+                                    log_id (BIGINT, PK),<br>
+                                    session_id (BIGINT, FK),<br>
+                                    latency_ms (NUMERIC(8,2)),<br>
+                                    retry_count (INT),<br>
+                                    disconnect_reason (VARCHAR(128)),<br>
+                                    measured_at (TIMESTAMP WITH TIME ZONE)
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Pseudo-code with detailed comments and line breaks -->
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
+                <h3 class="text-xl font-bold text-stone-800 mb-4">E37 세션 제어 및 정합성 검증 의사코드 (Pseudo-code)</h3>
+                <pre class="bg-slate-950 text-slate-200 text-xs p-4 rounded-lg font-mono overflow-auto max-h-72 leading-relaxed">
+// ==========================================
+// 함수: handleE37Event
+// 목적: HSMS 프레임 헤더 분석 및 제어 메시지 정합성 검증
+// 매개변수: frame (수신된 HSMS RAW 바이트 프레임 객체)
+// 반환값: 에러 코드 또는 정상 처리 상태
+// ==========================================
+function handleE37Event(frame):
+    // 1. 4바이트 길이 정보 및 10바이트 SECS 헤더 무결성 검증
+    assert frame.length >= 10
+    assert frame.secsHeader is not null
+    
+    // 2. HSMS 제어 메시지 유형(Control Type) 판별
+    // 헤더의 9번째 바이트(Presentation Type)가 0인 경우 제어 메시지로 분류
+    presentationType = frame.secsHeader[8]
+    if presentationType == 0:
+        controlType = frame.secsHeader[9] // 10번째 바이트에 Control Type 기록됨
+        
+        // 3. Select.req (세션 수립 요청) 수신 처리 분기
+        if controlType == TYPE_SELECT_REQ:
+            if currentSessionState == STATE_SELECTED:
+                // 이미 세션이 수립되어 SELECTED인 경우, REJECT.rsp 송신
+                sendRejectResponse(frame.systemBytes, REASON_ACT_SELECTION)
+                logWarning("경고: 이미 Selected 상태이나 중복 Select.req 수신하여 거절함")
+                return ERROR_DUPLICATE_SELECT
+            else:
+                // 정상적으로 NOT_SELECTED 상태인 경우, Select.rsp(정상:0) 송신 후 상태 전이
+                sendSelectResponse(frame.systemBytes, STATUS_SUCCESS)
+                transitionToState(STATE_SELECTED)
+                stopTimer(T7) // T7 타이머 해제
+                logInfo("성공: Select 핸드셰이크 완료 및 SELECTED 상태로 진입")
+                return STATUS_SUCCESS
+                
+        // 4. Linktest.req (회선 헬스체크) 수신 처리 분기
+        elif controlType == TYPE_LINKTEST_REQ:
+            // 정상 동작 상태 대답을 위해 Linktest.rsp 반환
+            sendLinktestResponse(frame.systemBytes)
+            updateLastLinktestTime()
+            return STATUS_SUCCESS
+            
+        // 5. Separate.req (세션 정상 단절 요청) 수신 처리 분기
+        elif controlType == TYPE_SEPARATE_REQ:
+            logWarning("알람: 호스트측으로부터 정상 세션 종료(Separate) 요청 수신")
+            transitionToState(STATE_NOT_SELECTED)
+            closeActiveSocket()
+            return STATUS_SUCCESS
+            
+    // 6. 데이터 스트림 메시지인 경우 상위 SECS-II 디코더로 바이패스 전달
+    else:
+        if currentSessionState != STATE_SELECTED:
+            // SELECTED 상태가 아닌데 데이터 전송을 시도하는 경우 거부 처리
+            sendRejectResponse(frame.systemBytes, REASON_NOT_SELECTED)
+            return ERROR_NOT_SELECTED
+            
+        publishToSecsIIDecoder(frame.payload)
+        return STATUS_SUCCESS</pre>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-stone-400 py-10 text-center text-sm">
+        <p>SEMI E37: High-Speed SECS Message Services (HSMS) Generic Services</p>
+        <p class="mt-2 text-stone-500">본 고속 이더넷 세션(E37)이 SELECTED 상태로 안전하게 바인딩되면, 상단 SECS-II(E5) 데이터 해독을 통해 실시간 GEM(E30) 시나리오가 비동기 기동됩니다.</p>
+    </footer>
+
+    <script>
+        const stateDescriptions = {
+            'T5': {
+                title: 'T5 타이머 (Connection Separation Timeout)', colorText: 'text-slate-800', colorBg: 'bg-stone-50', border: 'border-stone-200',
+                desc: '통신 단절이나 장애 발생 후, 소켓을 끊고 새로운 TCP 연결을 재시도하기 전까지 대기하는 최소 지연 시간입니다. 규격 권장값은 10초입니다.',
+                substates: [
+                    { name: '주요 목적', desc: '이더넷 선로 감쇄 시 너무 잦은 TCP 3-way 핸드셰이크 및 커넥션 부하가 EAP 서버에 걸리지 않도록 디펜스' },
+                    { name: '만료 상황', desc: '소켓 소실이나 Separate 수신 직후 10초가 지나기 전에는 어떠한 커넥션 복구 동작도 차단' },
+                    { name: '복구 동작', desc: 'T5 만료 즉시 Active 포트 측에서 다시 TCP Connect() 시스템 콜을 기동' }
+                ]
+            },
+            'T6': {
+                title: 'T6 타이머 (Control Transaction Timeout)', colorText: 'text-t6', colorBg: 'bg-blue-50', border: 'border-blue-200',
+                desc: '제어 메시지(Select.req, Linktest.req 등)를 송신한 이후 상대방으로부터 응답(.rsp)이 날아오기까지 대기하는 임계 제한 시간입니다. 규격 권장값은 5초입니다.',
+                substates: [
+                    { name: '주요 목적', desc: '소켓은 살아있으나 상대 드라이버가 교착 상태(Deadlock)에 빠져 제어 신호 처리를 못 할 때 이를 탐지' },
+                    { name: '만료 상황', desc: 'Select.req 송신 후 5초 이내에 상대측 Select.rsp 패킷이 소켓 버퍼에 도달하지 못했을 때' },
+                    { name: '복구 동작', desc: '회선 불능으로 판정하고 즉각 소켓 세션을 Close 처리하며, T5 재기동 대기 상태로 전이' }
+                ]
+            },
+            'T7': {
+                title: 'T7 타이머 (Not Selected Timeout)', colorText: 'text-t7', colorBg: 'bg-purple-50', border: 'border-purple-200',
+                desc: '물리적인 TCP 연결(소켓 바인딩)은 수립되었으나, HSMS 상위 세션 수립을 지시하는 Select.req 핸드셰이크가 오기까지 대기하는 시간입니다. 규격 권장값은 10초입니다.',
+                substates: [
+                    { name: '주요 목적', desc: '해커 침입이나 불필요한 포트 스캔 등으로 TCP 포트만 열어두고 세션을 맺지 않는 가짜 소켓 리소스 선점 방어' },
+                    { name: '만료 상황', desc: 'TCP 연결 성공 즉시 T7 타이머가 구동되며, 10초 내에 유효한 Select.req가 파싱되지 않았을 때' },
+                    { name: '복구 동작', desc: 'TCP 연결을 강제로 단절(RST 또는 FIN)하고 소켓 자원을 완전히 닫아버림' }
+                ]
+            },
+            'T8': {
+                title: 'T8 타이머 (Network Character Timeout)', colorText: 'text-slate-800', colorBg: 'bg-stone-50', border: 'border-stone-200',
+                desc: '단일 메시지 패킷 내부에서 선로 조각화로 인해 문자(Byte)와 문자 사이가 비정상적으로 길게 끊겨 들어오는 것을 감지하는 타이머입니다. 규격 권장값은 5초입니다.',
+                substates: [
+                    { name: '주요 목적', desc: '네트워크 패킷 분할(Fragmentation) 및 유실로 메시지 헤더만 오고 바디가 영영 실종되는 상태 방어' },
+                    { name: '만료 상황', desc: '헤더 파싱 후 4바이트 길이 정보만큼의 데이터 바디 바이트가 5초 이내에 소켓 버퍼로 완수되지 않을 때' },
+                    { name: '복구 동작', desc: '수신 중이던 불완전 프레임을 파기하고 소켓을 즉시 단절' }
+                ]
+            },
+            'CTRL1': {
+                title: 'Select 및 Linktest 세션 수립 제어', colorText: 'text-ok', colorBg: 'bg-teal-50', border: 'border-teal-200',
+                desc: 'HSMS의 정상 연결을 구성하는 10바이트 고정 규격의 핵심 제어 메시지 듀오입니다.',
+                substates: [
+                    { name: 'Select.req / Select.rsp', desc: 'TCP 연결 완료 후 상위 세션 개시 동의를 구하는 메시지. 정상 응답 코드는 0x00(성공)' },
+                    { name: 'Linktest.req / Linktest.rsp', desc: 'SELECTED 상태 하에서 회선이 끊어지지 않고 살았는지 주기적으로 확인하는 하트비트(Heartbeat)' },
+                    { name: 'T6 연동', desc: '두 제어 요구 메시지 모두 5초 내에 대응 .rsp가 없으면 세션 즉시 폭발 단절됨' }
+                ]
+            },
+            'CTRL2': {
+                title: 'Separate 및 Reject 예외 제어', colorText: 'text-retry', colorBg: 'bg-amber-50', border: 'border-amber-200',
+                desc: '연결을 인위적으로 종료하거나 규격 외 데이터 유입 시 상대방에게 경고를 주기 위한 제어 문자입니다.',
+                substates: [
+                    { name: 'Separate.req (0x09)', desc: '장비 점검이나 Host EAP 재기동 등 인위적인 통신 오프라인 요청 시 소켓을 강제 차단하지 않고 정중하게 선언 단절' },
+                    { name: 'Reject.req (0x07)', desc: '지원하지 않는 프로토콜 버전이 들어왔거나 SELECTED가 아닌데 데이터 메시지를 보내는 등 프로토콜 위반 통보' },
+                    { name: '비고', desc: 'Reject 수신 즉시 에러 로그를 기록하며, 상황에 따라 자가 치유(Self-healing)를 위한 재커넥션 분기 기동' }
+                ]
+            }
+        };
+
+        let myChartInstance = null;
+
+        function expandHierarchy(level) {
+            const el = document.getElementById(`h-level-${level}`);
+            if(el) {
+                el.classList.remove('hidden');
+                el.classList.add('flex');
+            }
+        }
+
+        function resetHierarchy() {
+            [2, 3, 4].forEach(lvl => {
+                const el = document.getElementById(`h-level-${lvl}`);
+                if(el) {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                }
+            });
+        }
+
+        function selectState(stateKey) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`tab-${stateKey}`).classList.add('active');
+
+            const data = stateDescriptions[stateKey];
+            const panel = document.getElementById('state-content-panel');
+            
+            let htmlStr = `
+                <div class="fade-in">
+                    <h3 class="text-2xl font-bold ${data.colorText} mb-3">${data.title}</h3>
+                    <p class="text-stone-700 text-lg mb-6">${data.desc}</p>
+                    <div class="grid md:grid-cols-3 gap-4">
+            `;
+            
+            data.substates.forEach(sub => {
+                htmlStr += `
+                    <div class="${data.colorBg} border ${data.border} p-4 rounded-xl shadow-sm">
+                        <div class="font-bold text-stone-800 mb-2 border-b border-stone-200/50 pb-1">${sub.name}</div>
+                        <div class="text-sm text-stone-700">${sub.desc}</div>
+                    </div>
+                `;
+            });
+            
+            htmlStr += `</div></div>`;
+            panel.innerHTML = htmlStr;
+        }
+
+        function updateSimulation() {
+            // Get values from ranges
+            const lossVal = parseFloat(document.getElementById('lossRange').value) / 10.0;
+            const rtt = parseInt(document.getElementById('rttRange').value);
+            const tps = parseInt(document.getElementById('tpsRange').value);
+
+            // Update range labels
+            document.getElementById('lossVal').innerText = lossVal.toFixed(1) + '%';
+            document.getElementById('rttVal').innerText = rtt + ' ms';
+            document.getElementById('tpsVal').innerText = tps + ' tps';
+
+            // Calculate variables
+            const latency = rtt * (1.0 + (lossVal * 0.4));
+            
+            // T6 timeout incident increases with packet loss and RTT
+            const t6Err = Math.min(100.0, lossVal * (rtt > 100 ? 0.35 : 0.08));
+            
+            // Integrity Score
+            const integrity = Math.max(0, 100 - (lossVal * 8.5) - (rtt > 200 ? 12 : 0));
+
+            // Bandwidth Efficiency
+            const efficiency = Math.max(0, 100 - (lossVal * 9.5) - (rtt / 9.5));
+
+            // Status 판정
+            let status = 'STABLE';
+            let statusColor = 'text-emerald-700';
+            if (integrity <= 60) {
+                status = 'CRITICAL';
+                statusColor = 'text-red-700';
+            } else if (integrity <= 85) {
+                status = 'WARNING';
+                statusColor = 'text-amber-700';
+            }
+
+            // Update KPI cards
+            document.getElementById('kpi-integrity').innerHTML = integrity.toFixed(1) + '<span class="text-lg">%</span>';
+            document.getElementById('kpi-latency').innerHTML = latency.toFixed(1) + '<span class="text-lg"> ms</span>';
+            document.getElementById('kpi-t6err').innerHTML = t6Err.toFixed(2) + '<span class="text-lg">%</span>';
+            document.getElementById('kpi-efficiency').innerHTML = efficiency.toFixed(1) + '<span class="text-lg">%</span>';
+            
+            document.getElementById('kpi-status').className = `text-3xl font-mono font-bold ${statusColor}`;
+            document.getElementById('kpi-status').innerText = status;
+
+            // Chart.js Data update (simulate 1000 packets outcomes)
+            const errCount = Math.round(1000 * (t6Err / 100.0));
+            const retryCount = Math.round(1000 * (lossVal / 100.0));
+            const okCount = Math.max(0, 1000 - errCount - retryCount);
+
+            // Update label inner logic formulas
+            document.querySelector('.border-l-blue-500 .font-mono').innerText = `RTT (${rtt}ms) + 재전송 보정 지연`;
+            document.querySelector('.border-l-purple-500 .font-mono').innerText = `패킷 손실 감쇄량 및 RTT 지연 보정`;
+
+            if (myChartInstance) {
+                myChartInstance.data.datasets[0].data = [okCount, retryCount, errCount];
+                myChartInstance.data.labels = [`정상 연결 (${okCount}건)`, `패킷 재전송 (${retryCount}건)`, `T6 타임아웃 (${errCount}건)`];
+                myChartInstance.update();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            selectState('T5');
+
+            const ctx = document.getElementById('healthChart').getContext('2d');
+            myChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['정상 연결 (980건)', '패킷 재전송 (18건)', 'T6 타임아웃 (2건)'],
+                    datasets: [{
+                        data: [980, 18, 2],
+                        backgroundColor: [
+                            '#0f766e', // Teal OK
+                            '#f59e0b', // Amber Retry
+                            '#ef4444'  // Red Timeout
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { family: "'Pretendard', sans-serif", size: 11 },
+                                boxWidth: 12,
+                                padding: 15
+                            }
+                        }
+                    },
+                    animation: { animateScale: true }
+                }
+            });
+
+            // Trigger initial calculation
+            updateSimulation();
+        });
+    </script>
+</body>
+</html>
