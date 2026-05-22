@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>보전 운영 관리 - 데이터 수집</title>
+  <link rel="stylesheet" href="../isa95-page.css">
+</head>
+<body>
+  <main class="page">
+    <div class="crumbs"><a href="../ISA95_MES_Overview.html">ISA-95 MES Model</a> / 보전 운영 관리 / 데이터 수집</div>
+    <section class="hero">
+      <h1>보전 운영 관리 - 데이터 수집</h1>
+      <p>Maintenance Operations Management / Data Collection. 실행 과정에서 발생한 설비, 사람, 자재, 품질, 시간 데이터를 수집하고 검증합니다.</p>
+      <div class="chips"><span class="chip">ANSI/ISA-95</span><span class="chip">Maintenance Operations Management</span><span class="chip">Data Collection</span></div>
+    </section>
+    
+    <section class="section">
+      <h2>학습 목표</h2>
+      <div class="lesson-index">
+        <a href="#concept">1. 활동 목적</a>
+        <a href="#scope">2. 기능 범위</a>
+        <a href="#dfd">3. Activity DFD</a>
+        <a href="#model">4. 데이터 모델</a>
+        <a href="#logic">5. 업무 규칙</a>
+        <a href="#ui">6. 화면/API</a>
+        <a href="#test">7. 테스트</a>
+        <a href="#ops">8. 운영 체크</a>
+      </div>
+      <div class="callout">이 문서는 ANSI/ISA-95를 기반으로 MES/MOM 시스템 설계를 학습하기 위한 교육용 해설입니다. 공식 표준 조항을 대체하지 않으며, 실제 프로젝트에서는 최신 ISA-95 문서, 고객 URS, 사이트 표준, ERP/PLC/SCADA 연동 규격을 함께 검토해야 합니다.</div>
+      <p><strong>핵심 질문:</strong> 데이터 수집 활동은 보전 운영 관리에서 어떤 결정을 표준화하고, 어떤 객체의 상태를 바꾸며, 어떤 실적을 남기는가?</p>
+    </section>
+
+    <section id="concept" class="section">
+      <h2>1. 활동 목적과 ISA-95 위치</h2>
+      <p>실행 과정에서 발생한 설비, 사람, 자재, 품질, 시간 데이터를 수집하고 검증합니다. 설비의 예방보전, 고장보전, 점검, 수리 작업을 계획하고 실행하여 생산 중단과 품질 위험을 줄이는 영역입니다.</p>
+      <div class="two-col">
+        <div class="card"><strong>ISA-95 관점</strong><span>Maintenance Operations Management의 activity 중 하나로, Level 4의 계획과 Level 2/1의 실제 제어 사이에서 실행 가능한 업무 판단을 담당합니다.</span></div>
+        <div class="card"><strong>학생에게 설명하는 비유</strong><span>계획표가 있어도 지금 실행할 수 있는지, 필요한 조건이 맞는지, 실행 결과를 어떻게 기록할지 정하지 않으면 현장은 움직이지 않습니다. 이 activity는 그 판단 규칙을 담당합니다.</span></div>
+      </div>
+      <h3>현장 예시</h3>
+      <ul><li>PM due 계산</li>
+<li>고장 작업 오더 생성</li>
+<li>수리 담당자와 부품 배정</li>
+<li>MTBF/MTTR 분석</li></ul>
+    </section>
+
+    <section id="scope" class="section">
+      <h2>2. 기능 범위</h2>
+      <p>보전 운영 관리 - 데이터 수집는 아래 범위를 하나의 업무 서비스로 묶어 생각하면 이해가 쉽습니다. 각 범위는 요구사항, 화면, API, 테스트 케이스로 이어집니다.</p>
+      <table>
+        <thead><tr><th>범위</th><th>업무 의미</th><th>구현 산출물</th></tr></thead>
+        <tbody><tr><td><strong>1. 자동/수동 데이터 수집</strong></td><td>maintenance work order, equipment, spare part의 실행 조건을 표준화합니다.</td><td>화면, API, 상태 테이블, 이력 테이블, 권한 정책으로 구현합니다.</td></tr>
+<tr><td><strong>2. 필수값, 범위, 코드, 시간 검증</strong></td><td>보전 기술자, 설비, spare part, PM 절차서와 연결하여 현장 판단을 자동화합니다.</td><td>화면, API, 상태 테이블, 이력 테이블, 권한 정책으로 구현합니다.</td></tr>
+<tr><td><strong>3. 발생 시각과 수신 시각 관리</strong></td><td>보전 기술자, 설비, spare part, PM 절차서와 연결하여 현장 판단을 자동화합니다.</td><td>화면, API, 상태 테이블, 이력 테이블, 권한 정책으로 구현합니다.</td></tr>
+<tr><td><strong>4. 다른 activity가 사용할 원천 데이터 제공</strong></td><td>보전 기술자, 설비, spare part, PM 절차서와 연결하여 현장 판단을 자동화합니다.</td><td>화면, API, 상태 테이블, 이력 테이블, 권한 정책으로 구현합니다.</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="dfd" class="section">
+      <h2>3. Activity DFD</h2>
+      <div class="diagram"><svg viewBox="0 0 1005 164" aria-label="ISA-95 DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="36" y="44" width="148" height="76"></rect><text x="110" y="75" text-anchor="middle">보전 운영 관리 요청</text><text class="tiny" x="110" y="100" text-anchor="middle">Input</text></g><path class="arrow" d="M184 82 H216"></path><g class="node"><rect x="221" y="44" width="148" height="76"></rect><text x="295" y="75" text-anchor="middle">기준정보/자원 확인</text><text class="tiny" x="295" y="100" text-anchor="middle">Process</text></g><path class="arrow" d="M369 82 H401"></path><g class="node"><rect x="406" y="44" width="148" height="76"></rect><text x="480" y="75" text-anchor="middle">실적 데이터 저장</text><text class="tiny" x="480" y="100" text-anchor="middle">Process</text></g><path class="arrow" d="M554 82 H586"></path><g class="node"><rect x="591" y="44" width="148" height="76"></rect><text x="665" y="75" text-anchor="middle">상태와 이력 저장</text><text class="tiny" x="665" y="100" text-anchor="middle">Process</text></g><path class="arrow" d="M739 82 H771"></path><g class="node"><rect x="776" y="44" width="148" height="76"></rect><text x="850" y="75" text-anchor="middle">성과/통합 피드백</text><text class="tiny" x="850" y="100" text-anchor="middle">Output</text></g></svg></div>
+      <p style="margin-top:14px">이 DFD는 ISA-95 activity를 코드로 옮길 때의 기본 흐름입니다. 핵심은 입력을 바로 실행하지 않고 기준정보, 자원 상태, 권한, 품질 조건을 거쳐 상태와 이력을 남기는 것입니다.</p>
+      <table>
+        <thead><tr><th>단계</th><th>처리 의미</th><th>저장/검증 포인트</th></tr></thead>
+        <tbody><tr><td><strong>1. 보전 운영 관리 요청</strong></td><td>상위 계획, 현장 요청, 외부 시스템 이벤트가 들어오는 단계입니다.</td><td>source system, correlation id, 수신 시각을 저장합니다.</td></tr>
+<tr><td><strong>2. 기준정보/자원 확인</strong></td><td>ISA-95 Level 3에서 검증, 판단, 실행 상태 전이를 수행합니다.</td><td>상태, 이력, 오류 사유, 기준정보 revision을 남깁니다.</td></tr>
+<tr><td><strong>3. 실적 데이터 저장</strong></td><td>ISA-95 Level 3에서 검증, 판단, 실행 상태 전이를 수행합니다.</td><td>상태, 이력, 오류 사유, 기준정보 revision을 남깁니다.</td></tr>
+<tr><td><strong>4. 상태와 이력 저장</strong></td><td>ISA-95 Level 3에서 검증, 판단, 실행 상태 전이를 수행합니다.</td><td>상태, 이력, 오류 사유, 기준정보 revision을 남깁니다.</td></tr>
+<tr><td><strong>5. 성과/통합 피드백</strong></td><td>ERP, APS, KPI, 데이터 플랫폼 또는 다른 MOM activity로 결과를 넘깁니다.</td><td>상태, 이력, 오류 사유, 기준정보 revision을 남깁니다.</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="model" class="section">
+      <h2>4. 권장 데이터 모델</h2>
+      <p>ISA-95 activity는 object request, schedule, performance와 연결되어야 합니다. 현재 상태와 이력을 분리하고, 기준정보 revision을 반드시 보존합니다.</p>
+      <table>
+        <thead><tr><th>테이블</th><th>주요 컬럼</th><th>설계 이유</th></tr></thead>
+        <tbody><tr><td><strong>mnt_data_collection_rule</strong></td><td><code>rule_id, revision, domain, rule_type, condition_json, action_json, active_flag</code></td><td>규칙, 현재 상태, 실행 이력, 예외 처리를 분리하여 재처리와 감사 추적을 가능하게 합니다.</td></tr>
+<tr><td><strong>mnt_data_collection_state</strong></td><td><code>object_id, object_type, current_state, reason_code, updated_at, owner_system</code></td><td>규칙, 현재 상태, 실행 이력, 예외 처리를 분리하여 재처리와 감사 추적을 가능하게 합니다.</td></tr>
+<tr><td><strong>mnt_data_collection_history</strong></td><td><code>history_id, object_id, event_type, before_state, after_state, event_time, payload_json</code></td><td>규칙, 현재 상태, 실행 이력, 예외 처리를 분리하여 재처리와 감사 추적을 가능하게 합니다.</td></tr>
+<tr><td><strong>mnt_data_collection_exception</strong></td><td><code>exception_id, object_id, severity, reason_code, disposition, created_at, closed_at</code></td><td>규칙, 현재 상태, 실행 이력, 예외 처리를 분리하여 재처리와 감사 추적을 가능하게 합니다.</td></tr></tbody>
+      </table>
+      <h3>ISA-95 객체 연결</h3>
+      <div class="grid">
+        <div class="card"><strong>Operations Request</strong><span>상위 계획 또는 현장 요청으로부터 생성되는 실행 요구입니다.</span></div>
+        <div class="card"><strong>Operations Schedule</strong><span>언제 어떤 자원으로 실행할지 계획한 결과입니다.</span></div>
+        <div class="card"><strong>Operations Performance</strong><span>실제로 수행된 시간, 수량, 자원, 품질 결과입니다.</span></div>
+      </div>
+    </section>
+
+    <section id="logic" class="section">
+      <h2>5. 처리 로직과 업무 규칙</h2>
+      <table>
+        <thead><tr><th>규칙 ID</th><th>업무 규칙</th><th>시스템 반영 방식</th></tr></thead>
+        <tbody><tr><td>BR-01</td><td>발생 시각과 수신 시각을 모두 저장합니다.</td><td>Domain Service, Rule Engine, DB constraint, Workflow, Integration Contract로 구현</td></tr>
+<tr><td>BR-02</td><td>수집 항목 mapping은 기준정보 version과 연결합니다.</td><td>Domain Service, Rule Engine, DB constraint, Workflow, Integration Contract로 구현</td></tr>
+<tr><td>BR-03</td><td>품질이 나쁜 데이터는 삭제하지 않고 quality code를 붙입니다.</td><td>Domain Service, Rule Engine, DB constraint, Workflow, Integration Contract로 구현</td></tr>
+<tr><td>BR-04</td><td>수동 입력은 권한과 audit trail을 남깁니다.</td><td>Domain Service, Rule Engine, DB constraint, Workflow, Integration Contract로 구현</td></tr></tbody>
+      </table>
+      <h3>의사코드</h3>
+      <div class="codebox">function handleIsa95Activity(command):
+  validateCorrelationId(command)
+  definition = loadOperationsDefinition(command.definitionId, command.revision)
+  capability = loadOperationsCapability(command.resourceScope, command.timeWindow)
+  current = loadCurrentState(command.objectId)
+  decision = evaluateRules(command, definition, capability, current)
+  saveRawCommand(command) // 원본 명령어 저장 (이력 추적 목적)
+  if decision.allowed: // 조건 만족 시
+      updateCurrentState(decision)
+      appendActivityHistory(decision)
+      publishOperationsEvent(decision)
+  else: // 조건 불만족 시
+      createException(decision.reasonCode)
+      notifyOwner(decision.ownerRole)</div>
+    </section>
+
+    <section id="ui" class="section">
+      <h2>6. 화면과 API 설계</h2>
+      <p>현장 화면은 ISA-95 용어를 그대로 나열하기보다, 작업자가 지금 할 수 있는 action과 차단 사유를 명확하게 보여줘야 합니다.</p>
+      <div class="grid">
+        <div class="card"><strong>현장 실행 화면</strong><span>현재 객체 상태, 가능 action, 차단 조건, 관련 기준정보 revision을 표시합니다.</span></div>
+        <div class="card"><strong>관리자 화면</strong><span>업무 규칙, 기준정보, 예외 승인, 변경 이력을 관리합니다.</span></div>
+        <div class="card"><strong>통합 API</strong><span>ERP, APS, SCADA, 데이터 플랫폼과 request/schedule/performance를 주고받습니다.</span></div>
+      </div>
+      <h3>API 예시</h3>
+      <div class="codebox">POST /api/isa95/maintenance/data-collection/commands
+GET  /api/isa95/maintenance/data-collection/current-state?objectId={id}
+GET  /api/isa95/maintenance/data-collection/history?from={date}&to={date}</div>
+    </section>
+
+    <section id="test" class="section">
+      <h2>7. 테스트 시나리오</h2>
+      <table>
+        <thead><tr><th>테스트 ID</th><th>시나리오</th><th>기대 결과</th></tr></thead>
+        <tbody><tr><td>TC-01</td><td>자동 이벤트 저장</td><td>상태, 이력, 예외, 통합 메시지, 권한 결과가 설계와 일치해야 합니다.</td></tr>
+<tr><td>TC-02</td><td>필수 수동 입력 검증</td><td>상태, 이력, 예외, 통합 메시지, 권한 결과가 설계와 일치해야 합니다.</td></tr>
+<tr><td>TC-03</td><td>중복 sample 제거</td><td>상태, 이력, 예외, 통합 메시지, 권한 결과가 설계와 일치해야 합니다.</td></tr>
+<tr><td>TC-04</td><td>Bad quality 데이터 표시</td><td>상태, 이력, 예외, 통합 메시지, 권한 결과가 설계와 일치해야 합니다.</td></tr></tbody>
+      </table>
+      <h3>자주 놓치는 위험</h3>
+      <div>
+        <span class="badge">기준정보 revision 누락</span>
+        <span class="badge">ERP/MES 상태 불일치</span>
+        <span class="badge">중복 이벤트 처리 실패</span>
+        <span class="badge">수동 변경 감사 누락</span>
+        <span class="badge">권한 없는 승인</span>
+      </div>
+    </section>
+
+    <section id="ops" class="section">
+      <h2>8. 운영 체크리스트</h2>
+      <ul><li>현재 상태와 마지막 정상 이벤트, 마지막 오류 이벤트를 한 화면에서 확인할 수 있다.</li>
+<li>모든 action은 실행자, 시각, 변경 전/후 상태, 사유, correlation id를 남긴다.</li>
+<li>외부 시스템 연동 실패 시 재처리 queue와 운영 알림이 있다.</li>
+<li>기준정보 변경 시 진행 중 작업과 미래 작업의 영향도를 조회할 수 있다.</li>
+<li>성과 분석과 추적 모델에서 이 activity의 이력을 재사용할 수 있다.</li></ul>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ISA-95 설비 계층 모델</title>
+  <link rel="stylesheet" href="../isa95-page.css">
+</head>
+<body>
+  <main class="page">
+    <div class="crumbs"><a href="../ISA95_MES_Overview.html">ISA-95 MES Model</a> / 설비 계층 모델</div>
+    <section class="hero">
+      <h1>ISA-95 설비 계층 모델</h1>
+      <p>Equipment Hierarchy Model. Enterprise, Site, Area, Work Center, Work Unit 같은 계층으로 생산 자원의 위치와 책임 범위를 표현합니다.</p>
+      <div class="chips"><span class="chip">ANSI/ISA-95</span><span class="chip">Object Model</span><span class="chip">Equipment Hierarchy Model</span></div>
+    </section>
+    
+    <section class="section">
+      <h2>학습 목표</h2>
+      <div class="lesson-index">
+        <a href="#concept">1. 모델 목적</a>
+        <a href="#structure">2. 구조</a>
+        <a href="#dfd">3. 모델 DFD</a>
+        <a href="#data">4. 데이터 모델</a>
+        <a href="#logic">5. 설계 규칙</a>
+        <a href="#integration">6. 통합 관점</a>
+        <a href="#test">7. 테스트</a>
+        <a href="#ops">8. 운영 체크</a>
+      </div>
+      <div class="callout">이 문서는 ANSI/ISA-95를 기반으로 MES/MOM 시스템 설계를 학습하기 위한 교육용 해설입니다. 공식 표준 조항을 대체하지 않으며, 실제 프로젝트에서는 최신 ISA-95 문서, 고객 URS, 사이트 표준, ERP/PLC/SCADA 연동 규격을 함께 검토해야 합니다.</div>
+    </section>
+
+    <section id="concept" class="section">
+      <h2>1. 모델 목적</h2>
+      <p>Enterprise, Site, Area, Work Center, Work Unit 같은 계층으로 생산 자원의 위치와 책임 범위를 표현합니다.</p>
+      <p>ISA-95 모델은 화면 이름을 정하는 용도가 아니라 시스템 사이의 데이터 계약을 정하는 기준입니다. 같은 설비, 자재, 작업 요청을 ERP, MES, SCADA가 서로 다르게 해석하면 통합 비용이 커지므로 객체의 경계와 관계를 먼저 맞춰야 합니다.</p>
+    </section>
+
+    <section id="structure" class="section">
+      <h2>2. 핵심 구조</h2>
+      <table>
+        <thead><tr><th>객체</th><th>역할</th><th>수업식 해설</th></tr></thead>
+        <tbody><tr><td><strong>Enterprise</strong></td><td>회사 또는 사업 단위</td><td>여러 site를 포괄하는 최상위 조직입니다.</td></tr>
+<tr><td><strong>Site</strong></td><td>공장</td><td>하나의 물리적 생산 사업장입니다.</td></tr>
+<tr><td><strong>Area</strong></td><td>생산 구역</td><td>라인, 공정군, 창고 구역처럼 운영 단위를 나눕니다.</td></tr>
+<tr><td><strong>Work Center</strong></td><td>작업 센터</td><td>스케줄과 capacity를 관리하는 단위입니다.</td></tr>
+<tr><td><strong>Work Unit</strong></td><td>작업 설비</td><td>실제 작업이 수행되는 설비, 셀, 장치입니다.</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="dfd" class="section">
+      <h2>3. 모델 DFD</h2>
+      <div class="diagram"><svg viewBox="0 0 1005 164" aria-label="ISA-95 DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="36" y="44" width="148" height="76"></rect><text x="110" y="75" text-anchor="middle">Enterprise</text><text class="tiny" x="110" y="100" text-anchor="middle">Input</text></g><path class="arrow" d="M184 82 H216"></path><g class="node"><rect x="221" y="44" width="148" height="76"></rect><text x="295" y="75" text-anchor="middle">Site</text><text class="tiny" x="295" y="100" text-anchor="middle">Process</text></g><path class="arrow" d="M369 82 H401"></path><g class="node"><rect x="406" y="44" width="148" height="76"></rect><text x="480" y="75" text-anchor="middle">Area</text><text class="tiny" x="480" y="100" text-anchor="middle">Process</text></g><path class="arrow" d="M554 82 H586"></path><g class="node"><rect x="591" y="44" width="148" height="76"></rect><text x="665" y="75" text-anchor="middle">Work Center</text><text class="tiny" x="665" y="100" text-anchor="middle">Process</text></g><path class="arrow" d="M739 82 H771"></path><g class="node"><rect x="776" y="44" width="148" height="76"></rect><text x="850" y="75" text-anchor="middle">Work Unit</text><text class="tiny" x="850" y="100" text-anchor="middle">Output</text></g></svg></div>
+      <table>
+        <thead><tr><th>단계</th><th>의미</th><th>모델링 포인트</th></tr></thead>
+        <tbody><tr><td><strong>1. Enterprise</strong></td><td>상위 개념 또는 입력 객체입니다.</td><td>ID, parent 관계, revision, owner system, effective date를 관리합니다.</td></tr>
+<tr><td><strong>2. Site</strong></td><td>관계, 계층, 상태 또는 능력을 해석하는 중간 모델입니다.</td><td>ID, parent 관계, revision, owner system, effective date를 관리합니다.</td></tr>
+<tr><td><strong>3. Area</strong></td><td>관계, 계층, 상태 또는 능력을 해석하는 중간 모델입니다.</td><td>ID, parent 관계, revision, owner system, effective date를 관리합니다.</td></tr>
+<tr><td><strong>4. Work Center</strong></td><td>관계, 계층, 상태 또는 능력을 해석하는 중간 모델입니다.</td><td>ID, parent 관계, revision, owner system, effective date를 관리합니다.</td></tr>
+<tr><td><strong>5. Work Unit</strong></td><td>하위 시스템이나 통합 메시지가 사용하는 결과입니다.</td><td>ID, parent 관계, revision, owner system, effective date를 관리합니다.</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="data" class="section">
+      <h2>4. 권장 데이터 모델</h2>
+      <table>
+        <thead><tr><th>테이블</th><th>주요 컬럼</th><th>설계 이유</th></tr></thead>
+        <tbody><tr><td><strong>equipment_hierarchy</strong></td><td><code>node_id, parent_node_id, node_type, name, site_code, active_flag</code></td><td>ISA-95 객체를 MES 내부 모델과 외부 통합 메시지로 안정적으로 연결하기 위한 기본 구조입니다.</td></tr>
+<tr><td><strong>equipment_capability</strong></td><td><code>node_id, capability_type, product_family, capacity_value, unit</code></td><td>ISA-95 객체를 MES 내부 모델과 외부 통합 메시지로 안정적으로 연결하기 위한 기본 구조입니다.</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="logic" class="section">
+      <h2>5. 설계 규칙</h2>
+      <table>
+        <thead><tr><th>규칙 ID</th><th>설계 규칙</th><th>검증 방법</th></tr></thead>
+        <tbody><tr><td>MR-01</td><td>계층 ID는 ERP, MES, SCADA에서 공통으로 매핑되어야 합니다.</td><td>모델 validation, master data governance, integration contract test로 검증</td></tr>
+<tr><td>MR-02</td><td>상위 계층 상태가 내려가면 하위 자원 가용성에도 영향을 줍니다.</td><td>모델 validation, master data governance, integration contract test로 검증</td></tr>
+<tr><td>MR-03</td><td>Capacity 집계는 Work Unit에서 시작해 Work Center, Area로 올라갑니다.</td><td>모델 validation, master data governance, integration contract test로 검증</td></tr></tbody>
+      </table>
+      <h3>모델 검증 의사코드</h3>
+      <div class="codebox">function validateIsa95Model(modelObject):
+  assert modelObject.id is stable
+  assert modelObject.ownerSystem is not empty
+  assert modelObject.effectiveFrom is valid
+  validateHierarchyOrRelationship(modelObject)
+  validateExternalMappings(modelObject)
+  publishModelChangedEvent(modelObject)</div>
+    </section>
+
+    <section id="integration" class="section">
+      <h2>6. 통합 관점</h2>
+      <div class="grid">
+        <div class="card"><strong>ERP</strong><span>계획, 품목, 주문, 원가와 연결되는 상위 기준정보를 제공합니다.</span></div>
+        <div class="card"><strong>MES/MOM</strong><span>실행 상태, schedule, performance, genealogy를 관리합니다.</span></div>
+        <div class="card"><strong>SCADA/PLC</strong><span>실제 설비 상태와 공정 데이터를 이벤트로 제공합니다.</span></div>
+      </div>
+    </section>
+
+    <section id="test" class="section">
+      <h2>7. 테스트 시나리오</h2>
+      <table>
+        <thead><tr><th>테스트 ID</th><th>시나리오</th><th>기대 결과</th></tr></thead>
+        <tbody><tr><td>TC-01</td><td>계층 tree 조회</td><td>객체 관계, ID 매핑, revision, 통합 메시지가 설계와 일치해야 합니다.</td></tr>
+<tr><td>TC-02</td><td>Work Unit 상태 변경 후 Work Center capacity 재계산</td><td>객체 관계, ID 매핑, revision, 통합 메시지가 설계와 일치해야 합니다.</td></tr>
+<tr><td>TC-03</td><td>site별 자원 필터</td><td>객체 관계, ID 매핑, revision, 통합 메시지가 설계와 일치해야 합니다.</td></tr>
+<tr><td>TC-04</td><td>비활성 계층 사용 차단</td><td>객체 관계, ID 매핑, revision, 통합 메시지가 설계와 일치해야 합니다.</td></tr></tbody>
+      </table>
+    </section>
+
+    <section id="ops" class="section">
+      <h2>8. 운영 체크리스트</h2>
+      <ul><li>객체 ID와 외부 시스템 ID 매핑표가 있다.</li>
+<li>기준정보 owner system과 변경 승인 절차가 명확하다.</li>
+<li>모델 변경 시 영향받는 schedule, request, performance를 조회할 수 있다.</li>
+<li>통합 메시지 실패를 재처리할 수 있다.</li>
+<li>과거 실적을 당시 모델 revision 기준으로 해석할 수 있다.</li></ul>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,87 +1,251 @@
+const iframeItem = (title, path) => ({ title, path, mode: "iframe" });
+const htmlItem = (title, path) => ({ title, path });
+const standardItem = (title, id) => iframeItem(title, `SEMI_Interactive_Guide/standards/${id}.html`);
+const mesaSmartItem = (title, folder, id) => iframeItem(title, `contents/MES/mesa/${folder}/${id}.html`);
+const isa95ActivityItem = (title, id) => iframeItem(title, `contents/MES/isa95/activities/${id}.html`);
+const isa95ModelItem = (title, id) => iframeItem(title, `contents/MES/isa95/models/${id}.html`);
+
+const semiStandards = {
+    title: "SEMI Standards",
+    children: [
+        iframeItem("SEMI Guide Overview", "SEMI_Interactive_Guide/SEMI_Data_Flow_Main.html"),
+        {
+            title: "SECS/GEM 기본",
+            children: [
+                standardItem("SEMI E4 - SECS-I", "E4"),
+                standardItem("SEMI E5 - SECS-II", "E5"),
+                standardItem("SEMI E37 - HSMS", "E37"),
+                standardItem("SEMI E30 - GEM", "E30")
+            ]
+        },
+        {
+            title: "GEM300 생산 실행",
+            children: [
+                standardItem("GEM300", "GEM300"),
+                standardItem("SEMI E39 - Object Services", "E39"),
+                standardItem("SEMI E40 - Processing Job", "E40"),
+                standardItem("SEMI E87 - Carrier Management", "E87"),
+                standardItem("SEMI E90 - Substrate Tracking", "E90"),
+                standardItem("SEMI E94 - Control Job", "E94")
+            ]
+        },
+        {
+            title: "EDA / Interface A",
+            children: [
+                standardItem("SEMI E120 - Common Equipment Model", "E120"),
+                standardItem("SEMI E125 - Equipment Data Acquisition", "E125"),
+                standardItem("SEMI E132 - Client Authentication", "E132"),
+                standardItem("SEMI E133 - Automated EDA Interface", "E133"),
+                standardItem("SEMI E134 - Data Collection Management", "E134"),
+                standardItem("SEMI E151 - EDA Client Guide", "E151"),
+                standardItem("SEMI E160 - Data Quality", "E160"),
+                standardItem("SEMI E164 - Common Metadata", "E164")
+            ]
+        },
+        {
+            title: "Data Dictionary / Productivity / Security",
+            children: [
+                standardItem("SEMI E10 - RAM", "E10"),
+                standardItem("SEMI E116 - Performance Tracking", "E116"),
+                standardItem("SEMI E172 - SECS Equipment Data Dictionary", "E172"),
+                standardItem("SEMI E173 - XML SECS-II Message Notation", "E173"),
+                standardItem("SEMI E187 - Equipment Cybersecurity", "E187")
+            ]
+        },
+        {
+            title: "Streaming Algorithm",
+            children: [
+                iframeItem("Chan Algorithm", "SEMI_Interactive_Guide/algorithms/Chan.html"),
+                iframeItem("KLL Sketch", "SEMI_Interactive_Guide/algorithms/KLL.html")
+            ]
+        },
+        iframeItem("SEMI E10 Legacy Guide", "SEMI_Interactive_Guide/SEMI_E10_Guide.html")
+    ]
+};
+
+const mesaSmartModel = {
+    title: "MESA Smart Manufacturing",
+    children: [
+        iframeItem("MESA Smart Manufacturing Overview", "contents/MES/mesa/MESA_MES_Overview.html"),
+        {
+            title: "Lifecycles",
+            children: [
+                mesaSmartItem("생산 라이프사이클", "lifecycles", "production"),
+                mesaSmartItem("생산 자산 라이프사이클", "lifecycles", "production-asset"),
+                mesaSmartItem("제품 라이프사이클", "lifecycles", "product"),
+                mesaSmartItem("공급망 라이프사이클", "lifecycles", "supply-chain"),
+                mesaSmartItem("인력 라이프사이클", "lifecycles", "workforce"),
+                mesaSmartItem("주문-현금화 라이프사이클", "lifecycles", "order-to-cash")
+            ]
+        },
+        {
+            title: "Cross-Lifecycle Threads",
+            children: [
+                mesaSmartItem("품질 스레드", "threads", "quality"),
+                mesaSmartItem("컴플라이언스 스레드", "threads", "compliance"),
+                mesaSmartItem("지속가능성 스레드", "threads", "sustainability"),
+                mesaSmartItem("분석 스레드", "threads", "analytics"),
+                mesaSmartItem("보안 스레드", "threads", "security"),
+                mesaSmartItem("디지털 트윈/스레드", "threads", "digital-twin-thread"),
+                mesaSmartItem("모델링/시뮬레이션 스레드", "threads", "modeling-simulation")
+            ]
+        },
+        {
+            title: "Enabling Technologies",
+            children: [
+                mesaSmartItem("IIoT", "technologies", "iiot"),
+                mesaSmartItem("Big Data", "technologies", "big-data"),
+                mesaSmartItem("AI / ML", "technologies", "ai-ml"),
+                mesaSmartItem("VR / AR", "technologies", "vr-ar"),
+                mesaSmartItem("Edge to Cloud", "technologies", "edge-to-cloud"),
+                mesaSmartItem("Blockchain", "technologies", "blockchain"),
+                mesaSmartItem("Additive", "technologies", "additive"),
+                mesaSmartItem("Robotics", "technologies", "robotics"),
+                mesaSmartItem("Wireless", "technologies", "wireless")
+            ]
+        },
+        {
+            title: "MESA MES Legacy Functions",
+            children: [
+                iframeItem("자원 할당 및 상태 관리", "contents/MES/mesa/functions/resource-allocation-status.html"),
+                iframeItem("상세 생산 스케줄링", "contents/MES/mesa/functions/operations-detail-scheduling.html"),
+                iframeItem("작업 단위 디스패칭", "contents/MES/mesa/functions/dispatching-production-units.html"),
+                iframeItem("문서 및 작업표준 관리", "contents/MES/mesa/functions/document-control.html"),
+                iframeItem("데이터 수집 및 취득", "contents/MES/mesa/functions/data-collection-acquisition.html"),
+                iframeItem("작업자 및 인력 관리", "contents/MES/mesa/functions/labor-management.html"),
+                iframeItem("품질 관리", "contents/MES/mesa/functions/quality-management.html"),
+                iframeItem("공정 관리", "contents/MES/mesa/functions/process-management.html"),
+                iframeItem("설비 보전 관리", "contents/MES/mesa/functions/maintenance-management.html"),
+                iframeItem("제품 추적 및 계보", "contents/MES/mesa/functions/product-tracking-genealogy.html"),
+                iframeItem("성과 분석", "contents/MES/mesa/functions/performance-analysis.html")
+            ]
+        }
+    ]
+};
+
+const isa95Standard = {
+    title: "ANSI/ISA-95 Standard",
+    children: [
+        iframeItem("ISA-95 MES Model Overview", "contents/MES/isa95/ISA95_MES_Overview.html"),
+        {
+            title: "Activity Models",
+            children: [
+                {
+                    title: "Production Operations",
+                    children: [
+                        isa95ActivityItem("정의 관리", "production-definition-management"),
+                        isa95ActivityItem("자원 관리", "production-resource-management"),
+                        isa95ActivityItem("상세 스케줄링", "production-detailed-scheduling"),
+                        isa95ActivityItem("디스패칭", "production-dispatching"),
+                        isa95ActivityItem("실행 관리", "production-execution-management"),
+                        isa95ActivityItem("데이터 수집", "production-data-collection"),
+                        isa95ActivityItem("추적", "production-tracking"),
+                        isa95ActivityItem("성과 분석", "production-performance-analysis")
+                    ]
+                },
+                {
+                    title: "Maintenance Operations",
+                    children: [
+                        isa95ActivityItem("정의 관리", "maintenance-definition-management"),
+                        isa95ActivityItem("자원 관리", "maintenance-resource-management"),
+                        isa95ActivityItem("상세 스케줄링", "maintenance-detailed-scheduling"),
+                        isa95ActivityItem("디스패칭", "maintenance-dispatching"),
+                        isa95ActivityItem("실행 관리", "maintenance-execution-management"),
+                        isa95ActivityItem("데이터 수집", "maintenance-data-collection"),
+                        isa95ActivityItem("추적", "maintenance-tracking"),
+                        isa95ActivityItem("성과 분석", "maintenance-performance-analysis")
+                    ]
+                },
+                {
+                    title: "Quality Operations",
+                    children: [
+                        isa95ActivityItem("정의 관리", "quality-definition-management"),
+                        isa95ActivityItem("자원 관리", "quality-resource-management"),
+                        isa95ActivityItem("상세 스케줄링", "quality-detailed-scheduling"),
+                        isa95ActivityItem("디스패칭", "quality-dispatching"),
+                        isa95ActivityItem("실행 관리", "quality-execution-management"),
+                        isa95ActivityItem("데이터 수집", "quality-data-collection"),
+                        isa95ActivityItem("추적", "quality-tracking"),
+                        isa95ActivityItem("성과 분석", "quality-performance-analysis")
+                    ]
+                },
+                {
+                    title: "Inventory Operations",
+                    children: [
+                        isa95ActivityItem("정의 관리", "inventory-definition-management"),
+                        isa95ActivityItem("자원 관리", "inventory-resource-management"),
+                        isa95ActivityItem("상세 스케줄링", "inventory-detailed-scheduling"),
+                        isa95ActivityItem("디스패칭", "inventory-dispatching"),
+                        isa95ActivityItem("실행 관리", "inventory-execution-management"),
+                        isa95ActivityItem("데이터 수집", "inventory-data-collection"),
+                        isa95ActivityItem("추적", "inventory-tracking"),
+                        isa95ActivityItem("성과 분석", "inventory-performance-analysis")
+                    ]
+                }
+            ]
+        },
+        {
+            title: "Object / Hierarchy Models",
+            children: [
+                isa95ModelItem("기능 계층 모델", "functional-hierarchy-model"),
+                isa95ModelItem("설비 계층 모델", "equipment-hierarchy-model"),
+                isa95ModelItem("인력 모델", "personnel-model"),
+                isa95ModelItem("설비 모델", "equipment-model"),
+                isa95ModelItem("물리 자산 모델", "physical-asset-model"),
+                isa95ModelItem("자재 모델", "material-model"),
+                isa95ModelItem("공정 세그먼트 모델", "process-segment-model"),
+                isa95ModelItem("운영 정의 모델", "operations-definition-model"),
+                isa95ModelItem("운영 능력 모델", "operations-capability-model"),
+                isa95ModelItem("운영 스케줄 모델", "operations-schedule-model"),
+                isa95ModelItem("운영 성과 모델", "operations-performance-model"),
+                isa95ModelItem("통합 객체 모델", "integration-object-model")
+            ]
+        }
+    ]
+};
+
 const menuConfig = [
     {
         title: "소개",
         items: [
             { title: "About Me", path: "contents/about.html", active: true },
-            { title: "교육 이력", path: "contents/education.html" },
-            { title: "기타 활동", path: "contents/other.html" },
-            { title: "워런 버핏의 조언", path: "contents/Life_Advice/lessons_from_warren_buffett.html", mode: "iframe" }
-        ]
-    },
-    {
-        title: "SEMI Interactive Guide",
-        items: [
-            { title: "Guide Overview", path: "SEMI_Interactive_Guide/SEMI_Data_Flow_Main.html", mode: "iframe" },
-            {
-                title: "SEMI 표준 통합 문서",
-                children: [
-                    ["SEMI E4 - SECS-I", "E4"], ["SEMI E5 - SECS-II", "E5"], ["SEMI E37 - HSMS", "E37"], ["SEMI E30 - GEM", "E30"], ["GEM300", "GEM300"],
-                    ["SEMI E39 - Object Services", "E39"], ["SEMI E40 - Processing Management", "E40"], ["SEMI E87 - Carrier Management", "E87"],
-                    ["SEMI E90 - Substrate Tracking", "E90"], ["SEMI E94 - Control Job", "E94"], ["SEMI E116 - Performance Tracking", "E116"],
-                    ["SEMI E120 - Common Equipment Model", "E120"], ["SEMI E125 - Self Description", "E125"], ["SEMI E132 - Authentication", "E132"],
-                    ["SEMI E134 - Data Collection", "E134"], ["SEMI E164 - Common Metadata", "E164"], ["SEMI E172 - Data Dictionary", "E172"],
-                    ["SEMI E173 - XML SECS-II", "E173"], ["SEMI E187 - Cybersecurity", "E187"], ["SEMI E10 - RAM", "E10"],
-                    ["SEMI E151 - Data Quality", "E151"], ["SEMI E160 - Data Quality Communication", "E160"], ["SEMI E133 - APC Interface", "E133"]
-                ].map(([title, id]) => ({ title, path: `SEMI_Interactive_Guide/standards/${id}.html`, mode: "iframe" }))
-            },
-            {
-                title: "Streaming Algorithm",
-                children: [
-                    { title: "Chan 알고리즘", path: "SEMI_Interactive_Guide/algorithms/Chan.html", mode: "iframe" },
-                    { title: "KLL Sketch", path: "SEMI_Interactive_Guide/algorithms/KLL.html", mode: "iframe" }
-                ]
-            },
-            { title: "SEMI E10 기존 Guide", path: "SEMI_Interactive_Guide/SEMI_E10_Guide.html", mode: "iframe" }
+            htmlItem("교육 이력", "contents/education.html"),
+            htmlItem("기타 활동", "contents/other.html"),
+            iframeItem("워런 버핏의 조언", "contents/Life_Advice/lessons_from_warren_buffett.html")
         ]
     },
     {
         title: "MES / Analytics",
         items: [
-            { title: "MES 로드맵", path: "contents/mes.html" },
-            { title: "AI 포함 4티어 MES 개발 가이드", path: "contents/MES/ai-4tier-mes.html" },
+            htmlItem("AI 포함 4-Tier MES 개발 가이드", "contents/MES/ai-4tier-mes.html"),
+            semiStandards,
+            mesaSmartModel,
+            isa95Standard,
             {
-                title: "MESA 기반 MES 기능",
+                title: "MES 분석 / 참고 문서",
                 children: [
-                    { title: "MESA MES 기능 Overview", path: "contents/MES/mesa/MESA_MES_Overview.html", mode: "iframe" },
-                    { title: "자원 할당 및 상태 관리", path: "contents/MES/mesa/functions/resource-allocation-status.html", mode: "iframe" },
-                    { title: "상세 생산 스케줄링", path: "contents/MES/mesa/functions/operations-detail-scheduling.html", mode: "iframe" },
-                    { title: "작업 단위 디스패칭", path: "contents/MES/mesa/functions/dispatching-production-units.html", mode: "iframe" },
-                    { title: "문서 및 작업표준 관리", path: "contents/MES/mesa/functions/document-control.html", mode: "iframe" },
-                    { title: "데이터 수집", path: "contents/MES/mesa/functions/data-collection-acquisition.html", mode: "iframe" },
-                    { title: "작업자 및 노무 관리", path: "contents/MES/mesa/functions/labor-management.html", mode: "iframe" },
-                    { title: "품질 관리", path: "contents/MES/mesa/functions/quality-management.html", mode: "iframe" },
-                    { title: "공정 관리", path: "contents/MES/mesa/functions/process-management.html", mode: "iframe" },
-                    { title: "설비 보전 관리", path: "contents/MES/mesa/functions/maintenance-management.html", mode: "iframe" },
-                    { title: "제품 추적 및 계보", path: "contents/MES/mesa/functions/product-tracking-genealogy.html", mode: "iframe" },
-                    { title: "성과 분석", path: "contents/MES/mesa/functions/performance-analysis.html", mode: "iframe" }
+                    htmlItem("Chan Algorithm과 KLL Sketch", "contents/MES/chankll.html"),
+                    htmlItem("MES Diagram", "contents/MES/drawio.xml"),
+                    htmlItem("OEE Diagram", "contents/MES/OEE_Diagram.xml"),
+                    htmlItem("OEE 설비종합효율", "contents/oee.html"),
+                    htmlItem("데이터베이스", "contents/database.html")
                 ]
-            },
-            {
-                title: "세부 문서",
-                children: [
-                    { title: "Chan 알고리즘과 KLL 스케치", path: "contents/MES/chankll.html" },
-                    { title: "MES Diagram", path: "contents/MES/drawio.xml" },
-                    { title: "OEE Diagram", path: "contents/MES/OEE_Diagram.xml" }
-                ]
-            },
-            { title: "OEE 설비종합효율", path: "contents/oee.html" },
-            { title: "데이터베이스", path: "contents/database.html" }
+            }
         ]
     },
     {
         title: "System Hazard",
         items: [
-
-            { title: "시스템 해저드 (통합본)", path: "contents/systemhazard/index.html", mode: "iframe" },
-            { title: "조직문화와 시스템 해저드", path: "contents/systemhazard_orgculture/index.html", mode: "iframe" }
+            iframeItem("시스템 해저드 통합본", "contents/systemhazard/index.html"),
+            iframeItem("조직문화와 시스템 해저드", "contents/systemhazard_orgculture/index.html")
         ]
     },
     {
         title: "Developer / Infra",
         items: [
-            { title: "개발 경험", path: "contents/developer.html" },
-            { title: "Git Guide", path: "contents/git_guide.html" },
-            { title: "WSL Network Guide", path: "contents/wsl_network_guide.html" }
+            htmlItem("개발 경험", "contents/developer.html"),
+            htmlItem("Git Guide", "contents/git_guide.html"),
+            htmlItem("WSL Network Guide", "contents/wsl_network_guide.html")
         ]
     },
     {
@@ -90,18 +254,18 @@ const menuConfig = [
             {
                 title: "운영 문서",
                 children: [
-                    { title: "Android Nextcloud", path: "contents/nextcloud/androidnextcloud.html" },
-                    { title: "SSL 인증서 HTTPS", path: "contents/nextcloud/cert.html" },
-                    { title: "Nextcloud HDD 연결", path: "contents/nextcloud/storage-guide.html" }
+                    htmlItem("Android Nextcloud", "contents/nextcloud/androidnextcloud.html"),
+                    htmlItem("SSL 인증서 / HTTPS", "contents/nextcloud/cert.html"),
+                    htmlItem("Nextcloud HDD 연결", "contents/nextcloud/storage-guide.html")
                 ]
             },
             {
                 title: "Scripts",
                 children: [
-                    { title: "full-setup.sh", path: "contents/nextcloud/full-setup.sh" },
-                    { title: "full-unsetup.sh", path: "contents/nextcloud/full-unsetup.sh" },
-                    { title: "termuxbackup.sh", path: "contents/nextcloud/termuxbackup.sh" },
-                    { title: "termuxrestore.sh", path: "contents/nextcloud/termuxrestore.sh" }
+                    htmlItem("full-setup.sh", "contents/nextcloud/full-setup.sh"),
+                    htmlItem("full-unsetup.sh", "contents/nextcloud/full-unsetup.sh"),
+                    htmlItem("termuxbackup.sh", "contents/nextcloud/termuxbackup.sh"),
+                    htmlItem("termuxrestore.sh", "contents/nextcloud/termuxrestore.sh")
                 ]
             }
         ]
@@ -134,7 +298,7 @@ function createItem(item, depth = 0) {
         const group = document.createElement("div");
         group.className = `submenu depth-${depth}`;
         const button = document.createElement("button");
-        button.className = "submenu-toggle";
+        button.className = `submenu-toggle depth-${depth}`;
         button.type = "button";
         button.setAttribute("aria-expanded", "true");
         button.textContent = item.title;
@@ -198,7 +362,7 @@ async function loadContent(path, mode = "auto") {
         if (ext === "html" || ext === "htm") {
             editorContent.innerHTML = text;
             if (window.MathJax) {
-                MathJax.typesetPromise([editorContent]).catch(err => console.log('MathJax typeset failed: ' + err.message));
+                MathJax.typesetPromise([editorContent]).catch(err => console.log(`MathJax typeset failed: ${err.message}`));
             }
             return;
         }
@@ -248,7 +412,7 @@ function setAllCollapsed(collapsed) {
         const toggle = container.querySelector(":scope > .section-toggle, :scope > .submenu-toggle");
         if (toggle) toggle.setAttribute("aria-expanded", String(!collapsed));
     });
-    collapseAll.textContent = collapsed ? "펼침" : "접기";
+    collapseAll.textContent = collapsed ? "펼치기" : "접기";
 }
 
 if (themeToggle) {

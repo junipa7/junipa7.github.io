@@ -1,6 +1,62 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MESA 기반 MES 기능</title><link rel="stylesheet" href="mesa-page.css"></head><body><main class="page">
-    <section class="hero"><h1>MESA 기반 MES 기능 가이드</h1><p>MESA-11로 알려진 전통적 MES 핵심 기능을 ISA-95 Level 3/MOM 관점과 함께 재정리했습니다. ERP 계획과 현장 제어 사이에서 MES가 담당해야 할 실행, 추적, 품질, 성과 기능을 세부 페이지로 나누었습니다.</p><div class="chips"><span class="chip">MESA Model</span><span class="chip">MES / MOM</span><span class="chip">ISA-95 Level 3</span></div></section>
-    <section class="section"><h2>MES 전체 기능 흐름</h2><div class="diagram"><svg viewBox="0 0 1185 164" aria-label="MES DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="36" y="44" width="148" height="76"></rect><text x="110" y="76" text-anchor="middle">ERP/Planning</text><text class="tiny" x="110" y="100" text-anchor="middle">Input</text></g><g class="node"><rect x="216" y="44" width="148" height="76"></rect><text x="290" y="76" text-anchor="middle">MES Scheduling</text><text class="tiny" x="290" y="100" text-anchor="middle">Process</text></g><g class="node"><rect x="396" y="44" width="148" height="76"></rect><text x="470" y="76" text-anchor="middle">Dispatch/Execution</text><text class="tiny" x="470" y="100" text-anchor="middle">Process</text></g><g class="node"><rect x="576" y="44" width="148" height="76"></rect><text x="650" y="76" text-anchor="middle">Quality/Process</text><text class="tiny" x="650" y="100" text-anchor="middle">Process</text></g><g class="node"><rect x="756" y="44" width="148" height="76"></rect><text x="830" y="76" text-anchor="middle">Tracking/Genealogy</text><text class="tiny" x="830" y="100" text-anchor="middle">Process</text></g><g class="node"><rect x="936" y="44" width="148" height="76"></rect><text x="1010" y="76" text-anchor="middle">Performance/KPI</text><text class="tiny" x="1010" y="100" text-anchor="middle">Output</text></g><path class="arrow" d="M184 82 H216"></path><path class="arrow" d="M364 82 H396"></path><path class="arrow" d="M544 82 H576"></path><path class="arrow" d="M724 82 H756"></path><path class="arrow" d="M904 82 H936"></path></svg></div></section>
-    <section class="section"><h2>세부 기능 문서</h2><div class="list"><a href="functions/resource-allocation-status.html"><strong>자원 할당 및 상태 관리</strong><span class="muted">Resource Allocation and Status</span></a><a href="functions/operations-detail-scheduling.html"><strong>상세 생산 스케줄링</strong><span class="muted">Operations / Detail Scheduling</span></a><a href="functions/dispatching-production-units.html"><strong>작업 단위 디스패칭</strong><span class="muted">Dispatching Production Units</span></a><a href="functions/document-control.html"><strong>문서 및 작업표준 관리</strong><span class="muted">Document Control</span></a><a href="functions/data-collection-acquisition.html"><strong>데이터 수집</strong><span class="muted">Data Collection / Acquisition</span></a><a href="functions/labor-management.html"><strong>작업자 및 노무 관리</strong><span class="muted">Labor Management</span></a><a href="functions/quality-management.html"><strong>품질 관리</strong><span class="muted">Quality Management</span></a><a href="functions/process-management.html"><strong>공정 관리</strong><span class="muted">Process Management</span></a><a href="functions/maintenance-management.html"><strong>설비 보전 관리</strong><span class="muted">Maintenance Management</span></a><a href="functions/product-tracking-genealogy.html"><strong>제품 추적 및 계보</strong><span class="muted">Product Tracking and Genealogy</span></a><a href="functions/performance-analysis.html"><strong>성과 분석</strong><span class="muted">Performance Analysis</span></a></div></section>
-    <section class="section"><h2>적용 관점</h2><div class="grid"><div class="card"><strong>계층</strong><span>MES는 ERP/SCM/PLM과 설비/SCADA/PLC 사이의 Level 3 운영 관리 계층입니다.</span></div><div class="card"><strong>핵심</strong><span>계획을 현장 실행 단위로 바꾸고, 실행 결과를 추적 가능한 데이터로 되돌립니다.</span></div><div class="card"><strong>범위 관리</strong><span>품질, 보전, 인력, 자재 기능은 독립 시스템과 겹칠 수 있으므로 책임 경계를 명확히 해야 합니다.</span></div></div></section>
-  </main></body></html>
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>MESA Smart Manufacturing Model Guide</title>
+  <link rel="stylesheet" href="mesa-page.css">
+  <style>
+    .lesson-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
+    .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
+    .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
+    @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    
+    <section class="hero">
+      <h1>MESA Smart Manufacturing Model Guide</h1>
+      <p>최신 MESA Model: A Framework for Smarter Manufacturing 기준으로 Lifecycle, Cross-Lifecycle Thread, Enabling Technology를 교육용 HTML 문서로 정리한 가이드입니다.</p>
+      <div class="chips"><span class="chip">MESA Model</span><span class="chip">Smart Manufacturing</span><span class="chip">Lifecycle / Thread / Technology</span></div>
+    </section>
+    
+    <section class="section">
+      <h2>최신 MESA Model 구조</h2>
+      <div class="diagram"><svg viewBox="0 0 820 164" aria-label="MESA Smart Manufacturing DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="36" y="44" width="148" height="76"></rect><text x="110" y="75" text-anchor="middle">Lifecycle</text><text class="tiny" x="110" y="100" text-anchor="middle">Input</text></g><path class="arrow" d="M184 82 H216"></path><g class="node"><rect x="221" y="44" width="148" height="76"></rect><text x="295" y="75" text-anchor="middle">Cross-Lifecycle Thread</text><text class="tiny" x="295" y="100" text-anchor="middle">Process</text></g><path class="arrow" d="M369 82 H401"></path><g class="node"><rect x="406" y="44" width="148" height="76"></rect><text x="480" y="75" text-anchor="middle">Enabling Technology</text><text class="tiny" x="480" y="100" text-anchor="middle">Process</text></g><path class="arrow" d="M554 82 H586"></path><g class="node"><rect x="591" y="44" width="148" height="76"></rect><text x="665" y="75" text-anchor="middle">Smart Manufacturing Outcome</text><text class="tiny" x="665" y="100" text-anchor="middle">Output</text></g></svg></div>
+      <p style="margin-top:14px">MESA의 최신 스마트 제조 모델은 기존 MESA-11 기능 목록을 넘어, 제조 기업의 가치 흐름을 나타내는 <strong>Lifecycle</strong>, 여러 가치 흐름을 관통하는 <strong>Cross-Lifecycle Thread</strong>, 그리고 스마트 제조를 가능하게 하는 <strong>Enabling Technology</strong>의 세 축을 함께 봅니다.</p>
+      <div class="callout">이 문서는 MESA International의 최신 MESA Model: A Framework for Smarter Manufacturing 구조를 교육용으로 재구성한 자료입니다. MESA가 공개한 세 가지 주요 개념인 Lifecycle, Cross-Lifecycle Thread, Enabling Technology를 기준으로 MES/MOM 설계 관점의 액티비티, 데이터 모델, DFD, 구현 포인트를 정리했습니다.</div>
+    </section>
+
+    <section class="section">
+      <h2>세 가지 주요 개념별 문서</h2>
+      <h3>라이프사이클 (Lifecycles)</h3><p class="muted">제조 기업이 최적화해야 하는 업무 프로세스와 가치 흐름입니다. 스마트 제조는 각 라이프사이클을 더 연결되고 투명하며 실시간으로 만들려는 활동입니다.</p><div class="list"><a href="lifecycles/production.html"><strong>생산 라이프사이클</strong><span class="muted">Production</span></a><a href="lifecycles/production-asset.html"><strong>생산 자산 라이프사이클</strong><span class="muted">Production Asset</span></a><a href="lifecycles/product.html"><strong>제품 라이프사이클</strong><span class="muted">Product</span></a><a href="lifecycles/supply-chain.html"><strong>공급망 라이프사이클</strong><span class="muted">Supply Chain</span></a><a href="lifecycles/workforce.html"><strong>인력 라이프사이클</strong><span class="muted">Workforce</span></a><a href="lifecycles/order-to-cash.html"><strong>주문-현금화 라이프사이클</strong><span class="muted">Order-to-Cash</span></a></div><h3>교차 라이프사이클 스레드 (Cross-Lifecycle Threads)</h3><p class="muted">여러 라이프사이클을 관통해 특정 목표를 달성하게 만드는 공통 주제입니다. 품질, 규제, 지속가능성, 보안 같은 주제는 생산 하나의 기능으로 끝나지 않고 전사 프로세스를 연결합니다.</p><div class="list"><a href="threads/quality.html"><strong>품질 스레드</strong><span class="muted">Quality</span></a><a href="threads/compliance.html"><strong>컴플라이언스 스레드</strong><span class="muted">Compliance</span></a><a href="threads/sustainability.html"><strong>지속가능성 스레드</strong><span class="muted">Sustainability</span></a><a href="threads/analytics.html"><strong>분석 스레드</strong><span class="muted">Analytics</span></a><a href="threads/security.html"><strong>보안 스레드</strong><span class="muted">Security</span></a><a href="threads/digital-twin-thread.html"><strong>디지털 트윈/스레드</strong><span class="muted">Digital Twin / Thread</span></a><a href="threads/modeling-simulation.html"><strong>모델링/시뮬레이션 스레드</strong><span class="muted">Modeling / Simulation</span></a></div><h3>활성화 기술 (Enabling Technologies)</h3><p class="muted">스마트 제조를 가능하게 하는 기술입니다. 기술 자체가 목적이 아니라 Lifecycle과 Cross-Lifecycle Thread의 목표를 달성하는 수단으로 설계되어야 합니다.</p><div class="list"><a href="technologies/iiot.html"><strong>산업용 사물인터넷</strong><span class="muted">IIoT</span></a><a href="technologies/big-data.html"><strong>빅데이터</strong><span class="muted">Big Data</span></a><a href="technologies/ai-ml.html"><strong>AI/ML</strong><span class="muted">AI / ML</span></a><a href="technologies/vr-ar.html"><strong>VR/AR</strong><span class="muted">VR / AR</span></a><a href="technologies/edge-to-cloud.html"><strong>엣지-클라우드</strong><span class="muted">Edge to Cloud</span></a><a href="technologies/blockchain.html"><strong>블록체인</strong><span class="muted">Blockchain</span></a><a href="technologies/additive.html"><strong>적층 제조</strong><span class="muted">Additive</span></a><a href="technologies/robotics.html"><strong>로보틱스</strong><span class="muted">Robotics</span></a><a href="technologies/wireless.html"><strong>무선 기술</strong><span class="muted">Wireless</span></a></div>
+    </section>
+
+    <section class="section">
+      <h2>기존 MESA-11과의 차이</h2>
+      <table>
+        <thead><tr><th>관점</th><th>기존 MESA-11</th><th>최신 Smart Manufacturing Model</th></tr></thead>
+        <tbody>
+          <tr><td><strong>분류 기준</strong></td><td>MES 기능 목록 중심</td><td>라이프사이클, 교차 스레드, 활성화 기술의 동적 조합</td></tr>
+          <tr><td><strong>핵심 질문</strong></td><td>MES가 어떤 기능을 제공하는가?</td><td>어떤 가치 흐름을 어떤 목표와 기술로 더 스마트하게 만들 것인가?</td></tr>
+          <tr><td><strong>설계 방식</strong></td><td>기능 모듈별 화면과 DB 설계</td><td>디지털 스레드, 데이터 문맥화, 통합 action, 성과 피드백 중심 설계</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>학습 순서 추천</h2>
+      <div class="grid">
+        <div class="card"><strong>1. Lifecycle</strong><span>생산, 자산, 제품, 공급망, 인력, 주문 흐름을 먼저 이해합니다.</span></div>
+        <div class="card"><strong>2. Cross-Lifecycle Thread</strong><span>품질, 규제, 지속가능성, 분석, 보안, 디지털 스레드가 여러 흐름을 어떻게 연결하는지 봅니다.</span></div>
+        <div class="card"><strong>3. Enabling Technology</strong><span>IIoT, AI, Edge, AR, Robotics 같은 기술을 목적 중심으로 배치합니다.</span></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -110,17 +110,17 @@
 <tr><td>BR-04</td><td>자원 배정 변경은 누가, 언제, 어떤 사유로 변경했는지 감사 이력을 남깁니다.</td><td>Domain Service 검증, Rule Engine, DB constraint, 또는 승인 workflow로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function executeMesaFunction(command):
-  validateRequiredKeys(command)
-  master = loadMasterData(command.productId, command.operationId)
-  current = loadCurrentShopfloorState(command.lotId, command.resourceId)
-  decision = evaluateBusinessRules(command, master, current)
-  saveRawCommand(command)
-  if decision.allowed:
-      applyStateTransition(decision)
-      appendHistory(decision)
-      publishMesEvent(decision)
-  else:
+      <div class="codebox">function executeMesaFunction(command): // MESA 기능 실행 진입점
+  validateRequiredKeys(command) // 필수 파라미터 검증
+  master = loadMasterData(command.productId, command.operationId) // 기준 정보(제품, 공정 등) 조회
+  current = loadCurrentShopfloorState(command.lotId, command.resourceId) // 현장 상태(Lot, 설비 등) 확인
+  decision = evaluateBusinessRules(command, master, current) // 비즈니스 룰 및 제약 조건 검토
+  saveRawCommand(command) // 원본 명령어 저장 (이력 추적 목적)
+  if decision.allowed: // 조건 만족 시
+      applyStateTransition(decision) // 상태 변경 적용
+      appendHistory(decision) // 처리 이력 추가
+      publishMesEvent(decision) // 타 시스템으로 MES 이벤트 발행
+  else: // 조건 불만족 시
       createException(decision.reason)
       notifyResponsibleRole(decision.ownerRole)</div>
     </section>
@@ -134,9 +134,9 @@
         <div class="card"><strong>연동 API</strong><span>ERP, APS, 설비, 품질, KPI 시스템과 이벤트 기반으로 데이터를 주고받습니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa/resource-allocation-status/commands
-GET  /api/mesa/resource-allocation-status/current-state?lotId={lotId}
-GET  /api/mesa/resource-allocation-status/history?from={date}&to={date}</div>
+      <div class="codebox">POST /api/mesa/resource-allocation-status/commands // 기능 수행 요청 API
+GET  /api/mesa/resource-allocation-status/current-state?lotId={lotId} // 현재 상태 조회 API
+GET  /api/mesa/resource-allocation-status/history?from={date}&to={date} // 과거 이력 조회 API</div>
     </section>
 
     <section id="test" class="section">

@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
   </style>
@@ -97,12 +97,12 @@
       </table>
       <h3>상태 전이 관점</h3>
       <p>상태 모델은 "현재 상태를 저장하는 테이블"과 "상태가 바뀐 이력 테이블"을 분리해서 생각해야 합니다. 현재 상태는 화면과 제어 판단에 빠르게 쓰이고, 이력은 감사, 추적, KPI 계산, 장애 분석에 쓰입니다.</p>
-      <div class="codebox">state_event_received
-  -> validate_event_order
-  -> close_previous_interval_if_needed
-  -> update_current_state
-  -> append_history
-  -> publish_business_event</div>
+      <div class="codebox">state_event_received // 장비 상태 이벤트 수신
+  -> validate_event_order // 이벤트 순서 및 유효성 검증
+  -> close_previous_interval_if_needed // 이전 구간 마감 처리 (필요시)
+  -> update_current_state // 현재 상태 업데이트
+  -> append_history // 이력 테이블에 저장
+  -> publish_business_event // 상위 시스템으로 비즈니스 이벤트 발행</div>
     </section>
 
     <section class="section">
@@ -142,32 +142,32 @@
 <tr><td><strong>4</strong></td><td>수신 로그에는 원본 HEX를 보존합니다. 장애 분석에서 사람이 해석한 값보다 원본 바이트가 더 중요할 때가 많습니다.</td><td>장애 상황에서도 로그와 상태가 일관된다.</td></tr></tbody>
       </table>
       <h3>서비스 분리 예시</h3>
-      <div class="codebox">Controller/API
-  -> Command Validator
-  -> Standard Domain Service (E4)
-  -> State Repository
-  -> Event Publisher
-  -> Audit/Metric Writer</div>
+      <div class="codebox">Controller/API // 외부 요청 및 이벤트 접수
+  -> Command Validator // 명령어 형식 및 기본 검증
+  -> Standard Domain Service (E4) // 표준 비즈니스 로직 및 상태 전이 판단
+  -> State Repository // 현재 상태 DB 저장 및 조회
+  -> Event Publisher // 처리 결과 이벤트 발행
+  -> Audit/Metric Writer // 감사 로그 및 성능 지표 기록</div>
       <p>Domain Service 안에는 E4의 상태 전이, 권한 판단, 데이터 품질 판단 같은 표준별 규칙을 넣고, Controller에는 HTTP나 화면 요청 처리만 남기는 구조가 유지보수에 좋습니다.</p>
     </section>
 
     <section id="logic" class="section">
       <h2>7. 처리 로직 상세</h2>
       <p>아래 의사코드는 E4 이벤트를 받았을 때 공통적으로 적용할 수 있는 처리 흐름입니다. 실제 코드는 Java, C#, Python, Node.js 어느 언어로 작성해도 되지만 순서는 유지하는 편이 안전합니다.</p>
-      <div class="codebox">function handleE4Event(event):
-  assert event.equipmentId is not empty
-  assert event.eventTime is not in the future beyond allowedSkew
-  dictionary = loadDictionary(event.equipmentId, event.standardVersion)
-  normalized = normalize(event, dictionary)
-  validationResult = validateBusinessRule(normalized)
-  saveRawEvent(event)
-  if validationResult.ok:
-      updateCurrentState(normalized)
-      appendHistory(normalized)
-      publishToConsumers(normalized)
-  else:
-      createExceptionRecord(normalized, validationResult.reason)
-      notifyOperatorIfNeeded()</div>
+      <div class="codebox">function handleE4Event(event): // 표준 이벤트 처리 진입점
+  assert event.equipmentId is not empty // 설비 식별자 존재 여부 확인
+  assert event.eventTime is not in the future beyond allowedSkew // 발생 시간이 미래인지(허용 오차 내) 확인
+  dictionary = loadDictionary(event.equipmentId, event.standardVersion) // 설비별/표준버전별 사전(Dictionary) 로드
+  normalized = normalize(event, dictionary) // 사전 기반 데이터 정규화 및 표준화
+  validationResult = validateBusinessRule(normalized) // 표준 비즈니스 룰 기반 유효성 검증
+  saveRawEvent(event) // 원본 이벤트 로우 데이터 저장
+  if validationResult.ok: // 검증 통과 시
+      updateCurrentState(normalized) // 현재 상태 DB 반영
+      appendHistory(normalized) // 이력 DB에 추가
+      publishToConsumers(normalized) // 구독 시스템(분석, UI 등)에 데이터 발행
+  else: // 조건 불만족 시
+      createExceptionRecord(normalized, validationResult.reason) // 예외 상황 및 실패 사유 기록
+      notifyOperatorIfNeeded() // 필요 시 작업자에게 알림 발송</div>
       <h3>예외 처리 원칙</h3>
       <ul><li>오류 이벤트도 버리지 않습니다. raw event와 실패 이유를 저장해야 재처리와 벤더 문의가 가능합니다.</li>
 <li>장비 시간과 서버 시간이 다를 수 있으므로 허용 가능한 clock skew를 설정합니다.</li>
