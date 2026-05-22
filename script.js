@@ -38,6 +38,7 @@ const menuConfig = [
         title: "MES / Analytics",
         items: [
             { title: "MES 로드맵", path: "contents/mes.html" },
+            { title: "AI 포함 4티어 MES 개발 가이드", path: "contents/MES/ai-4tier-mes.html" },
             {
                 title: "MESA 기반 MES 기능",
                 children: [
