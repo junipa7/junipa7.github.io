@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,54 @@
 <tr><td>BR-03</td><td>전자기록은 삭제보다 correction event로 정정합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [컴플라이언스 스레드 - Compliance Thread]
+// [목적] 전자서명, 데이터 무결성 보장 및 감사 추적(Audit Trail)용 규제 준수 이력 영구 기록
+// =================================================================
+
+function recordAuditTrail(objectId, action, beforeValue, afterValue, operatorId, reason) {
+
+  // [1단계] ALCOA+ 데이터 무결성 표준에 기반한 입력 변수 유효성 검증
+  // 감사 데이터에 주체가 누락되거나 위변조 위험을 원천 방지하기 위해 필수 추적 필드를 검사합니다.
+  if (!objectId || !action || !operatorId) {
+    throw new Error(&quot;[보안 실패] 감사 추적 필수 기록 요소가 유실되었습니다.&quot;);
+  }
+
+
+  // [2단계] 조작자가 중요 데이터 정정/승인 권한이 있는지 이중 보안 체크
+  // FDA 21 CFR Part 11과 같은 국제 의료/식품 규제 준수를 위한 중요 프로세스 강제 승인 권한 여부 대조 단계입니다.
+  const operator = loadOperatorProfile(operatorId);
+  const isAuthorized = verifySecurityRole(operatorId, &quot;AUDIT_EDITOR&quot;);
+
+  if (!isAuthorized) {
+    throw new Error(&quot;[권한 거부] 규제 관련 이력을 직접 변경할 수 있는 권한이 없습니다.&quot;);
+  }
+
+
+  // [3단계] 변경 사유(Justification Reason) 필수 입력 확인 (규제 산업 필수 준수사항)
+  // 데이터의 수정 전/후뿐 아니라, &#x27;왜 이 시점에 보류 값을 수동으로 해제했는지&#x27; 변경 사유가 누락되면 수정을 거부합니다.
+  if (!reason || reason.trim().length &lt; 5) {
+    throw new Error(&quot;[사유 누락] 데이터 수정 사유를 5자 이상 상세히 기록해야 정정이 가능합니다.&quot;);
+  }
+
+
+  // [4단계] 위변조가 불가능한 형태로 감사 추적 감사 이력(Audit Trail Log) 영구 적재
+  // 보안 데이터베이스 및 시스템 보안 로그에 저장 시점 IP와 물리 시각, 이전값/이후값을 암호화 해시와 함께 영구 보존합니다.
+  const auditEntry = {
+    auditId: generateUniqueId(&quot;AUDT&quot;),
+    objectId: objectId,
+    action: action,
+    beforeValue: beforeValue,
+    afterValue: afterValue,
+    operatorId: operatorId,
+    reason: reason,
+    clientIp: getClientIpAddress(),
+    timestamp: new Date().toISOString()
+  };
+
+  writeSecureAuditDb(auditEntry);
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +153,28 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/thread/compliance/events
-GET  /api/mesa-smart/thread/compliance/current-state?objectId={id}
-GET  /api/mesa-smart/thread/compliance/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [컴플라이언스 스레드 - Compliance Thread]
+// 감사 추적(Audit Trail)용 위변조 불가 데이터 수정 기록 등록 API
+// =================================================================
+POST /api/mesa-smart/threads/compliance/audit-trails/log
+Content-Type: application/json
+{
+  &quot;objectId&quot;: &quot;LOT-20260522-001&quot;,
+  &quot;action&quot;: &quot;MANUAL_LOT_STATUS_FORCE_RELEASE&quot;, // 조작 행위 구분 코드
+  &quot;beforeValue&quot;: &quot;HOLD&quot;,
+  &quot;afterValue&quot;: &quot;RELEASED&quot;,
+  &quot;operatorId&quot;: &quot;OPR-USER-2394&quot;,
+  &quot;reason&quot;: &quot;부적합 위원회(MRB)의 Concession 특채 승인에 의거해 수동 해제함.&quot;
+}
+
+Response: 201 Created
+{
+  &quot;success&quot;: true,
+  &quot;auditId&quot;: &quot;AUDT-9382948293&quot;,          // 생성된 보안 감사 로그 고유 식별 번호
+  &quot;dataIntegrityStatus&quot;: &quot;SECURE&quot;,       // 해시 위변조 방지 확인 여부
+  &quot;loggedAt&quot;: &quot;2026-05-22T20:16:30Z&quot;
+}</pre></div>
     </section>
 
     <section id="test" class="section">

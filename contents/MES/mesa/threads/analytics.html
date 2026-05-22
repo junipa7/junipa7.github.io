@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,49 @@
 <tr><td>BR-03</td><td>모델 version과 학습 데이터 범위를 운영 이력에 남깁니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [분석 스레드 - Analytics Thread]
+// [목적] 이종 제조 데이터(설비, 공정, 품질) 실시간 취합, Feature 생성 및 이상 징후 머신러닝 분석
+// =================================================================
+
+function generateRealtimeFeatureVector(lotId) {
+
+  // [1단계] 대상 Lot의 실시간 가공 중에 축적된 시계열 데이터(온도, 진동 등) 추출
+  // 초당 수백 회씩 IIoT 단말에서 유입되는 센서 계측 시계열 원시 데이터셋(Raw Series)을 읽어옵니다.
+  const sensorSeries = getLotTimeSeriesSensors(lotId);
+  
+  
+  // [2단계] 분석 모델이 요구하는 기술 통계적 Feature(평균, 편차, Peak-to-Peak 등) 계산
+  // - calculateStdDev: 노이즈 분석을 위한 편차 특징값
+  // - durationSeconds: 순수 설비 가동 타임스팬
+  const featureVector = {
+    meanTemp: calculateAverage(sensorSeries.temperature),
+    stdDevVibration: calculateStdDev(sensorSeries.vibration),
+    maxPressure: calculateMax(sensorSeries.pressure),
+    durationSeconds: getLotProcessingDuration(lotId)
+  };
+
+
+  // [3단계] Feature Store에 정규화된 형태의 Dataset 스냅샷 영구 저장
+  // MLOps 파이프라인에서 즉각 재학습에 활용할 수 있게 특징 벡터 표준 포맷으로 피쳐 스토어에 보존합니다.
+  saveFeatureDataset(lotId, featureVector);
+
+
+  // [4단계] AI 분석 엔진에 Feature 분석 명령 전달 및 이상 가동 징후 실시간 예측
+  // 배포된 추론 모듈에 특징 벡터를 하달하여 설비 치명적 고장 또는 공정 품질 이상 스코어를 도출합니다.
+  const prediction = runMlInference(&quot;ANOMALY_MODEL&quot;, featureVector);
+  
+  if (prediction.anomalyScore &gt; 0.85) {
+    // 경고 이벤트 발행을 통해 디스패칭 스케줄에 즉시 알림 반영
+    // 현장 관리자의 모바일 및 ANDON 화면에 이상 징후 조치를 지시하는 경보를 전송합니다.
+    publishEvent(&quot;ANALYTICS_ANOMALY_DETECTED&quot;, {
+      lotId: lotId,
+      score: prediction.anomalyScore,
+      actionRecommend: &quot;INSPECT_EQUIPMENT&quot;
+    });
+  }
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +148,29 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/thread/analytics/events
-GET  /api/mesa-smart/thread/analytics/current-state?objectId={id}
-GET  /api/mesa-smart/thread/analytics/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [분석 스레드 - Analytics Thread]
+// 공정 특징 데이터셋 생성 및 ML Anomaly 예측 수행 API
+// =================================================================
+POST /api/mesa-smart/threads/analytics/features/generate
+Content-Type: application/json
+{
+  &quot;lotId&quot;: &quot;LOT-20260522-001&quot;,
+  &quot;features&quot;: {
+    &quot;meanTemp&quot;: 245.8,                   // 가공 중 온도 평균 특징
+    &quot;stdDevVibration&quot;: 0.012,            // 가공 중 진동 가속도 특징
+    &quot;maxPressure&quot;: 420.5                 // 가공 중 최고 압력 특징
+  }
+}
+
+Response: 200 OK
+{
+  &quot;lotId&quot;: &quot;LOT-20260522-001&quot;,
+  &quot;mlModelVersion&quot;: &quot;ANOMALY-DETECT-V1.2&quot;,
+  &quot;anomalyScore&quot;: 0.92,                  // 모델이 감지한 이상 가동 확률 지표
+  &quot;systemAction&quot;: &quot;FLAG_FOR_REVIEW&quot;,     // 이상 확률이 높아 품질/보전 엔지니어에 자동 알림
+  &quot;timestamp&quot;: &quot;2026-05-22T20:17:30Z&quot;
+}</pre></div>
     </section>
 
     <section id="test" class="section">

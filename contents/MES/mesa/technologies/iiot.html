@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -92,23 +92,52 @@
         <thead><tr><th>규칙 ID</th><th>업무 규칙</th><th>시스템 반영 방식</th></tr></thead>
         <tbody><tr><td>BR-01</td><td>장치 데이터에는 발생 시각과 수신 시각을 모두 저장합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr>
 <tr><td>BR-02</td><td>Edge 단절 시 buffering과 재전송 정책을 정의합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr>
-<tr><td>BR-03</td><td>tag mapping은 version으로 관리합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
+<tr><td>BR-03</td><td>tag mapping is version으로 관리합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [산업용 사물인터넷 - IIoT]
+// [목적] OPC-UA/MQTT를 통한 초고속 센서 텔레메트리 데이터 엣지 필터링 및 메시지 브로커 전송
+// =================================================================
+
+function processEdgeTelemetry(deviceId, rawDataPacket) {
+
+  // [1단계] 통신 오류 및 유실 패킷에 대한 데이터 정합성 1차 하드웨어 체크
+  // 센서 포트 접촉 불량이나 계측값 훼손이 감지될 경우 데이터 손실 로그를 남기고 필터링을 생략합니다.
+  if (!rawDataPacket || rawDataPacket.payload === undefined) {
+    logEdgeError(&quot;EMPTY_PACKET_RECEIVED&quot;, deviceId);
+    return;
+  }
+
+
+  // [2단계] IIoT 단말 로컬의 시계열 노이즈(Spike Noise) 제거 필터 알고리즘 적용
+  // 설비 전기 노이즈로 튀는 이상 스파이크 값을 Low-Pass Filter 등으로 로컬 전처리 평활화합니다.
+  const filteredValue = runLowPassFilter(rawDataPacket.value);
+
+
+  // [3단계] 현장 공장 네트워크 마비 등으로 일시적 IT 단절 시, Edge 단말 내 로컬 큐에 임시 버퍼링(Buffering) 작동
+  // 로컬 Edge PC 내 임시 버퍼 디스크 영역에 데이터를 큐 형태로 누적 보관하여 통신 유실을 원천 예방합니다.
+  const isNetworkConnected = checkServerHeartbeat();
+  
+  if (!isNetworkConnected) {
+    bufferDataToLocalStorage(deviceId, rawDataPacket.tagId, filteredValue, rawDataPacket.timestamp);
+    return;
+  }
+
+
+  // [4단계] 데이터 포맷 표준화(OPC-UA 규격 준수 JSON 패킷) 및 MES 데이터 수집 게이트웨이에 비동기 발행
+  // 데이터 모델을 정규 통일 포맷으로 랩핑하여 MQTT 브로커(Domain Broker)의 특정 토픽으로 대기 없이 퍼블리싱합니다.
+  const standardPayload = {
+    tagId: rawDataPacket.tagId,
+    value: filteredValue,
+    qualityCode: &quot;GOOD&quot;,
+    sourceTimestamp: rawDataPacket.timestamp,
+    serverTimestamp: new Date().toISOString()
+  };
+
+  publishToMqttBroker(&quot;factory/telemetry&quot;, standardPayload);
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +148,26 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/technology/iiot/events
-GET  /api/mesa-smart/technology/iiot/current-state?objectId={id}
-GET  /api/mesa-smart/technology/iiot/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [산업용 사물인터넷 - IIoT]
+// OPC-UA/MQTT IIoT 엣지 노드 수집 센서 데이터 전송 API
+// =================================================================
+POST /api/mesa-smart/technologies/iiot/telemetry/publish
+Content-Type: application/json
+{
+  &quot;deviceId&quot;: &quot;IIOT-NODE-EDGE-09&quot;,
+  &quot;tagId&quot;: &quot;OPCUA-TAG-TEMP-PRESS-03&quot;,
+  &quot;value&quot;: 145.8,                        // 수집 필터링 가공된 센서 수치
+  &quot;timestamp&quot;: &quot;2026-05-22T20:19:00.123Z&quot;
+}
+
+Response: 202 Accepted
+{
+  &quot;success&quot;: true,
+  &quot;sampleId&quot;: &quot;SMPL-93829482938&quot;,
+  &quot;edgeBufferedQueueSize&quot;: 0,            // 엣지 단말 큐의 미전송 잔량 (0: 단절 없음)
+  &quot;telemetryQuality&quot;: &quot;GOOD&quot;
+}</pre></div>
     </section>
 
     <section id="test" class="section">

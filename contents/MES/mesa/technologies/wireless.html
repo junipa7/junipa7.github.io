@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,48 @@
 <tr><td>BR-03</td><td>작업자 위치 데이터는 개인정보 접근 정책을 적용합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [무선 기술 - Wireless]
+// [목적] RTLS/RFID를 활용한 반제품/자재 Carrier의 실시간 삼각측량 위치 식별 및 무선 단절 대응
+// =================================================================
+
+function processCarrierWirelessLocation(carrierId, rawRssiSignals) {
+
+  // [1단계] 다중 무선 안테나로부터 유입된 RSSI 신호 강도 배열 검증
+  // 삼각 측량 정밀도 확보를 위해, 주변 기지국 안테나로부터 수집된 무선 파형 세기(RSSI) 패킷 3개 이상 도출 여부를 확인합니다.
+  if (!rawRssiSignals || rawRssiSignals.length &lt; 3) {
+    throw new Error(&quot;[위치 탐색 오류] 실시간 삼각 측량에 필요한 안테나 신호 갯수가 부족합니다.&quot;);
+  }
+
+
+  // [2단계] 다중 안테나 신호 강도를 분석하여 Carrier의 정확한 2D/3D 평면 좌표(X, Y, Z) 계산
+  // 수신된 강도 노이즈를 칼만 필터(Kalman Filter) 등으로 처리 후 삼각 평면 측량 알고리즘 연산을 통해 실제 위치 좌표를 산출합니다.
+  const calculatedLocation = calculateTriangulation(rawRssiSignals);
+  
+  
+  // [3단계] 계산된 위치 좌표에 매핑된 공장 구역(Zone) 정보 식별
+  // 좌표 값을 기반으로 공장의 어떤 야드 또는 공정 대기 구역(Staging Buffer Zone)에 적치되었는지 판독 매핑합니다.
+  const mappedZone = mapCoordinatesToFactoryZone(calculatedLocation);
+
+
+  // [4단계] 무선 신호 차폐 등으로 패킷 유실 시, 모바일 수집기 내 Offline 모드 감지 및 캐시 처리
+  // - getWirelessNetworkKpi: 패킷 손실률(Packet Loss) 실시간 스캔
+  // 차폐물이 많은 철강/밀폐 구조 라인에서 통신 두절 시 로컬 HMI 장치가 Offline 모드로 스위칭되어 데이터 유실을 방지합니다.
+  const networkState = getWirelessNetworkKpi();
+  
+  if (networkState.packetLossPct &gt; 15.0) {
+    // 통신 상태 불안정을 작업자 HMI에 경고 알림 전송
+    triggerHmiWarning(carrierId, &quot;WIRELESS_LATENCY_WARNING&quot;);
+  }
+
+
+  // [5단계] 물류 Carrier 위치 정보 업데이트 및 실시간 물류 추적 DB 동기화
+  // 정밀 산출된 Carrier 노드의 위치를 업데이트하여 AGV 배차 스케줄러 및 물류 관제 대시보드에 좌표를 실시간 리렌더링시킵니다.
+  updateCarrierLocation(carrierId, mappedZone.zoneId, calculatedLocation);
+
+  publishEvent(&quot;CARRIER_ZONE_CHANGED&quot;, { carrierId, zoneId: mappedZone.zoneId });
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +147,29 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/technology/wireless/events
-GET  /api/mesa-smart/technology/wireless/current-state?objectId={id}
-GET  /api/mesa-smart/technology/wireless/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [무선 기술 - Wireless]
+// Carrier RTLS 삼각측량 신호 RSSI 수집 및 위치 식별 API
+// =================================================================
+POST /api/mesa-smart/technologies/wireless/assets/locate
+Content-Type: application/json
+{
+  &quot;carrierId&quot;: &quot;CARRIER-WIP-STEEL-09&quot;,
+  &quot;rssiSignals&quot;: [
+    { &quot;antennaId&quot;: &quot;ANT-ZONE2-01&quot;, &quot;rssi&quot;: -65.2 }, // 안테나 수신 감도 신호 세기
+    { &quot;antennaId&quot;: &quot;ANT-ZONE2-02&quot;, &quot;rssi&quot;: -72.4 },
+    { &quot;antennaId&quot;: &quot;ANT-ZONE2-03&quot;, &quot;rssi&quot;: -58.9 }
+  ]
+}
+
+Response: 200 OK
+{
+  &quot;carrierId&quot;: &quot;CARRIER-WIP-STEEL-09&quot;,
+  &quot;triangulationCoordinates&quot;: { &quot;x&quot;: 12.4, &quot;y&quot;: 45.8, &quot;z&quot;: 1.2 }, // 삼각 측량 연산 완료 좌표
+  &quot;mappedFactoryZoneId&quot;: &quot;ZONE-ASSEMBLY-B&quot;, // 매핑된 최종 물리 가용 적치장 ID
+  &quot;networkSignalStatus&quot;: &quot;STABLE&quot;,       // 무선 네트워크 전송 패킷 안정성 상태
+  &quot;timestamp&quot;: &quot;2026-05-22T20:20:00Z&quot;
+}</pre></div>
     </section>
 
     <section id="test" class="section">

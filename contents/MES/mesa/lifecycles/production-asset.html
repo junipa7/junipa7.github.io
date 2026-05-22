@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,50 @@
 <tr><td>BR-03</td><td>상태 기반 보전은 센서 데이터 품질과 threshold revision을 함께 관리합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [생산 자산 라이프사이클 - Production Asset Lifecycle]
+// [목적] 설비, 치공구, 로봇 등 물리적 자산의 가동상태/교정기한 동적 모니터링 및 보전 연계
+// =================================================================
+
+function monitorAssetHealth(assetId) {
+
+  // [1단계] 자산의 실시간 센서 계측 데이터 및 상태 로드
+  // 설비 마스터 정보 및 IoT Gateway를 통해 계측된 가동 파라미터(누적 타수, 가동 시간 등)를 조회합니다.
+  const asset = loadAssetMaster(assetId);
+  const healthData = readAssetSensors(assetId);
+
+
+  // [2단계] 치명적 예방 보전(PM) 주기 및 정밀 교정(Calibration) 만료 여부 확인
+  // - checkCalibrationValidity: 계측기의 검교정 유효기간이 지났는지 실시간 대조
+  // - pmThresholdShots: 설비 및 금형의 설계 수명 한계 타수(Shot Count)와 현재 누적치 비교
+  const isCalibrationExpired = checkCalibrationValidity(assetId);
+  const isPmDue = (asset.accumulatedShots &gt;= asset.pmThresholdShots);
+
+  if (isCalibrationExpired || isPmDue) {
+    // 자산 가동 안전을 위해 즉시 설비 종합 효율 측정 대상에서 차단 및 물리 가동 락(Interlock) 실행
+    triggerAssetLock(assetId, &quot;MAINTENANCE_REQUIRED&quot;);
+    
+    
+    // [3단계] CMMS/보전 모듈에 긴급 예방 보전 작업 지시(PM Work Order) 자동 발행
+    // 작업 오더가 발행되면 정비팀 단말기에 즉각 푸시가 전송되며, 자산은 &#x27;정비대기(DOWN)&#x27; 상태로 전이됩니다.
+    const mwId = createMaintenanceWorkOrder({
+      assetId: assetId,
+      triggerType: isCalibrationExpired ? &quot;CALIBRATION_EXPIRED&quot; : &quot;PM_THRESHOLD_REACHED&quot;,
+      priority: &quot;HIGH&quot;
+    });
+    
+    publishEvent(&quot;ASSET_MAINTENANCE_TRIGGERED&quot;, { assetId, mwId });
+    return;
+  }
+
+
+  // [4단계] 이상이 없으면, 센서 이상 트렌드 분석 수행 (예지 보전 연동)
+  // 실시간 모터 동작 온도 또는 진동 가속도가 Warning 임계치를 이탈하는 추세가 탐지되면, AI 모듈에 심층 추론을 태웁니다.
+  if (healthData.temperature &gt; asset.tempWarningLimit) {
+    publishEvent(&quot;ASSET_HEADING_ANOMALY&quot;, { assetId, currentTemp: healthData.temperature });
+  }
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +149,27 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/lifecycle/production-asset/events
-GET  /api/mesa-smart/lifecycle/production-asset/current-state?objectId={id}
-GET  /api/mesa-smart/lifecycle/production-asset/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [생산 자산 라이프사이클 - Production Asset Lifecycle]
+// 자산 센서 계측 데이터 수집 및 상태 업데이트 API
+// =================================================================
+POST /api/mesa-smart/lifecycles/production-asset/assets/EQP-CNC-05/status-update
+Content-Type: application/json
+{
+  &quot;accumulatedShots&quot;: 100050,            // 설비의 누적 타수 실시간 누적치
+  &quot;temperature&quot;: 85.6,                   // 실시간 계측 모터 온도 (Celsius)
+  &quot;vibration&quot;: 0.045,                    // 실시간 진동 가속도 (G)
+  &quot;runState&quot;: &quot;PRODUCING&quot;                // 설비의 기계적 작동 상태
+}
+
+Response: 200 OK
+{
+  &quot;assetId&quot;: &quot;EQP-CNC-05&quot;,
+  &quot;pmRequired&quot;: false,                   // PM 임계치(100,000타수) 기준 도달 여부
+  &quot;calibrationValid&quot;: true,              // 교정 만료일 유효성 여부
+  &quot;anomalyDetected&quot;: false,              // 센서 위험 임계치 분석 결과
+  &quot;systemState&quot;: &quot;ACTIVE&quot;
+}</pre></div>
     </section>
 
     <section id="test" class="section">

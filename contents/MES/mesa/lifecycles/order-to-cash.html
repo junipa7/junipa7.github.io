@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,47 @@
 <tr><td>BR-03</td><td>고객별 품질/문서 요구사항은 출하 release 조건에 포함합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [주문-현금화 라이프사이클 - Order-to-Cash Lifecycle]
+// [목적] 고객 주문 기준 실시간 약속가능납기(ATP) 연산 및 출하 전 최종 품질 문서 동적 일괄 확인
+// =================================================================
+
+function releaseOrderForShipment(customerOrderId) {
+
+  // [1단계] 고객 주문 사양 및 포장 정보 수신
+  // ERP와 직접 유기 연계된 수주(Sales Order) 사양과 요청 납기일, 배송 포장 사양을 로드합니다.
+  const order = loadCustomerOrder(customerOrderId);
+  
+  
+  // [2단계] 생산 매핑 Lot의 물리적 생산 완료 및 수율 충족 여부 확인
+  // 생산 시작 시 SO와 엮였던(MTO 연동) Lot들의 공정이 100% 종결(&#x27;COMPLETED&#x27;)되었는지 확인합니다.
+  const mappedLots = getProductionLotsForOrder(customerOrderId);
+  const uncompletedLots = mappedLots.filter(lot =&gt; lot.status !== &quot;COMPLETED&quot;);
+
+  if (uncompletedLots.length &gt; 0) {
+    throw new Error(&quot;[출하 차단] 해당 주문에 할당된 생산 Lot 중 일부가 아직 공정 미완료 상태입니다.&quot;);
+  }
+
+
+  // [3단계] 출하 전 필수 품질 보증 문서(CoA, CoC) 생성 검증
+  // - verifyCertificateOfAnalysis: 출하 품질 성적서(Certificate of Analysis) 최종 승인 체크
+  // 고객사 표준에 규정된 문서 형식이 생성 및 최종 릴리스 되었는지 유무를 확인합니다.
+  const coaStatus = verifyCertificateOfAnalysis(customerOrderId);
+  if (!coaStatus.ready) {
+    throw new Error(&quot;[출하 보류] 고객 제출용 성적서(CoA)가 품질 부서의 승인을 받지 못했습니다.&quot;);
+  }
+
+
+  // [4단계] 출하 확정 상태 전이 및 ERP 배송 오더 연동
+  // WMS의 출고 릴리스 및 운송장 발행 모듈에 출고(RELEASED) 이벤트를 전파합니다.
+  updateOrderStatus(customerOrderId, &quot;SHIPPED_RELEASED&quot;);
+  
+  // 고객사 전용 EDI 시스템에 최종 생산 Traceability 리포트 자동 발송
+  generateAndSendTraceReport(customerOrderId, order.customerEmail);
+
+  publishEvent(&quot;ORDER_SHIPPED&quot;, { customerOrderId, timestamp: new Date().toISOString() });
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +146,26 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/lifecycle/order-to-cash/events
-GET  /api/mesa-smart/lifecycle/order-to-cash/current-state?objectId={id}
-GET  /api/mesa-smart/lifecycle/order-to-cash/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [주문-현금화 라이프사이클 - Order-to-Cash Lifecycle]
+// 주문별 완제품 생산 완료 확인 및 최종 출하 품질 릴리스 API
+// =================================================================
+POST /api/mesa-smart/lifecycles/order-to-cash/orders/SO-2026-5591/atp-check
+Content-Type: application/json
+{
+  &quot;productId&quot;: &quot;PROD-CHIP-A&quot;,
+  &quot;requiredQuantity&quot;: 5000,              // 주문 요청 수량
+  &quot;dueDate&quot;: &quot;2026-06-15T00:00:00Z&quot;      // 희망 납기 일자
+}
+
+Response: 200 OK
+{
+  &quot;success&quot;: true,
+  &quot;atpCheck&quot;: &quot;AVAILABLE&quot;,               // 약속 가능 납기 판단 상태 (생산 능력 및 자재 충분)
+  &quot;promisedDate&quot;: &quot;2026-06-12T00:00:00Z&quot;, // 생산 시뮬레이션을 거쳐 확정된 가능 납기
+  &quot;currentWipProgressPercent&quot;: 100.0,    // 주문 Lot 생산 진척률
+  &quot;finalQualityReleased&quot;: true          // 출하 전 CoA/CoC 등 품질 합격 릴리스 완료 여부
+}</pre></div>
     </section>
 
     <section id="test" class="section">

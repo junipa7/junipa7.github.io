@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,55 @@
 <tr><td>BR-03</td><td>Layer data는 최종 제품 serial과 연결되어야 합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [적층 제조 - Additive Manufacturing]
+// [목적] 3D 프린터의 층별(Layer) 적층 시 센서값 수집, 이상 징후 분석 및 후가공 이력 추적성 수립
+// =================================================================
+
+function monitorAdditiveBuild(buildId, currentLayerNo) {
+
+  // [1단계] 3D 프린터 내부 챔버의 실시간 레이어 적층 센서 데이터 수집
+  // 레이저 파워 강도, 챔버 산소 농도, 불활성 가스 압력, 리코터 베드 온도 등 미세 적층 환경값을 읽어옵니다.
+  const chamberTelemetry = readChamberSensors(buildId);
+  
+  
+  // [2단계] 파우더/분말 소재 Lot of 사양 정보 및 기 사용 횟수(Powder Recycle Count) 검증
+  // 적층 강도 안정성을 충족하기 위해, 사용 소재 분말의 공급사CoA 및 허용 재사용(Recycle) 횟수 한도를 넘었는지 검증합니다.
+  const buildConfig = loadBuildConfig(buildId);
+  const powderLot = getPowderLotSpec(buildConfig.powderLotId);
+
+  if (powderLot.recycleCount &gt; powderLot.maxAllowedRecycles) {
+    throw new Error(&quot;[소재 사용 초과] 사용 원료의 물리적 성질 유지를 위해 허용된 분말 재사용 한계를 초과했습니다.&quot;);
+  }
+
+
+  // [3단계] 비전 카메라로부터 적층 단면 레이어의 크랙/결함 여부 실시간 비전 판정
+  // 적층 단면(Layer Surface) 비전 분석을 통해 홀(Void)이나 미세 균열이 발생하는 조짐이 포착되는지 감시합니다.
+  const layerImage = captureLayerImage(buildId, currentLayerNo);
+  const hasDefect = analyzeLayerDefect(layerImage);
+
+  if (hasDefect) {
+    // 적층 가압력을 일시 정지시키고 빌드 비정상 플래그를 올려 로스 적재
+    // 소재 손실 및 가공 실패로 인한 설비 훼손을 방지하고자 3D 프린팅 스핀들 동작을 즉시 중단(Pause) 조치합니다.
+    pauseBuildProgress(buildId, &quot;LAYER_ANOMALY_DETECTED&quot;);
+    
+    saveLayerMetrics(buildId, currentLayerNo, {
+      status: &quot;DEFECT_DETECTED&quot;,
+      sensors: chamberTelemetry
+    });
+    return &quot;BUILD_PAUSED&quot;;
+  }
+
+
+  // [4단계] 빌드 단면 정보 이상 없을 시 Layer 이력 적재
+  // 판독이 통과된 양호 층 데이터는 층별 디지털 계보(Genealogy) 묶음으로 최종 제품 바코드에 매핑 저장됩니다.
+  saveLayerMetrics(buildId, currentLayerNo, {
+    status: &quot;SUCCESS&quot;,
+    sensors: chamberTelemetry
+  });
+  return &quot;SUCCESS&quot;;
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +154,28 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/technology/additive/events
-GET  /api/mesa-smart/technology/additive/current-state?objectId={id}
-GET  /api/mesa-smart/technology/additive/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [적층 제조 - Additive Manufacturing]
+// 3D 프린팅 층별 센서 수치 및 Layer 비전 판정 이력 등록 API
+// =================================================================
+POST /api/mesa-smart/technologies/additive/builds/start
+Content-Type: application/json
+{
+  &quot;buildId&quot;: &quot;BLD-3D-2026-X491&quot;,
+  &quot;layerNo&quot;: 450,                        // 현재 적층 층 번호
+  &quot;laserPowerWatts&quot;: 245.8,              // 레이저 파워 센서 실시간 계측값
+  &quot;chamberTempCelsius&quot;: 75.3,            // 챔버 내부 온도
+  &quot;layerVisionResult&quot;: &quot;SUCCESS&quot;         // 적층 표면 크랙 비전 검사 판정 결과
+}
+
+Response: 200 OK
+{
+  &quot;buildId&quot;: &quot;BLD-3D-2026-X491&quot;,
+  &quot;layerNo&quot;: 450,
+  &quot;interlockTriggered&quot;: false,           // 비정상 표면 크랙 없음으로 빌드 지속 허용
+  &quot;estimatedRemainingTimeMinutes&quot;: 185.0,
+  &quot;status&quot;: &quot;BUILDING&quot;
+}</pre></div>
     </section>
 
     <section id="test" class="section">

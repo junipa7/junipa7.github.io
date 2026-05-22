@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,43 @@
 <tr><td>BR-03</td><td>모델과 실제 상태 차이는 drift로 관리합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [디지털 트윈/스레드 - Digital Twin / Thread]
+// [목적] 현장 설비/물류 물리적 이벤트 발생 시 실시간 가상 객체 상태 동기화 및 3D 지도 갱신
+// =================================================================
+
+function syncPhysicalToDigitalTwin(physicalResourceId, rawEventPayload) {
+
+  // [1단계] 물리 설비 ID와 일대일 매핑된 가상의 디지털 트윈 객체(Digital Twin Object) 탐색
+  // 디지털 트윈 모델의 노드 맵 데이터로부터 실제 물리 머신에 바인딩된 가상 트윈 객체를 도출합니다.
+  const twinObject = findDigitalTwinObject(&quot;EQUIPMENT&quot;, physicalResourceId);
+  if (!twinObject) {
+    throw new Error(&quot;[트윈 오류] 가상 세계에 매핑된 디지털 자산 노드가 존재하지 않습니다.&quot;);
+  }
+
+
+  // [2단계] 설비의 물리 센서 값으로 가상 모델의 속성 상태 실시간 동기화
+  // IIoT 에이전트로부터 유입된 텔레메트리 바디를 바탕으로 가상 설비의 기하학적 작동 모션 및 온도를 갱신합니다.
+  const parsedMetrics = parseTelemetryData(rawEventPayload);
+  twinObject.currentState = parsedMetrics.machineState; // RUNNING, STANDBY, DOWN 등
+  twinObject.lastTemperature = parsedMetrics.temp;
+  twinObject.lastSyncAt = new Date().toISOString();
+
+
+  // [3단계] 3D 현장 통합 관제 시스템 및 WebGL 대시보드 시각화 정보 즉시 동적 갱신
+  // WebGL 렌더러에 신호를 보내어 3D 스마트 공장 뷰어의 설비 애니메이션 속도를 실시간 연동 조정합니다.
+  refreshWebGLViewport(twinObject.sceneNodeId, twinObject);
+
+
+  // [4단계] 디지털 스레드(Genealogy &amp; History Chain)에 가상 물리 상태 전이 스탬프 누적
+  // 공정 이력 흐름 및 디지털 계보(Thread)에 이벤트를 적재하여 디지털 시공간 데이터를 완성합니다.
+  appendDigitalThreadTrace({
+    twinObjectId: twinObject.id,
+    state: twinObject.currentState,
+    eventTime: parsedMetrics.timestamp
+  });
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +142,29 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/thread/digital-twin-thread/events
-GET  /api/mesa-smart/thread/digital-twin-thread/current-state?objectId={id}
-GET  /api/mesa-smart/thread/digital-twin-thread/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [디지털 트윈/스레드 - Digital Twin / Thread]
+// 물리 설비 텔레메트리 수신 및 디지털 트윈 실시간 상태 동기화 API
+// =================================================================
+POST /api/mesa-smart/threads/digital-twin-thread/objects/sync
+Content-Type: application/json
+{
+  &quot;physicalResourceId&quot;: &quot;EQP-PRESS-03&quot;,
+  &quot;machineState&quot;: &quot;PRODUCING&quot;,           // 물리 설비 실시간 상태
+  &quot;sensorMetrics&quot;: {
+    &quot;temperature&quot;: 75.3,
+    &quot;oilPressure&quot;: 12.4
+  },
+  &quot;timestamp&quot;: &quot;2026-05-22T20:18:30Z&quot;
+}
+
+Response: 200 OK
+{
+  &quot;twinObjectId&quot;: &quot;TWN-EQP-PRESS-03&quot;,    // 매핑된 디지털 트윈 내 노드 ID
+  &quot;stateSyncSuccess&quot;: true,              // 상태 가상 월드 매핑 성공 여부
+  &quot;activeWipLotId&quot;: &quot;LOT-20260522-001&quot;,  // 동적으로 연계된 가공 Lot 식별 정보
+  &quot;webglRenderTriggered&quot;: true           // UI 3D 뷰포트 갱신 트리거 성공 여부
+}</pre></div>
     </section>
 
     <section id="test" class="section">

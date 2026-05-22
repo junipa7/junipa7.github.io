@@ -436,7 +436,1328 @@ const concepts = [
   }
 ];
 
-function esc(value) {
+function getSmartManufacturingPseudocode(conceptType, itemSlug) {
+  const codes = {
+    // 1. Lifecycles
+    "production": `// =================================================================
+// [생산 라이프사이클 - Production Lifecycle]
+// [목적] 작업지시 접수부터 원자재/자원/자격 검증, 실시간 현장 실행 통제 및 실적 ERP 피드백까지의 흐름 제어
+// =================================================================
+
+function executeProductionWorkflow(lotId) {
+
+  // [1단계] 실시간 대기 오더 정보 및 라우팅 사양 로드
+  const lot = loadLotContext(lotId);
+  const route = loadProductRoute(lot.productId, lot.currentOperationId);
+
+
+  // [2단계] 실행 3대 핵심 요건(자재, 설비, 작업자) 실시간 교차 검증
+  const isMaterialReady = checkMaterialStaging(lotId, route.requiredMaterials);
+  const isResourceAvailable = checkResourceAvailability(lot.resourceId);
+  const isWorkerQualified = checkWorkerQualification(lot.operatorId, lot.currentOperationId);
+
+  if (!isMaterialReady || !isResourceAvailable || !isWorkerQualified) {
+    throw new Error("[생산 통제 실패] 생산 착수 요건이 불충족되었습니다. (자재/설비/작업자 확인 필요)");
+  }
+
+
+  // [3단계] 현장 설비 시작 신호 전송 및 Recipe 자동 매핑/다운로드
+  const downloadSuccess = downloadRecipeParameters(lot.resourceId, route.recipeId);
+  if (!downloadSuccess) {
+    throw new Error("[통신 오류] 설비 레시피 다운로드 트랜잭션이 실패했습니다.");
+  }
+
+
+  // [4단계] Lot 생산 상태 'STARTED' 전이 및 Digital Thread 계보 트래킹 시작
+  updateLotStatus(lotId, "STARTED");
+  const threadId = startDigitalThread(lotId, {
+    workOrderId: lot.workOrderId,
+    resourceId: lot.resourceId,
+    operatorId: lot.operatorId,
+    timestamp: new Date().toISOString()
+  });
+
+
+  // [5단계] 실시간 ANDON 보드 및 타 도메인에 시작 완료 이벤트 전파
+  publishEvent("PRODUCTION_STARTED", { lotId, threadId });
+
+}`,
+    "production-asset": `// =================================================================
+// [생산 자산 라이프사이클 - Production Asset Lifecycle]
+// [목적] 설비, 치공구, 로봇 등 물리적 자산의 가동상태/교정기한 동적 모니터링 및 보전 연계
+// =================================================================
+
+function monitorAssetHealth(assetId) {
+
+  // [1단계] 자산의 실시간 센서 계측 데이터 및 상태 로드
+  const asset = loadAssetMaster(assetId);
+  const healthData = readAssetSensors(assetId);
+
+
+  // [2단계] 치명적 예방 보전(PM) 주기 및 정밀 교정(Calibration) 만료 여부 확인
+  const isCalibrationExpired = checkCalibrationValidity(assetId);
+  const isPmDue = (asset.accumulatedShots >= asset.pmThresholdShots);
+
+  if (isCalibrationExpired || isPmDue) {
+    // 자산 가동 안전을 위해 즉시 설비 종합 효율 측정 대상에서 차단 및 물리 가동 락(Interlock) 실행
+    triggerAssetLock(assetId, "MAINTENANCE_REQUIRED");
+    
+    
+    // [3단계] CMMS/보전 모듈에 긴급 예방 보전 작업 지시(PM Work Order) 자동 발행
+    const mwId = createMaintenanceWorkOrder({
+      assetId: assetId,
+      triggerType: isCalibrationExpired ? "CALIBRATION_EXPIRED" : "PM_THRESHOLD_REACHED",
+      priority: "HIGH"
+    });
+    
+    publishEvent("ASSET_MAINTENANCE_TRIGGERED", { assetId, mwId });
+    return;
+  }
+
+
+  // [4단계] 이상이 없으면, 센서 이상 트렌드 분석 수행 (예지 보전 연동)
+  if (healthData.temperature > asset.tempWarningLimit) {
+    publishEvent("ASSET_HEADING_ANOMALY", { assetId, currentTemp: healthData.temperature });
+  }
+
+}`,
+    "product": `// =================================================================
+// [제품 라이프사이클 - Product Lifecycle]
+// [목적] 설계 변경(ECO/ECN) 정보의 실시간 생산 현장Lot 영향 분석 및 공정 적용 Interlock 수립
+// =================================================================
+
+function applyEngineeringChange(productDefinitionId, newRevision) {
+
+  // [1단계] PLM 시스템으로부터 접수된 설계 변경(ECO) 세부 사항 파싱
+  const eco = getActiveEngineeringChange(productDefinitionId, newRevision);
+  
+  
+  // [2단계] 현재 공장 라인에서 해당 품목으로 생산 중인 모든 활성 WIP(Lot 목록) 추출
+  const affectedLots = getActiveWipLotsByProduct(productDefinitionId);
+
+
+  // [3단계] 설계 변경 영향 평가 및 각 Lot에 대한 처분 결정(Disposition) 자동 부여
+  for (const lot of affectedLots) {
+    if (eco.changeType === "CRITICAL_SAFETY") {
+      // 치명적 품질 변경의 경우, 공정 중간 Lot을 즉시 강제 보류(Auto-Hold) 조치
+      updateLotStatus(lot.lotId, "HOLD", \`ECO_AUTO_HOLD: \${eco.ecoNo}\`);
+      
+      // 변경된 새로운 라우팅 및 레시피 바인딩 처리
+      rebindLotRouteAndRecipe(lot.lotId, eco.targetRouteId, eco.targetRecipeId);
+      
+      publishEvent("LOT_ECO_HOLD", { lotId: lot.lotId, ecoNo: eco.ecoNo });
+    } else {
+      // 경미한 변경의 경우, 현재 공정까지 진행 후 신규 revision 적용 (Phase-in)
+      setLotChangeoverVersion(lot.lotId, newRevision);
+    }
+  }
+
+
+  // [4단계] 기준정보 마스터의 품목 정의 정보 신버전으로 최종 활성화
+  activateProductRevision(productDefinitionId, newRevision);
+
+}`,
+    "supply-chain": `// =================================================================
+// [공급망 라이프사이클 - Supply Chain Lifecycle]
+// [목적] 원자재 입고Lot 품질 검증, 보관 수명 관리 및 투입 시 실시간 백플러시 재고 동기화
+// =================================================================
+
+function processMaterialStaging(materialLotId, targetAreaId) {
+
+  // [1단계] 자재 Lot의 수입 검사 성적(CoA) 및 격리 승인(Released) 상태 검증
+  const matLot = loadMaterialLot(materialLotId);
+  
+  if (matLot.status !== "RELEASED" || matLot.isHold) {
+    throw new Error("[자재 검증 실패] 해당 원자재 Lot은 수입검사 미통과 혹은 품질 보류 상태입니다.");
+  }
+
+
+  // [2단계] 자재의 유효수명(Shelf Life) 만료 여부 확인 (FEFO 룰 적용)
+  const isExpired = (new Date(matLot.expirationDate) < new Date());
+  if (isExpired) {
+    updateMaterialLotStatus(materialLotId, "EXPIRED_HOLD");
+    throw new Error("[자재 수명 만료] 유효기한이 경과한 원자재입니다. 즉시 폐기 구역으로 이동하십시오.");
+  }
+
+
+  // [3단계] 생산 현장 작업장(Staging Area)으로 물류 이동(Location Update) 기록
+  recordMaterialMovement(materialLotId, matLot.currentLocation, targetAreaId);
+
+
+  // [4단계] Lot 생산 소비량 차감 및 ERP 재고 실시간 동기화(Backflush) 연동 정보 전송
+  const consumptionId = createConsumptionLog({
+    materialLotId: materialLotId,
+    consumedQty: matLot.allocatedQty,
+    timestamp: new Date().toISOString()
+  });
+
+  publishEvent("MATERIAL_CONSUMED", { materialLotId, consumptionId });
+
+}`,
+    "workforce": `// =================================================================
+// [인력 라이프사이클 - Workforce Lifecycle]
+// [목적] 작업자의 공정 자격 등급(Skill Matrix) 및 필수 안전 교육 통과 여부를 동적으로 판별해 투입 차단
+// =================================================================
+
+function verifyAndAssignOperator(operatorId, operationId, resourceId) {
+
+  // [1단계] 인사 마스터에서 해당 작업자 상태 조회
+  const operator = loadOperatorProfile(operatorId);
+  if (!operator.activeFlag) {
+    throw new Error("[인사 통제] 비활성화 또는 퇴사 처리된 작업자 계정입니다.");
+  }
+
+
+  // [2단계] 대상 공정에 해당하는 필수 기술 라이선스 및 유효기한 검증
+  const skillMatrix = getOperatorSkill(operatorId, operationId);
+  const isCertified = (skillMatrix && skillMatrix.status === "CERTIFIED");
+  const isExpired = skillMatrix ? (new Date(skillMatrix.expireDate) < new Date()) : true;
+
+  if (!isCertified || isExpired) {
+    // 무자격 조작 사고를 방지하기 위해 설비 시작 인터락(Interlock) 작동
+    triggerEquipmentInterlock(resourceId, "OPERATOR_UNAUTHORIZED");
+    throw new Error("[자격 미달] 이 공정을 단독 운전할 수 있는 유효 자격증(Certification)이 없습니다.");
+  }
+
+
+  // [3단계] 유독/위험 환경 공정일 경우, 최근 1년 내 필수 안전(EHS) 교육 이수 여부 체크
+  const isSafetyTrained = verifySafetyTraining(operatorId, "EHS-HAZARDOUS");
+  if (!isSafetyTrained) {
+    throw new Error("[안전 위반] 위험 공정 투입에 필요한 필수 안전 보건 교육을 이수하지 않았습니다.");
+  }
+
+
+  // [4단계] 자격 통과 완료 시, 직접 노무 투입 공수(Direct Labor) 측정 세션 개시
+  startLaborDirectSession(operatorId, resourceId, operationId);
+
+}`,
+    "order-to-cash": `// =================================================================
+// [주문-현금화 라이프사이클 - Order-to-Cash Lifecycle]
+// [목적] 고객 주문 기준 실시간 약속가능납기(ATP) 연산 및 출하 전 최종 품질 문서 동적 일괄 확인
+// =================================================================
+
+function releaseOrderForShipment(customerOrderId) {
+
+  // [1단계] 고객 주문 사양 및 포장 정보 수신
+  const order = loadCustomerOrder(customerOrderId);
+  
+  
+  // [2단계] 생산 매핑 Lot의 물리적 생산 완료 및 수율 충족 여부 확인
+  const mappedLots = getProductionLotsForOrder(customerOrderId);
+  const uncompletedLots = mappedLots.filter(lot => lot.status !== "COMPLETED");
+
+  if (uncompletedLots.length > 0) {
+    throw new Error("[출하 차단] 해당 주문에 할당된 생산 Lot 중 일부가 아직 공정 미완료 상태입니다.");
+  }
+
+
+  // [3단계] 출하 전 필수 품질 보증 문서(CoA, CoC) 생성 검증
+  const coaStatus = verifyCertificateOfAnalysis(customerOrderId);
+  if (!coaStatus.ready) {
+    throw new Error("[출하 보류] 고객 제출용 성적서(CoA)가 품질 부서의 승인을 받지 못했습니다.");
+  }
+
+
+  // [4단계] 출하 확정 상태 전이 및 ERP 배송 오더 연동
+  updateOrderStatus(customerOrderId, "SHIPPED_RELEASED");
+  
+  // 고객사 전용 EDI 시스템에 최종 생산 Traceability 리포트 자동 발송
+  generateAndSendTraceReport(customerOrderId, order.customerEmail);
+
+  publishEvent("ORDER_SHIPPED", { customerOrderId, timestamp: new Date().toISOString() });
+
+}`,
+
+    // 2. Threads
+    "quality": `// =================================================================
+// [품질 스레드 - Quality Thread]
+// [목적] 실시간 공정 성적 수집, 통계적 제어 한계(SPC) 이탈 분석 및 실시간 물류 락(Auto-Hold) 연동
+// =================================================================
+
+function evaluateQualityMetrics(lotId, parameterName, measuredValue) {
+
+  // [1단계] 공정 및 품목 전용 공식 엔지니어링 스펙(LSL, USL) 검증 정보 로드
+  const spec = loadInspectionSpec(lotId, parameterName);
+  
+  
+  // [2단계] 단순 규격 이탈(Out of Spec) 및 SPC 통계 규칙(예: Nelson Rules) 실시간 대조
+  const isOos = (measuredValue < spec.lsl || measuredValue > spec.usl);
+  const isSpcAnomaly = runSpcStatisticalRules(lotId, parameterName, measuredValue);
+
+
+  // [3단계] 결함 감지 시 즉각적인 격리 조치 수행
+  if (isOos || isSpcAnomaly) {
+    const ncId = generateUniqueId("NC");
+    
+    // 3-1. Lot 마스터 상태를 즉각 'HOLD(품질보류)'로 강제 잠금하여 추가 가공 및 출고 원천 차단
+    lockLotLogistics(lotId, "QUALITY_HOLD", \`PARAMETER: \${parameterName}, VALUE: \${measuredValue}\`);
+    
+    
+    // 3-2. 부적합(Nonconformance) 보고서를 발행하고 시정 예방 조치(CAPA)에 자동 바인딩
+    createNonconformanceRecord({
+      ncId: ncId,
+      lotId: lotId,
+      defectType: isOos ? "OUT_OF_SPEC" : "SPC_RULE_VIOLATION",
+      measuredValue: measuredValue,
+      severity: "CRITICAL"
+    });
+    
+    publishEvent("LOT_AUTO_HOLD_EXECUTED", { lotId, ncId, reason: "QUALITY_VIOLATION" });
+    return "HOLD_EXECUTED";
+  }
+
+
+  // [4단계] 정상인 경우, 검사 실적 성적서 테이블에 안전 저장
+  saveInspectionResult(lotId, parameterName, measuredValue, "PASS");
+  return "PASS";
+
+}`,
+    "compliance": `// =================================================================
+// [컴플라이언스 스레드 - Compliance Thread]
+// [목적] 전자서명, 데이터 무결성 보장 및 감사 추적(Audit Trail)용 규제 준수 이력 영구 기록
+// =================================================================
+
+function recordAuditTrail(objectId, action, beforeValue, afterValue, operatorId, reason) {
+
+  // [1단계] ALCOA+ 데이터 무결성 표준에 기반한 입력 변수 유효성 검증
+  if (!objectId || !action || !operatorId) {
+    throw new Error("[보안 실패] 감사 추적 필수 기록 요소가 유실되었습니다.");
+  }
+
+
+  // [2단계] 조작자가 중요 데이터 정정/승인 권한이 있는지 이중 보안 체크
+  const operator = loadOperatorProfile(operatorId);
+  const isAuthorized = verifySecurityRole(operatorId, "AUDIT_EDITOR");
+
+  if (!isAuthorized) {
+    throw new Error("[권한 거부] 규제 관련 이력을 직접 변경할 수 있는 권한이 없습니다.");
+  }
+
+
+  // [3단계] 변경 사유(Justification Reason) 필수 입력 확인 (규제 산업 필수 준수사항)
+  if (!reason || reason.trim().length < 5) {
+    throw new Error("[사유 누락] 데이터 수정 사유를 5자 이상 상세히 기록해야 정정이 가능합니다.");
+  }
+
+
+  // [4단계] 위변조가 불가능한 형태로 감사 추적 감사 이력(Audit Trail Log) 영구 적재
+  const auditEntry = {
+    auditId: generateUniqueId("AUDT"),
+    objectId: objectId,
+    action: action,
+    beforeValue: beforeValue,
+    afterValue: afterValue,
+    operatorId: operatorId,
+    reason: reason,
+    clientIp: getClientIpAddress(),
+    timestamp: new Date().toISOString()
+  };
+
+  writeSecureAuditDb(auditEntry);
+
+}`,
+    "sustainability": `// =================================================================
+// [지속가능성 스레드 - Sustainability Thread]
+// [목적] 생산 가동 센서/계측기 전력/에너지 미터링 및 Lot별 탄소 배출량 실시간 배부 연산
+// =================================================================
+
+function calculateLotCarbonFootprint(lotId) {
+
+  // [1단계] 대상 Lot이 머물렀던 설비(Resource)와 공정 시간 슬롯 조회
+  const lotExecution = getLotExecutionHistory(lotId);
+  let totalCarbonKg = 0.0;
+
+
+  // [2단계] 설비에 매핑된 실시간 에너지 계측기(Power Meter) 데이터 로드
+  for (const step of lotExecution) {
+    const rawPowerKwh = getMeterEnergyConsumption(step.resourceId, step.startTime, step.endTime);
+    
+    
+    // [3단계] 국가 표준 전력 탄소 배출 계수(Carbon Emission Factor)를 적용하여 배출량 계산
+    const carbonFactor = getCarbonEmissionFactor("ELECTRICITY");
+    const stepCarbon = rawPowerKwh * carbonFactor;
+    
+    
+    // [4단계] 동시 혼재 가공(Multi-Lot Campaign)인 경우, Lot 생산 중량 비율별 지분 분할 배부
+    const lotWeightRatio = getLotWeightRatioInCampaign(step.campaignId, lotId);
+    const allocatedCarbon = stepCarbon * lotWeightRatio;
+    
+    totalCarbonKg += allocatedCarbon;
+  }
+
+
+  // [5단계] Lot 디지털 스레드 데이터에 최종 지속가능성 지표(Carbon Footprint) 바인딩
+  saveLotSustainabilityMetric(lotId, "CO2e_KG", totalCarbonKg);
+
+  publishEvent("LOT_CARBON_FOOTPRINT_CALCULATED", { lotId, carbonKg: totalCarbonKg });
+
+}`,
+    "analytics": `// =================================================================
+// [분석 스레드 - Analytics Thread]
+// [목적] 이종 제조 데이터(설비, 공정, 품질) 실시간 취합, Feature 생성 및 이상 징후 머신러닝 분석
+// =================================================================
+
+function generateRealtimeFeatureVector(lotId) {
+
+  // [1단계] 대상 Lot의 실시간 가공 중에 축적된 시계열 데이터(온도, 진동 등) 추출
+  const sensorSeries = getLotTimeSeriesSensors(lotId);
+  
+  
+  // [2단계] 분석 모델이 요구하는 기술 통계적 Feature(평균, 편차, Peak-to-Peak 등) 계산
+  const featureVector = {
+    meanTemp: calculateAverage(sensorSeries.temperature),
+    stdDevVibration: calculateStdDev(sensorSeries.vibration),
+    maxPressure: calculateMax(sensorSeries.pressure),
+    durationSeconds: getLotProcessingDuration(lotId)
+  };
+
+
+  // [3단계] Feature Store에 정규화된 형태의 Dataset 스냅샷 영구 저장
+  saveFeatureDataset(lotId, featureVector);
+
+
+  // [4단계] AI 분석 엔진에 Feature 분석 명령 전달 및 이상 가동 징후 실시간 예측
+  const prediction = runMlInference("ANOMALY_MODEL", featureVector);
+  
+  if (prediction.anomalyScore > 0.85) {
+    // 경고 이벤트 발행을 통해 디스패칭 스케줄에 즉시 알림 반영
+    publishEvent("ANALYTICS_ANOMALY_DETECTED", {
+      lotId: lotId,
+      score: prediction.anomalyScore,
+      actionRecommend: "INSPECT_EQUIPMENT"
+    });
+  }
+
+}`,
+    "security": `// =================================================================
+// [보안 스레드 - Security Thread]
+// [목적] IT/OT 통합 연동 시 JWT 검증, 접근 권한 체크 및 원격 설비 제어 명령 방어
+// =================================================================
+
+function authorizeOtControlCommand(authToken, resourceId, commandType) {
+
+  // [1단계] 유입된 OAuth2/JWT 보안 토큰의 무결성 및 서명 만료 상태 검증
+  const decodedToken = verifyJwtToken(authToken);
+  if (!decodedToken || decodedToken.isExpired) {
+    throw new Error("[보안 위반] 유효하지 않거나 만료된 보안 토큰입니다.");
+  }
+
+
+  // [2단계] 조작 대상 물리 설비에 부여된 중요 보안 임계치(Criticality Level) 확인
+  const resource = loadResourceSecurityPolicy(resourceId);
+  
+  
+  // [3단계] 토큰 내 작업자 권한(Roles)과 공정 제어 매트릭스(Control Matrix) 대조
+  const hasPermission = checkUserRolePermission(decodedToken.userId, resourceId, commandType);
+  if (!hasPermission) {
+    // 권한 없는 악의적 설비 중단/기동 방지를 위해 접근 로그를 남기고 즉시 차단
+    logSecurityBreach(decodedToken.userId, resourceId, commandType);
+    throw new Error("[접근 거부] 해당 설비에 대한 직접 제어 권한이 허용되지 않았습니다.");
+  }
+
+
+  // [4단계] 승인 성공 시, 보안 감사 로그 생성 및 임시 일회성 토큰 발급
+  const traceId = writeSecurityAuditLog({
+    userId: decodedToken.userId,
+    resourceId: resourceId,
+    command: commandType,
+    clientIp: getClientIpAddress()
+  });
+
+  return { authorized: true, auditTraceId: traceId };
+
+}`,
+    "digital-twin-thread": `// =================================================================
+// [디지털 트윈/스레드 - Digital Twin / Thread]
+// [목적] 현장 설비/물류 물리적 이벤트 발생 시 실시간 가상 객체 상태 동기화 및 3D 지도 갱신
+// =================================================================
+
+function syncPhysicalToDigitalTwin(physicalResourceId, rawEventPayload) {
+
+  // [1단계] 물리 설비 ID와 일대일 매핑된 가상의 디지털 트윈 객체(Digital Twin Object) 탐색
+  const twinObject = findDigitalTwinObject("EQUIPMENT", physicalResourceId);
+  if (!twinObject) {
+    throw new Error("[트윈 오류] 가상 세계에 매핑된 디지털 자산 노드가 존재하지 않습니다.");
+  }
+
+
+  // [2단계] 설비의 물리 센서 값으로 가상 모델의 속성 상태 실시간 동기화
+  const parsedMetrics = parseTelemetryData(rawEventPayload);
+  twinObject.currentState = parsedMetrics.machineState; // RUNNING, STANDBY, DOWN 등
+  twinObject.lastTemperature = parsedMetrics.temp;
+  twinObject.lastSyncAt = new Date().toISOString();
+
+
+  // [3단계] 3D 현장 통합 관제 시스템 및 WebGL 대시보드 시각화 정보 즉시 동적 갱신
+  refreshWebGLViewport(twinObject.sceneNodeId, twinObject);
+
+
+  // [4단계] 디지털 스레드(Genealogy & History Chain)에 가상 물리 상태 전이 스탬프 누적
+  appendDigitalThreadTrace({
+    twinObjectId: twinObject.id,
+    state: twinObject.currentState,
+    eventTime: parsedMetrics.timestamp
+  });
+
+}`,
+    "modeling-simulation": `// =================================================================
+// [모델링/시뮬레이션 스레드 - Modeling / Simulation]
+// [목적] 실제 가동 이력 기반 모델 파라미터 자동 보정 및 What-if 가상 스케줄 시나리오 시뮬레이션
+// =================================================================
+
+function runWhatIfSchedulingSimulation(areaId, newOrderVolume) {
+
+  // [1단계] 실시간 MES 운영 DB로부터 현재 라인 내 잔여 WIP 현황 및 설비 가동 상태 스냅샷 추출
+  const stateSnapshot = captureCurrentOperationalState(areaId);
+  
+  
+  // [2단계] 최근 3개월의 실제 설비 종합효율(OEE) 및 라우팅 택트타임(Tact Time) 통계값으로 모델 모수 자동 보정
+  const calibratedParams = calibrateSimulationParameters(areaId);
+
+
+  // [3단계] 추가 신규 오더 투입에 따른 가상 몬테카를로 시뮬레이션(Monte Carlo Simulation) 100회 실행
+  const simulationResult = executeSimulationEngine({
+    snapshot: stateSnapshot,
+    params: calibratedParams,
+    testVolume: newOrderVolume,
+    iterations: 100
+  });
+
+
+  // [4단계] 시뮬레이션 예측 병목 라인(Bottleneck) 및 최종 납기 준수율(On-Time Delivery) 지표 계산
+  const predictedBottleneck = findPredictedBottlenecks(simulationResult);
+  const onTimePercentage = calculateOnTimeSuccessRate(simulationResult);
+
+
+  // [5단계] 최선의 시나리오 결과안을 도출해 현장 스케줄 변경 가이드로 피드백
+  saveSimulationReport(areaId, { predictedBottleneck, onTimePercentage });
+
+}`,
+
+    // 3. Enabling Technologies
+    "iiot": `// =================================================================
+// [산업용 사물인터넷 - IIoT]
+// [목적] OPC-UA/MQTT를 통한 초고속 센서 텔레메트리 데이터 엣지 필터링 및 메시지 브로커 전송
+// =================================================================
+
+function processEdgeTelemetry(deviceId, rawDataPacket) {
+
+  // [1단계] 통신 오류 및 유실 패킷에 대한 데이터 정합성 1차 하드웨어 체크
+  if (!rawDataPacket || rawDataPacket.payload === undefined) {
+    logEdgeError("EMPTY_PACKET_RECEIVED", deviceId);
+    return;
+  }
+
+
+  // [2단계] IIoT 단말 로컬의 시계열 노이즈(Spike Noise) 제거 필터 알고리즘 적용
+  const filteredValue = runLowPassFilter(rawDataPacket.value);
+
+
+  // [3단계] 현장 공장 네트워크 마비 등으로 일시적 IT 단절 시, Edge 단말 내 로컬 큐에 임시 버퍼링(Buffering) 작동
+  const isNetworkConnected = checkServerHeartbeat();
+  
+  if (!isNetworkConnected) {
+    bufferDataToLocalStorage(deviceId, rawDataPacket.tagId, filteredValue, rawDataPacket.timestamp);
+    return;
+  }
+
+
+  // [4단계] 데이터 포맷 표준화(OPC-UA 규격 준수 JSON 패킷) 및 MES 데이터 수집 게이트웨이에 비동기 발행
+  const standardPayload = {
+    tagId: rawDataPacket.tagId,
+    value: filteredValue,
+    qualityCode: "GOOD",
+    sourceTimestamp: rawDataPacket.timestamp,
+    serverTimestamp: new Date().toISOString()
+  };
+
+  publishToMqttBroker("factory/telemetry", standardPayload);
+
+}`,
+    "big-data": `// =================================================================
+// [빅데이터 - Big Data]
+// [목적] 실시간 유입되는 페타바이트급 텔레메트리 가공 데이터의 스트리밍 저장 및 파티셔닝 적재
+// =================================================================
+
+function ingestToDataLakehouse(streamingPayload) {
+
+  // [1단계] 고빈도 스트리밍 유입 패킷의 데이터 스키마(Schema) 유효성 실시간 대조
+  const isValidSchema = validateIngestionSchema(streamingPayload);
+  if (!isValidSchema) {
+    sendToDeadLetterQueue(streamingPayload, "SCHEMA_MISMATCH");
+    return;
+  }
+
+
+  // [2단계] 데이터 계보(Data Lineage) 추적을 위해 원천 발신 시스템 식별 정보 바인딩
+  const contextualizedRow = appendLineageMetadata(streamingPayload, {
+    pipelineId: "IIOT_TELEMETRY_INGESTION_PIPE",
+    zone: "RAW_LANDING_ZONE"
+  });
+
+
+  // [3단계] 검색 속도 최적화를 위해 실시간 일자(YYYYMMDD) 및 설비 구역별로 물리 테이블 파티셔닝(Partitioning) 실행
+  const targetPartition = calculatePartitionPath(contextualizedRow.eventTime);
+
+
+  // [4단계] 데이터 레이크하우스(Lakehouse) 저장소에 영구 추가 및 대용량 분석 인덱스 재생성
+  writeToParquetStorage(targetPartition, contextualizedRow);
+
+}`,
+    "ai-ml": `// =================================================================
+// [AI/ML]
+// [목적] 공정 데이터 예측 분석(Predictive Model) 및 신뢰 점수(Confidence) 기반 예외 감지 통제
+// =================================================================
+
+function executePredictiveMaintenance(equipmentId) {
+
+  // [1단계] 최근 24시간 동안 축적된 설비 상태 및 가동 시계열 Feature 로드
+  const features = loadEquipmentFeatures(equipmentId);
+  
+  
+  // [2단계] 학습 완료된 예지보전 AI 분류 모델(RUL XGBoost Model)에 Feature 대조
+  const inference = runAiModel("PREDICTIVE_MAINTENANCE_RUL", features);
+  
+  const predictedRulHours = inference.remainingUsefulLifeHours;
+  const confidenceScore = inference.confidence;
+
+
+  // [3단계] 예측 결과 신뢰성 검증 및 비즈니스 Rule 적용
+  if (predictedRulHours < 48 && confidenceScore > 0.90) {
+    // 3-1. 신뢰도 점수가 90% 이상인 경우, 사람 개입 없이 보전 계획 작업 지시서 자동 릴리스 및 통보
+    const autoMwoId = createAutoMaintenanceWorkOrder(equipmentId, "PREDICTED_FAILURE_48H");
+    publishEvent("PREDICTIVE_ACTION_EXECUTED", { equipmentId, autoMwoId, score: confidenceScore });
+  } else if (predictedRulHours < 48 && confidenceScore <= 0.90) {
+    // 3-2. 신뢰도 점수가 낮으면 자동 발행하지 않고 품질 엔지니어 수동 승인 보드로 격리
+    const reviewId = sendToHumanReviewBoard(equipmentId, inference);
+    publishEvent("PREDICTIVE_REVIEW_REQUIRED", { equipmentId, reviewId });
+  }
+
+}`,
+    "vr-ar": `// =================================================================
+// [VR/AR]
+// [목적] 스마트 글래스 기반 정밀 조립 가이드 렌더링 및 작업 완료 증거 캡처/품질 이력 적재
+// =================================================================
+
+function handleArGuidedStep(sessionId, currentStepNo, operatorAction) {
+
+  // [1단계] 활성화된 AR 작업자 세션 정보 및 유효 SOP Revision 로드
+  const session = loadArSession(sessionId);
+  const sopStep = getSopStepDefinition(session.operationId, currentStepNo);
+
+
+  // [2단계] 작업자가 조립을 완료한 순간, 스마트 글래스 카메라로부터 고해상도 이미지 실시간 캡처
+  const capturedImageUri = captureArGlassCameraView(sessionId);
+
+
+  // [3단계] 비전 AI 모델을 사용하여 3D 형상 정합성 분석 및 조립 오류(Poka-Yoke) 자동 판별
+  const visionVerification = verifyAssemblyViaAi(capturedImageUri, sopStep.3dTemplateId);
+  
+  if (!visionVerification.success) {
+    // 오류가 감지되면 작업자 글래스 화면에 빨간색 아웃라인 경고 및 시정 가이드 증강 표시
+    renderArAlert(session.glassId, "ASSEMBLY_ERROR_DETECTED", visionVerification.errorCoordinates);
+    return "VERIFICATION_FAILED";
+  }
+
+
+  // [4단계] 성공적인 조립에 대해, 캡처 사진을 증거물로 디지털 스레드(Evidence Storage)에 영구 저장
+  saveStepVerificationEvidence(sessionId, currentStepNo, {
+    imageUri: capturedImageUri,
+    verifiedAt: new Date().toISOString()
+  });
+
+  return "STEP_COMPLETED";
+
+}`,
+    "edge-to-cloud": `// =================================================================
+// [엣지-클라우드 - Edge to Cloud]
+// [목적] 초 단위 실시간 판단(Edge)과 대규모 데이터 분석 및 전사 ML 학습(Cloud) 간의 동적 하이브리드 연동
+// =================================================================
+
+function syncEdgeTelemetryToCloud(edgeNodeId, eventBatch) {
+
+  // [1단계] 엣지 로컬에서의 초실시간 연동 판단 동작 완료
+  executeEdgeCriticalInterlocks(eventBatch);
+
+
+  // [2단계] 클라우드 대역폭 및 요금 절감을 위해 엣지 단에서 1차 실시간 압축 및 요약 데이터셋 생성
+  const compressedPayload = compressAndSummarize(eventBatch);
+
+
+  // [3단계] 멱등성(Idempotent)을 보장하는 REST/gRPC 채널을 통해 클라우드 동기화 큐에 발송
+  const syncResponse = postToCloudSyncGateway(edgeNodeId, compressedPayload, {
+    idempotencyKey: generateUuid() // 네트워크 재시도로 인한 중복 적재 원천 예방
+  });
+
+
+  // [4단계] 동기화 성공 확인 시 로컬 디스크 내의 오래된 원시 데이터 안심 제거 (버퍼 정리)
+  if (syncResponse.success) {
+    purgeLocalEdgeBuffer(edgeNodeId, eventBatch.maxTimestamp);
+  }
+
+}`,
+    "blockchain": `// =================================================================
+// [블록체인 - Blockchain]
+// [목적] 공급망 간의 위변조가 불가능한 완제품 성적서 및 원자재 계보 정보 스마트 컨트랙트 기록
+// =================================================================
+
+function notarizeLotQualityOnLedger(lotId, qualityResultId) {
+
+  // [1단계] 로컬 MES 데이터베이스에서 최종 승인된 제품 성적 및 원자재 족보 데이터 로드
+  const qualityReport = getLotInspectionSummary(lotId);
+  const materialGenealogy = getLotGenealogyList(lotId);
+
+
+  // [2단계] 데이터 프라이버시 보호를 위해 중요 가공 수치는 제외하고 핵심 정보들의 해시(SHA-256)값 생성
+  const originPayloadString = JSON.stringify({ qualityReport, materialGenealogy });
+  const docHash = generateSha256Hash(originPayloadString);
+
+
+  // [3단계] 분산 원장용 스마트 컨트랙트(Smart Contract) 함수 호출 준비
+  const contract = loadSmartContract("LotQualityNotarization");
+  
+  
+  // [4단계] 기업 프라이빗 키(Private Key)로 서명하여 블록체인에 영구 기록 (Transaction Sign)
+  const tx = contract.methods.notarize({
+    lotId: lotId,
+    notarizedHash: docHash,
+    qualityResultId: qualityResultId,
+    notarizedAt: new Date().toISOString()
+  });
+
+  const txReceipt = sendTransactionToBlockchain(tx);
+  
+  // 블록체인 트랜잭션 수신증(Tx Hash) 정보를 내부 Traceability DB에 매핑 저장
+  saveLedgerTxMapping(lotId, txReceipt.transactionHash);
+
+}`,
+    "additive": `// =================================================================
+// [적층 제조 - Additive Manufacturing]
+// [목적] 3D 프린터의 층별(Layer) 적층 시 센서값 수집, 이상 징후 분석 및 후가공 이력 추적성 수립
+// =================================================================
+
+function monitorAdditiveBuild(buildId, currentLayerNo) {
+
+  // [1단계] 3D 프린터 내부 챔버의 실시간 레이어 적층 센서 데이터 수집
+  const chamberTelemetry = readChamberSensors(buildId);
+  
+  
+  // [2단계] 파우더/분말 소재 Lot of 사양 정보 및 기 사용 횟수(Powder Recycle Count) 검증
+  const buildConfig = loadBuildConfig(buildId);
+  const powderLot = getPowderLotSpec(buildConfig.powderLotId);
+
+  if (powderLot.recycleCount > powderLot.maxAllowedRecycles) {
+    throw new Error("[소재 사용 초과] 사용 원료의 물리적 성질 유지를 위해 허용된 분말 재사용 한계를 초과했습니다.");
+  }
+
+
+  // [3단계] 비전 카메라로부터 적층 단면 레이어의 크랙/결함 여부 실시간 비전 판정
+  const layerImage = captureLayerImage(buildId, currentLayerNo);
+  const hasDefect = analyzeLayerDefect(layerImage);
+
+  if (hasDefect) {
+    // 적층 가압력을 일시 정지시키고 빌드 비정상 플래그를 올려 로스 적재
+    pauseBuildProgress(buildId, "LAYER_ANOMALY_DETECTED");
+    
+    saveLayerMetrics(buildId, currentLayerNo, {
+      status: "DEFECT_DETECTED",
+      sensors: chamberTelemetry
+    });
+    return "BUILD_PAUSED";
+  }
+
+
+  // [4단계] 빌드 단면 정보 이상 없을 시 Layer 이력 적재
+  saveLayerMetrics(buildId, currentLayerNo, {
+    status: "SUCCESS",
+    sensors: chamberTelemetry
+  });
+  return "SUCCESS";
+
+}`,
+    "robotics": `// =================================================================
+// [로보틱스 - Robotics]
+// [목적] MES 작업 착수(Dispatch)와 로봇 AGV/AMR 이송 미션 간의 인터락 제어 및 상태 모니터링
+// =================================================================
+
+function dispatchRoboticMission(missionId, robotId, targetLocation) {
+
+  // [1단계] 지정 로봇의 물리 사양, 가동 상태 및 현재 배터리 잔량 실시간 확인
+  const robot = loadRobotStatus(robotId);
+  
+  if (robot.status !== "STANDBY" || robot.batteryPercent < 20.0) {
+    throw new Error("[미션 실패] 대상 로봇이 현재 가동 불능 상태이거나 배터리 잔량이 부족합니다.");
+  }
+
+
+  // [2단계] 로봇 이동 경로 상의 물리적 보안 구역 가동 상태(안전 셔터 개방 여부 등) 인터락 검증
+  const isRouteBlocked = checkPhysicalRouteInterlocks(robot.currentLocation, targetLocation);
+  if (isRouteBlocked) {
+    throw new Error("[이송 차단] 이동 경로 상에 안전 인터락(Safety Interlock)이 작동하여 물리적 주행이 불가능합니다.");
+  }
+
+
+  // [3단계] 로봇 제어 시스템(Fleet Management System)에 이송 미션 API 하달
+  const dispatchResponse = sendRobotCommand(robotId, "EXECUTE_MISSION", {
+    missionId: missionId,
+    destination: targetLocation,
+    speedFactor: 1.0
+  });
+
+
+  // [4단계] 미션 수행 상태 실시간 추적 및 기록 개시
+  if (dispatchResponse.success) {
+    updateMissionStatus(missionId, "EXECUTING");
+    
+    publishEvent("ROBOT_MISSION_DISPATCHED", {
+      robotId: robotId,
+      missionId: missionId,
+      dispatchedAt: new Date().toISOString()
+    });
+  }
+
+}`,
+    "wireless": `// =================================================================
+// [무선 기술 - Wireless]
+// [목적] RTLS/RFID를 활용한 반제품/자재 Carrier의 실시간 삼각측량 위치 식별 및 무선 단절 대응
+// =================================================================
+
+function processCarrierWirelessLocation(carrierId, rawRssiSignals) {
+
+  // [1단계] 다중 무선 안테나로부터 유입된 RSSI 신호 강도 배열 검증
+  if (!rawRssiSignals || rawRssiSignals.length < 3) {
+    throw new Error("[위치 탐색 오류] 실시간 삼각 측량에 필요한 안테나 신호 갯수가 부족합니다.");
+  }
+
+
+  // [2단계] 다중 안테나 신호 강도를 분석하여 Carrier의 정확한 2D/3D 평면 좌표(X, Y, Z) 계산
+  const calculatedLocation = calculateTriangulation(rawRssiSignals);
+  
+  
+  // [3단계] 계산된 위치 좌표에 매핑된 공장 구역(Zone) 정보 식별
+  const mappedZone = mapCoordinatesToFactoryZone(calculatedLocation);
+
+
+  // [4단계] 무선 신호 차폐 등으로 패킷 유실 시, 모바일 수집기 내 Offline 모드 감지 및 캐시 처리
+  const networkState = getWirelessNetworkKpi();
+  
+  if (networkState.packetLossPct > 15.0) {
+    // 통신 상태 불안정을 작업자 HMI에 경고 알림 전송
+    triggerHmiWarning(carrierId, "WIRELESS_LATENCY_WARNING");
+  }
+
+
+  // [5단계] 물류 Carrier 위치 정보 업데이트 및 실시간 물류 추적 DB 동기화
+  updateCarrierLocation(carrierId, mappedZone.zoneId, calculatedLocation);
+
+  publishEvent("CARRIER_ZONE_CHANGED", { carrierId, zoneId: mappedZone.zoneId });
+
+}`
+  };
+  return codes[itemSlug] || "";
+}
+
+function getSmartManufacturingApiExample(conceptType, itemSlug) {
+  const apis = {
+    // 1. Lifecycles
+    "production": `// =================================================================
+// [생산 라이프사이클 - Production Lifecycle]
+// 생산 작업 착수 지시 및 Digital Thread 추적 시작 API
+// =================================================================
+POST /api/mesa-smart/lifecycles/production/orders/WO-2026-X01/start
+Content-Type: application/json
+Authorization: Bearer <JWT_TOKEN>
+{
+  "lotId": "LOT-20260522-001",           // 생산 시작할 대상 반제품/제품 Lot ID
+  "resourceId": "EQP-CNC-05",            // 투입하는 장비의 고유 식별 번호
+  "operatorId": "OPR-USER-2394",         // 작업을 착수시키는 조작자 ID
+  "recipeId": "REC-CNC-T5-REV1"          // 다운로드할 검증 완료된 레시피 ID
+}
+
+Response: 201 Created
+{
+  "success": true,
+  "digitalThreadId": "DTH-982938491",    // 이 Lot의 평생 이력을 추적할 디지털 스레드 ID
+  "startedState": "RUNNING",             // 전이 완료된 실행 상태 코드
+  "recipeDownloadStatus": "SUCCESS",     // 설비 레시피 전송 성공 여부
+  "timestamp": "2026-05-22T20:15:00Z"
+}`,
+    "production-asset": `// =================================================================
+// [생산 자산 라이프사이클 - Production Asset Lifecycle]
+// 자산 센서 계측 데이터 수집 및 상태 업데이트 API
+// =================================================================
+POST /api/mesa-smart/lifecycles/production-asset/assets/EQP-CNC-05/status-update
+Content-Type: application/json
+{
+  "accumulatedShots": 100050,            // 설비의 누적 타수 실시간 누적치
+  "temperature": 85.6,                   // 실시간 계측 모터 온도 (Celsius)
+  "vibration": 0.045,                    // 실시간 진동 가속도 (G)
+  "runState": "PRODUCING"                // 설비의 기계적 작동 상태
+}
+
+Response: 200 OK
+{
+  "assetId": "EQP-CNC-05",
+  "pmRequired": false,                   // PM 임계치(100,000타수) 기준 도달 여부
+  "calibrationValid": true,              // 교정 만료일 유효성 여부
+  "anomalyDetected": false,              // 센서 위험 임계치 분석 결과
+  "systemState": "ACTIVE"
+}`,
+    "product": `// =================================================================
+// [제품 라이프사이클 - Product Lifecycle]
+// 설계 변경 정보 전송 및 생산 진행 Lot 자동 영향도 분석 API
+// =================================================================
+POST /api/mesa-smart/lifecycles/product/products/PROD-CHIP-A/eco-apply
+Content-Type: application/json
+{
+  "ecoNo": "ECO-2026-9812",             // PLM으로부터 릴리스된 설계 변경 번호
+  "newRevision": "REV-C",                // 변경 적용할 신규 개정 번호
+  "changeType": "CRITICAL_SAFETY",       // 변경 등급 (CRITICAL_SAFETY: 강제 Hold 후 경로 변경)
+  "targetRouteId": "RTE-CHIP-A-C",       // 신규 공정 라우팅 ID
+  "targetRecipeId": "REC-CHIP-A-C"       // 신규 레시피 사양 ID
+}
+
+Response: 200 OK
+{
+  "ecoNo": "ECO-2026-9812",
+  "affectedLotsCount": 3,                // 이번 설계 변경에 영향을 받은 활성 Lot 수
+  "modifiedLots": [
+    {
+      "lotId": "LOT-CHIP-001",
+      "actionTaken": "FORCE_HOLD_FOR_REROUTE" // 처리 결과 (HOLD 및 경로 변경 완료)
+    },
+    {
+      "lotId": "LOT-CHIP-002",
+      "actionTaken": "FORCE_HOLD_FOR_REROUTE"
+    },
+    {
+      "lotId": "LOT-CHIP-003",
+      "actionTaken": "FORCE_HOLD_FOR_REROUTE"
+    }
+  ],
+  "appliedTime": "2026-05-22T20:16:00Z"
+}`,
+    "supply-chain": `// =================================================================
+// [공급망 라이프사이클 - Supply Chain Lifecycle]
+// 원자재 Lot 품질 검증 및 투입 스테이징 확인 API
+// =================================================================
+POST /api/mesa-smart/lifecycles/supply-chain/materials/LOT-MAT-STEEL-99/inspect-release
+Content-Type: application/json
+{
+  "inspectResult": "PASS",               // 수입 검사 판정 결과
+  "coaDocumentUrl": "http://dms.factory/coa/steel-99.pdf", // CoA 문서 저장 경로
+  "destinationAreaId": "AREA-STAGING-01" // 자재를 이동 적치시킬 생산 작업장 ID
+}
+
+Response: 200 OK
+{
+  "materialLotId": "LOT-MAT-STEEL-99",
+  "releasedStatus": "RELEASED",          // 품질 검사를 거쳐 사용가능(Released) 상태로 마크
+  "isHold": false,                       // 보류 여부
+  "currentLocation": "AREA-STAGING-01",  // 물리 이동 완료된 장소
+  "synchronizedToErp": true             // ERP 백플러시 연동 성공 여부
+}`,
+    "workforce": `// =================================================================
+// [인력 라이프사이클 - Workforce Lifecycle]
+// 작업자 자격 및 안전 교육 이수증 실시간 검증 API
+// =================================================================
+POST /api/mesa-smart/lifecycles/workforce/operators/OPR-USER-2394/verify-skill
+Content-Type: application/json
+{
+  "operationId": "OP-20-MILLING",        // 투입하려는 세부 공정 정의 ID
+  "resourceId": "EQP-CNC-05"             // 조작하려는 설비 고유 식별 번호
+}
+
+Response: 200 OK
+{
+  "operatorId": "OPR-USER-2394",
+  "skillGrade": "GRADE-A",               // 작업자의 자격 등급
+  "certified": true,                     // 자격 인증 상태 여부
+  "certificationExpiresAt": "2027-12-31T23:59:59Z", // 자격 유효 만료 기한
+  "safetyTrainingVerified": true,        // 위험 안전 보건 교육 이수 완료 여부
+  "laborDirectAllowed": true             // 생산 직접 투입 허용 여부
+}`,
+    "order-to-cash": `// =================================================================
+// [주문-현금화 라이프사이클 - Order-to-Cash Lifecycle]
+// 주문별 완제품 생산 완료 확인 및 최종 출하 품질 릴리스 API
+// =================================================================
+POST /api/mesa-smart/lifecycles/order-to-cash/orders/SO-2026-5591/atp-check
+Content-Type: application/json
+{
+  "productId": "PROD-CHIP-A",
+  "requiredQuantity": 5000,              // 주문 요청 수량
+  "dueDate": "2026-06-15T00:00:00Z"      // 희망 납기 일자
+}
+
+Response: 200 OK
+{
+  "success": true,
+  "atpCheck": "AVAILABLE",               // 약속 가능 납기 판단 상태 (생산 능력 및 자재 충분)
+  "promisedDate": "2026-06-12T00:00:00Z", // 생산 시뮬레이션을 거쳐 확정된 가능 납기
+  "currentWipProgressPercent": 100.0,    // 주문 Lot 생산 진척률
+  "finalQualityReleased": true          // 출하 전 CoA/CoC 등 품질 합격 릴리스 완료 여부
+}`,
+
+    // 2. Threads
+    "quality": `// =================================================================
+// [품질 스레드 - Quality Thread]
+// 공정 계측값 수집 및 SPC 규칙 위반 자동 홀드 처리 API
+// =================================================================
+POST /api/mesa-smart/threads/quality/inspections/measured
+Content-Type: application/json
+{
+  "lotId": "LOT-20260522-001",
+  "operationId": "OP-10-PRESS",
+  "parameterName": "Thickness_mm",        // 계측 항목 코드 (두께)
+  "measuredValue": 1.285                 // 실제 물리 측정값
+}
+
+Response: 200 OK
+{
+  "lotId": "LOT-20260522-001",
+  "inspectionResult": "NG",              // 규격 이탈(LSL 1.300)로 인한 NG 판정
+  "specLimits": { "lsl": 1.300, "usl": 1.400 },
+  "autoHoldExecuted": true,              // 물류 이동 자동 Lock 처리 여부
+  "nonconformanceId": "NC-8293849182",   // 발행된 부적합 보고서 ID
+  "notifiedTeams": ["QUALITY-ASSURANCE", "PRODUCTION-LINE-A"]
+}`,
+    "compliance": `// =================================================================
+// [컴플라이언스 스레드 - Compliance Thread]
+// 감사 추적(Audit Trail)용 위변조 불가 데이터 수정 기록 등록 API
+// =================================================================
+POST /api/mesa-smart/threads/compliance/audit-trails/log
+Content-Type: application/json
+{
+  "objectId": "LOT-20260522-001",
+  "action": "MANUAL_LOT_STATUS_FORCE_RELEASE", // 조작 행위 구분 코드
+  "beforeValue": "HOLD",
+  "afterValue": "RELEASED",
+  "operatorId": "OPR-USER-2394",
+  "reason": "부적합 위원회(MRB)의 Concession 특채 승인에 의거해 수동 해제함."
+}
+
+Response: 201 Created
+{
+  "success": true,
+  "auditId": "AUDT-9382948293",          // 생성된 보안 감사 로그 고유 식별 번호
+  "dataIntegrityStatus": "SECURE",       // 해시 위변조 방지 확인 여부
+  "loggedAt": "2026-05-22T20:16:30Z"
+}`,
+    "sustainability": `// =================================================================
+// [지속가능성 스레드 - Sustainability Thread]
+// 실시간 설비 전력 센서 텔레메트리 및 Lot 탄소 배출 배부 수신 API
+// =================================================================
+POST /api/mesa-smart/threads/sustainability/meters/reading
+Content-Type: application/json
+{
+  "meterId": "MTR-POWER-PRESS-03",
+  "resourceId": "EQP-PRESS-03",
+  "kwhDelta": 45.8,                      // 이번 측정 주기 동안 소모된 순수 전력량(kWh)
+  "durationSeconds": 300                 // 측정 시간 윈도우 (5분)
+}
+
+Response: 200 OK
+{
+  "meterId": "MTR-POWER-PRESS-03",
+  "allocatedLotsCount": 1,               // 전력 배부를 완료한 진행 Lot 수
+  "allocations": [
+    {
+      "lotId": "LOT-20260522-001",
+      "allocatedCarbonKg": 21.984        // 탄소 배출 계수 곱연산 완료된 Lot 지분 탄소 배출량
+    }
+  ],
+  "timestamp": "2026-05-22T20:17:00Z"
+}`,
+    "analytics": `// =================================================================
+// [분석 스레드 - Analytics Thread]
+// 공정 특징 데이터셋 생성 및 ML Anomaly 예측 수행 API
+// =================================================================
+POST /api/mesa-smart/threads/analytics/features/generate
+Content-Type: application/json
+{
+  "lotId": "LOT-20260522-001",
+  "features": {
+    "meanTemp": 245.8,                   // 가공 중 온도 평균 특징
+    "stdDevVibration": 0.012,            // 가공 중 진동 가속도 특징
+    "maxPressure": 420.5                 // 가공 중 최고 압력 특징
+  }
+}
+
+Response: 200 OK
+{
+  "lotId": "LOT-20260522-001",
+  "mlModelVersion": "ANOMALY-DETECT-V1.2",
+  "anomalyScore": 0.92,                  // 모델이 감지한 이상 가동 확률 지표
+  "systemAction": "FLAG_FOR_REVIEW",     // 이상 확률이 높아 품질/보전 엔지니어에 자동 알림
+  "timestamp": "2026-05-22T20:17:30Z"
+}`,
+    "security": `// =================================================================
+// [보안 스레드 - Security Thread]
+// OT 기기 제어 명령 승인 및 JWT 토큰 검증 API
+// =================================================================
+POST /api/mesa-smart/threads/security/access-control/authorize
+Content-Type: application/json
+Authorization: Bearer <TOKEN_JWT_OT>
+{
+  "resourceId": "EQP-CNC-05",
+  "commandType": "EMERGENCY_SHUTDOWN",   // 내리는 기계 제어 명령 유형
+  "operatorId": "OPR-USER-2394"
+}
+
+Response: 200 OK
+{
+  "authorized": true,
+  "operatorId": "OPR-USER-2394",
+  "commandTraceId": "SEC-CMD-9382948",   // 보안 감사를 위한 암호화 trace ID
+  "securityAuditStatus": "COMPLIANT",    // 보안 프로파일 준수 여부
+  "timestamp": "2026-05-22T20:18:00Z"
+}`,
+    "digital-twin-thread": `// =================================================================
+// [디지털 트윈/스레드 - Digital Twin / Thread]
+// 물리 설비 텔레메트리 수신 및 디지털 트윈 실시간 상태 동기화 API
+// =================================================================
+POST /api/mesa-smart/threads/digital-twin-thread/objects/sync
+Content-Type: application/json
+{
+  "physicalResourceId": "EQP-PRESS-03",
+  "machineState": "PRODUCING",           // 물리 설비 실시간 상태
+  "sensorMetrics": {
+    "temperature": 75.3,
+    "oilPressure": 12.4
+  },
+  "timestamp": "2026-05-22T20:18:30Z"
+}
+
+Response: 200 OK
+{
+  "twinObjectId": "TWN-EQP-PRESS-03",    // 매핑된 디지털 트윈 내 노드 ID
+  "stateSyncSuccess": true,              // 상태 가상 월드 매핑 성공 여부
+  "activeWipLotId": "LOT-20260522-001",  // 동적으로 연계된 가공 Lot 식별 정보
+  "webglRenderTriggered": true           // UI 3D 뷰포트 갱신 트리거 성공 여부
+}`,
+    "modeling-simulation": `// =================================================================
+// [모델링/시뮬레이션 스레드 - Modeling / Simulation]
+// 실시간 설비 모수 보정 및 가상 스케줄링 시뮬레이션 시나리오 실행 API
+// =================================================================
+POST /api/mesa-smart/threads/modeling-simulation/scenarios/run
+Content-Type: application/json
+{
+  "areaId": "AREA-ASSEMBLY-02",
+  "targetOrderVolume": 25000,            // 투입 가상 테스트 주문량
+  "simulationTimeHours": 24              // 시뮬레이션 예측 타임스탬프 범위
+}
+
+Response: 200 OK
+{
+  "scenarioId": "SIM-RUN-9384918",
+  "onTimeSuccessRatePercent": 94.2,      // 시뮬레이션 결과 납기 준수율 추정치
+  "predictedBottleneckResource": "EQP-ROBOT-02", // 예상되는 최대 병목 설비 코드
+  "averageLeadTimeMinutes": 32.5,        // Lot별 평균 리드타임 예측치
+  "status": "COMPLETED"
+}`,
+
+    // 3. Enabling Technologies
+    "iiot": `// =================================================================
+// [산업용 사물인터넷 - IIoT]
+// OPC-UA/MQTT IIoT 엣지 노드 수집 센서 데이터 전송 API
+// =================================================================
+POST /api/mesa-smart/technologies/iiot/telemetry/publish
+Content-Type: application/json
+{
+  "deviceId": "IIOT-NODE-EDGE-09",
+  "tagId": "OPCUA-TAG-TEMP-PRESS-03",
+  "value": 145.8,                        // 수집 필터링 가공된 센서 수치
+  "timestamp": "2026-05-22T20:19:00.123Z"
+}
+
+Response: 202 Accepted
+{
+  "success": true,
+  "sampleId": "SMPL-93829482938",
+  "edgeBufferedQueueSize": 0,            // 엣지 단말 큐의 미전송 잔량 (0: 단절 없음)
+  "telemetryQuality": "GOOD"
+}`,
+    "big-data": `// =================================================================
+// [빅데이터 - Big Data]
+// 고빈도 텔레메트리 원천 데이터 Lakehouse 수신 및 파티셔닝 적재 API
+// =================================================================
+POST /api/mesa-smart/technologies/big-data/pipelines/ingest
+Content-Type: application/json
+{
+  "sourceSystem": "IIOT_MQTT_BROKER",
+  "dataCount": 1000,                     // 배치 또는 스트리밍 데이터 레코드 벌크 수
+  "payloadBatchUrl": "s3://factory-raw/landing/20260522/batch-9932.json" // 원천 파일 경로
+}
+
+Response: 202 Accepted
+{
+  "ingestJobId": "INGEST-JOB-938294",
+  "targetPartitionPath": "year=2026/month=05/day=22", // 자동 파티셔닝된 물리적 저장 구역
+  "dataLineageVerified": true,           // 데이터 계보 연동 확인 여부
+  "pipelineStatus": "RUNNING"
+}`,
+    "ai-ml": `// =================================================================
+// [AI/ML]
+// AI 설비 예지보전 RUL 추론 및 추천 액션 실시간 획득 API
+// =================================================================
+POST /api/mesa-smart/technologies/ai-ml/predictions/infer
+Content-Type: application/json
+{
+  "equipmentId": "EQP-CNC-05",
+  "modelType": "PREDICTIVE_MAINTENANCE_RUL",
+  "features": {
+    "runTimeHours": 2450.0,
+    "meanTemperature": 85.6,
+    "maxVibrationLevel": 0.045
+  }
+}
+
+Response: 200 OK
+{
+  "predictionId": "PRD-9382948",
+  "modelName": "XGBoost-RUL-CNC-05",
+  "predictedRemainingUsefulLifeHours": 32.5, // AI 예측 설비 잔여 수명
+  "confidenceScore": 0.94,               // 추론 신뢰도
+  "recommendedAction": "PM_WORK_ORDER",  // AI 추천 액션 조치 코드
+  "autoActionExecuted": true             // 신뢰도 기준 90% 이상으로 자동 예방 정비 오더 발행 여부
+}`,
+    "vr-ar": `// =================================================================
+// [VR/AR]
+// 스마트 글래스 기반 조립 완료 사진 비전 AI 매칭 및 품질 증거 적재 API
+// =================================================================
+POST /api/mesa-smart/technologies/vr-ar/sessions/verify-step
+Content-Type: application/json
+{
+  "sessionId": "AR-SES-938294829",
+  "stepNo": 4,                           // 조립 단계 번호
+  "operatorAction": "COMPLETED",
+  "capturedFrameBase64": "data:image/jpeg;base64,/9j/4AAQSkZJRg..." // 스마트글라스 촬영 캡처 프레임
+}
+
+Response: 200 OK
+{
+  "sessionId": "AR-SES-938294829",
+  "stepNo": 4,
+  "visionMatchSuccess": true,            // 비전 AI 패턴 매칭 통과 여부
+  "deviationPercentage": 1.25,           // 조립 오차율
+  "evidenceStoredUrl": "https://storage.factory/ar-evidence/ses-938294829-step4.jpg", // 영구 증거 저장 URL
+  "nextStepAllowed": true                // HMI 글래스상 다음 단계 조립 해제 여부
+}`,
+    "edge-to-cloud": `// =================================================================
+// [엣지-클라우드 - Edge to Cloud]
+// 엣지 단말 실시간 압축 요약 데이터 클라우드 비동기 동기화 API
+// =================================================================
+POST /api/mesa-smart/technologies/edge-to-cloud/sync/flush
+Content-Type: application/json
+X-Idempotency-Key: 82938192-3849-11ed-a261-0242ac120002
+{
+  "edgeNodeId": "EDGE-NODE-ASSEMBLY-02",
+  "batchSequenceNo": 993829,
+  "summaryData": {
+    "producingTimeSeconds": 28800,
+    "goodPartsCount": 4200,
+    "rejectPartsCount": 12,
+    "oeePercent": 92.4
+  }
+}
+
+Response: 200 OK
+{
+  "syncSuccess": true,
+  "edgeNodeId": "EDGE-NODE-ASSEMBLY-02",
+  "purgedBufferMaxTimestamp": "2026-05-22T20:19:30Z", // 동기화 확인 완료되어 엣지 로컬에서 안심 비우기 처리할 기준 시각
+  "cloudModelVersionUpdateAvailable": false
+}`,
+    "blockchain": `// =================================================================
+// [블록체인 - Blockchain]
+// 완제품 및 원자재 성적 해시값 분산 원장 기록 및 스마트 컨트랙트 서명 API
+// =================================================================
+POST /api/mesa-smart/technologies/blockchain/ledger/transact
+Content-Type: application/json
+{
+  "lotId": "LOT-20260522-001",
+  "qualityResultId": "QRES-938294829",
+  "hashValue": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" // 품질 성적 위변조 대조용 해시값
+}
+
+Response: 201 Created
+{
+  "lotId": "LOT-20260522-001",
+  "blockchainTxHash": "0x98b3c434918239e248b12fcfcf9e8a7d7f98e98348918249", // 발행된 블록체인 트랜잭션 수신 해시
+  "blockNumber": 18293849,               // 원장 원본 적재 블록 고유 번호
+  "notarizedStatus": "CONFIRMED"         // 공증 상태 확정 여부
+}`,
+    "additive": `// =================================================================
+// [적층 제조 - Additive Manufacturing]
+// 3D 프린팅 층별 센서 수치 및 Layer 비전 판정 이력 등록 API
+// =================================================================
+POST /api/mesa-smart/technologies/additive/builds/start
+Content-Type: application/json
+{
+  "buildId": "BLD-3D-2026-X491",
+  "layerNo": 450,                        // 현재 적층 층 번호
+  "laserPowerWatts": 245.8,              // 레이저 파워 센서 실시간 계측값
+  "chamberTempCelsius": 75.3,            // 챔버 내부 온도
+  "layerVisionResult": "SUCCESS"         // 적층 표면 크랙 비전 검사 판정 결과
+}
+
+Response: 200 OK
+{
+  "buildId": "BLD-3D-2026-X491",
+  "layerNo": 450,
+  "interlockTriggered": false,           // 비정상 표면 크랙 없음으로 빌드 지속 허용
+  "estimatedRemainingTimeMinutes": 185.0,
+  "status": "BUILDING"
+}`,
+    "robotics": `// =================================================================
+// [로보틱스 - Robotics]
+// 로봇 AGV/AMR 이송 미션 발행 및 안전 인터락 검증 API
+// =================================================================
+POST /api/mesa-smart/technologies/robotics/missions/dispatch
+Content-Type: application/json
+{
+  "missionId": "MSN-AMR-992384",
+  "robotId": "AMR-ROBOT-02",
+  "sourceLocation": "AREA-STAGING-01",
+  "targetLocation": "AREA-PRESS-03",    // 목적지 작업장 ID
+  "payloadWeightKg": 120.5               // 이송 적치할 자재 무게 사양
+}
+
+Response: 201 Created
+{
+  "missionId": "MSN-AMR-992384",
+  "robotId": "AMR-ROBOT-02",
+  "routeStatus": "PATH_CLEAR",           // 물리적 안전 셔터/센서 인터락 통과 완료 여부
+  "batteryPercent": 85.5,                // 로봇 현재 배터리
+  "estimatedTravelTimeSeconds": 45,
+  "status": "DISPATCHED"
+}`,
+    "wireless": `// =================================================================
+// [무선 기술 - Wireless]
+// Carrier RTLS 삼각측량 신호 RSSI 수집 및 위치 식별 API
+// =================================================================
+POST /api/mesa-smart/technologies/wireless/assets/locate
+Content-Type: application/json
+{
+  "carrierId": "CARRIER-WIP-STEEL-09",
+  "rssiSignals": [
+    { "antennaId": "ANT-ZONE2-01", "rssi": -65.2 }, // 안테나 수신 감도 신호 세기
+    { "antennaId": "ANT-ZONE2-02", "rssi": -72.4 },
+    { "antennaId": "ANT-ZONE2-03", "rssi": -58.9 }
+  ]
+}
+
+Response: 200 OK
+{
+  "carrierId": "CARRIER-WIP-STEEL-09",
+  "triangulationCoordinates": { "x": 12.4, "y": 45.8, "z": 1.2 }, // 삼각 측량 연산 완료 좌표
+  "mappedFactoryZoneId": "ZONE-ASSEMBLY-B", // 매핑된 최종 물리 가용 적치장 ID
+  "networkSignalStatus": "STABLE",       // 무선 네트워크 전송 패킷 안정성 상태
+  "timestamp": "2026-05-22T20:20:00Z"
+}`
+  };
+  return apis[itemSlug] || "";
+}
   return String(value).replace(/[&<>"']/g, (ch) => ({
     "&": "&amp;",
     "<": "&lt;",
@@ -565,20 +1886,7 @@ function renderItem(concept, item) {
         <tbody>${rows(item.rules.map((rule, i) => [`BR-${String(i + 1).padStart(2, "0")}`, esc(rule), "Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현"]))}</tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed:
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else:
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox">${esc(getSmartManufacturingPseudocode(concept.type, item.slug))}</div>
     </section>
 
     <section id="ui" class="section">
@@ -589,9 +1897,7 @@ function renderItem(concept, item) {
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/${esc(concept.type)}/${esc(item.slug)}/events
-GET  /api/mesa-smart/${esc(concept.type)}/${esc(item.slug)}/current-state?objectId={id}
-GET  /api/mesa-smart/${esc(concept.type)}/${esc(item.slug)}/digital-thread?objectId={id}</div>
+      <div class="codebox">${esc(getSmartManufacturingApiExample(concept.type, item.slug))}</div>
     </section>
 
     <section id="test" class="section">

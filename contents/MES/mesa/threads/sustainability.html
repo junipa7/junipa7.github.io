@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,47 @@
 <tr><td>BR-03</td><td>지속가능성 KPI는 생산량과 품질 손실을 함께 고려합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [지속가능성 스레드 - Sustainability Thread]
+// [목적] 생산 가동 센서/계측기 전력/에너지 미터링 및 Lot별 탄소 배출량 실시간 배부 연산
+// =================================================================
+
+function calculateLotCarbonFootprint(lotId) {
+
+  // [1단계] 대상 Lot이 머물렀던 설비(Resource)와 공정 시간 슬롯 조회
+  // 제품 Lot의 생산 라우팅 계보를 훑어 어떤 설비에서 몇 분 동안 실시간 가열/가공 처리를 거쳤는지 기간을 도출합니다.
+  const lotExecution = getLotExecutionHistory(lotId);
+  let totalCarbonKg = 0.0;
+
+
+  // [2단계] 설비에 매핑된 실시간 에너지 계측기(Power Meter) 데이터 로드
+  for (const step of lotExecution) {
+    // 해당 가공 시간 윈도우(Time Window) 동안 센서로부터 실시간 수집된 실제 전력 사용량(kWh)을 구합니다.
+    const rawPowerKwh = getMeterEnergyConsumption(step.resourceId, step.startTime, step.endTime);
+    
+    
+    // [3단계] 국가 표준 전력 탄소 배출 계수(Carbon Emission Factor)를 적용하여 배출량 계산
+    // 에너지를 소비한 위치의 국가/지역 탄소 그리드 믹스를 곱해 이산화탄소 상당량(CO2e)을 환산합니다.
+    const carbonFactor = getCarbonEmissionFactor(&quot;ELECTRICITY&quot;);
+    const stepCarbon = rawPowerKwh * carbonFactor;
+    
+    
+    // [4단계] 동시 혼재 가공(Multi-Lot Campaign)인 경우, Lot 생산 중량 비율별 지분 분할 배부
+    // 용광로나 건조기 등 여러 Lot이 일괄 혼재되어 가공될 경우, 각 Lot의 투입 중량비를 계산하여 지분만큼 할당 배부합니다.
+    const lotWeightRatio = getLotWeightRatioInCampaign(step.campaignId, lotId);
+    const allocatedCarbon = stepCarbon * lotWeightRatio;
+    
+    totalCarbonKg += allocatedCarbon;
+  }
+
+
+  // [5단계] Lot 디지털 스레드 데이터에 최종 지속가능성 지표(Carbon Footprint) 바인딩
+  // 제품 단위별로 배부된 탄소 배출량 정보를 ESG 보고 시스템과 매칭시켜 공정 개선에 피드백합니다.
+  saveLotSustainabilityMetric(lotId, &quot;CO2e_KG&quot;, totalCarbonKg);
+
+  publishEvent(&quot;LOT_CARBON_FOOTPRINT_CALCULATED&quot;, { lotId, carbonKg: totalCarbonKg });
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +146,31 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/thread/sustainability/events
-GET  /api/mesa-smart/thread/sustainability/current-state?objectId={id}
-GET  /api/mesa-smart/thread/sustainability/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [지속가능성 스레드 - Sustainability Thread]
+// 실시간 설비 전력 센서 텔레메트리 및 Lot 탄소 배출 배부 수신 API
+// =================================================================
+POST /api/mesa-smart/threads/sustainability/meters/reading
+Content-Type: application/json
+{
+  &quot;meterId&quot;: &quot;MTR-POWER-PRESS-03&quot;,
+  &quot;resourceId&quot;: &quot;EQP-PRESS-03&quot;,
+  &quot;kwhDelta&quot;: 45.8,                      // 이번 측정 주기 동안 소모된 순수 전력량(kWh)
+  &quot;durationSeconds&quot;: 300                 // 측정 시간 윈도우 (5분)
+}
+
+Response: 200 OK
+{
+  &quot;meterId&quot;: &quot;MTR-POWER-PRESS-03&quot;,
+  &quot;allocatedLotsCount&quot;: 1,               // 전력 배부를 완료한 진행 Lot 수
+  &quot;allocations&quot;: [
+    {
+      &quot;lotId&quot;: &quot;LOT-20260522-001&quot;,
+      &quot;allocatedCarbonKg&quot;: 21.984        // 탄소 배출 계수 곱연산 완료된 Lot 지분 탄소 배출량
+    }
+  ],
+  &quot;timestamp&quot;: &quot;2026-05-22T20:17:00Z&quot;
+}</pre></div>
     </section>
 
     <section id="test" class="section">

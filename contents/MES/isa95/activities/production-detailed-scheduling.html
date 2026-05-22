@@ -39,10 +39,7 @@
         <div class="card"><strong>학생에게 설명하는 비유</strong><span>계획표가 있어도 지금 실행할 수 있는지, 필요한 조건이 맞는지, 실행 결과를 어떻게 기록할지 정하지 않으면 현장은 움직이지 않습니다. 이 activity는 그 판단 규칙을 담당합니다.</span></div>
       </div>
       <h3>현장 예시</h3>
-      <ul><li>작업 오더를 lot 단위로 분해</li>
-<li>설비와 recipe 검증 후 작업 시작</li>
-<li>생산 실적, scrap, rework 기록</li>
-<li>납기와 throughput 분석</li></ul>
+      <ul><li>작업 오더를 lot 단위로 분해</li><li>설비와 recipe 검증 후 작업 시작</li><li>생산 실적, scrap, rework 기록</li><li>납기와 throughput 분석</li></ul>
     </section>
 
     <section id="scope" class="section">
@@ -99,20 +96,67 @@
 <tr><td>BR-04</td><td>스케줄 변경 이력은 이전 계획과 새 계획을 모두 보존합니다.</td><td>Domain Service, Rule Engine, DB constraint, Workflow, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function handleIsa95Activity(command):
-  validateCorrelationId(command)
-  definition = loadOperationsDefinition(command.definitionId, command.revision)
-  capability = loadOperationsCapability(command.resourceScope, command.timeWindow)
-  current = loadCurrentState(command.objectId)
-  decision = evaluateRules(command, definition, capability, current)
-  saveRawCommand(command) // 원본 명령어 저장 (이력 추적 목적)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendActivityHistory(decision)
-      publishOperationsEvent(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <pre class="codebox"><code>// =================================================================
+// [교육용 실무 가이드] ANSI/ISA-95 Level 3 MOM Activity 핵심 트랜잭션 처리 로직
+// 본 로직은 설비, 자재, 인력 자원을 동적 제어하고, 실적을 ERP와 동기화하기 위한 
+// 분산 트랜잭션과 비즈니스 규칙 엔진의 핵심 흐름을 의사코드로 구현한 것입니다.
+// =================================================================
+function handleIsa95Activity(command) {
+    // [1단계: 요청의 무결성 및 멱등성 검증 (Idempotency Check)]
+    // - 분산 환경이나 네트워크 재시도로 인한 동일 메시지 중복 처리 방지.
+    // - 감사 추적(Audit Trail)을 위해 유일한 요청 식별자인 Correlation ID 유효성 검증.
+    validateCorrelationId(command);
+
+    // [2단계: 표준 기준정보 및 운영 규칙 정의 로드 (Operations Definition)]
+    // - ISA-95 모델의 &#x27;Operations Definition&#x27;(작업 정의)에서 버전 관리(Revision)되는 
+    //   작업 표준(Work Master), 소요 시간 제약, 공정 파라미터 규격을 DB에서 동적으로 조회.
+    // - 승인되지 않거나 유효기간이 지난 정의는 사용을 사전에 원천 차단.
+    const definition = loadOperationsDefinition(command.definitionId, command.revision);
+
+    // [3단계: 실시간 자원 수행 능력 및 가용성 분석 (Operations Capability)]
+    // - 작업이 배정될 구역(Area), 설비(Equipment), 작업 그룹의 실시간 능력 상태를 로드.
+    // - 단순히 &#x27;가용 상태(Available)&#x27;인지뿐 아니라, 작업 대상 제품군을 생산할 수 있는 
+    //   자격 요건(Qualification)과 정비 일정(PM Due)의 중첩 여부까지 종합 판단.
+    const capability = loadOperationsCapability(command.resourceScope, command.timeWindow);
+
+    // [4단계: 대상 물리 객체의 실시간 상태 및 위치 분석 (Physical Object State)]
+    // - 추적 대상인 Material Lot, Container, Batch, 또는 특정 설비(Work Unit)의 최신 상태 획득.
+    // - 이미 Hold 상태이거나 품질 검사 결과가 부적합인 자재가 투입되는 것을 방지하기 위함.
+    const current = loadCurrentState(command.objectId);
+
+    // [5단계: 비즈니스 규칙 엔진(Rules Engine) 기반의 실행 적격 여부 최종 평가]
+    // - 로드된 command, definition, capability, current의 결합 조건 분석.
+    // - 예: &quot;자격증이 있는 작업자가 배정되었는가?&quot;, &quot;자재의 유효일이 만료되지 않았는가?&quot; 등
+    // - 복합적인 Validation 규칙을 Rule Engine 또는 도메인 서비스를 통해 처리.
+    const decision = evaluateRules(command, definition, capability, current);
+
+    // [6단계: 트랜잭션 추적성 확보를 위한 원시 커맨드 로그 보존 (Command Logging)]
+    // - 모든 실시간 요청 데이터는 시스템의 원자성 확보 및 사후 감사(Audit)를 위해 
+    //   비휘발성 커맨드 로그 테이블에 즉시 영구 저장(Idempotency Key 매핑 포함).
+    saveRawCommand(command);
+
+    // [7단계: 평가 결과에 따른 상태 전이(State Transition) 및 결과 이벤트 발행]
+    if (decision.allowed) {
+        // ----------------- [정상 흐름 (Normal Flow)] -----------------
+        // 7-1. 물리 객체의 상태를 다음 타겟 상태로 전이 (예: READY -&gt; RUNNING)
+        updateCurrentState(decision);
+        
+        // 7-2. 이력 테이블(Genealogy/History Table)에 작업 내용 기록 (작업자, 시각, 사유 포함)
+        appendActivityHistory(decision);
+        
+        // 7-3. Level 4 ERP(실적 전송) 및 Level 2 SCADA/HMI(설비 기동 지시) 측에
+        //      비동기 아웃바운드 통합 이벤트 발행 (Message Queue 또는 Webhook)
+        publishOperationsEvent(decision);
+    } else {
+        // ----------------- [예외 흐름 (Exception Flow)] -----------------
+        // 7-4. 업무 규칙 위반 시 예외 인스턴스(Exception Record) 생성 및 로깅
+        createException(decision.reasonCode);
+        
+        // 7-5. 실시간 모니터링 경보(Alert) 발생 및 해당 교대조/보전 관리자에게 
+        //      푸시 알림 또는 메시징 전송을 통해 조기 개입 유도 (MES 알림 센터 연동)
+        notifyOwner(decision.ownerRole);
+    }
+}</code></pre>
     </section>
 
     <section id="ui" class="section">
@@ -124,9 +168,84 @@
         <div class="card"><strong>통합 API</strong><span>ERP, APS, SCADA, 데이터 플랫폼과 request/schedule/performance를 주고받습니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/isa95/production/detailed-scheduling/commands
-GET  /api/isa95/production/detailed-scheduling/current-state?objectId={id}
-GET  /api/isa95/production/detailed-scheduling/history?from={date}&to={date}</div>
+      <pre class="codebox"><code>// =================================================================
+// [실무 연동 설계] ANSI/ISA-95 Level 3 MOM Activity 통합 API 규격
+// 이 인터페이스 스펙은 상위 계획 시스템(Level 4 ERP) 및 하위 설비 제어망
+// (Level 2 SCADA)과의 실시간 데이터 교환을 위한 RESTful API 구현 가이드라인입니다.
+// =================================================================
+
+// -----------------------------------------------------------------
+// [API 1] 새로운 커맨드(작업 지시 기동, 상태 변경 제어, 긴급 중단 등) 수신
+// -----------------------------------------------------------------
+// - Method: POST (멱등성 보장을 위해 클라이언트가 발급한 commandId 필수 포함)
+// - Endpoint: /api/isa95/production/detailed-scheduling/commands
+// -----------------------------------------------------------------
+POST /api/isa95/production/detailed-scheduling/commands
+Content-Type: application/json
+X-Transaction-Id: TX-ISA95-9982741  // 시스템 추적용 글로벌 트랜잭션 고유 ID
+
+{
+    // 멱등성 검증용 고유 키 (동일 ID 재전송 시 중복 처리 방지 및 직전 결과 즉시 반환)
+    &quot;commandId&quot;: &quot;CMD-20260522-0001&quot;,
+    
+    // 대상이 되는 ISA-95 물리적 식별자 (Material Lot, Batch ID, 혹은 Equipment ID)
+    &quot;objectId&quot;: &quot;LOT-2026-A95&quot;,
+    
+    // 적용할 기준정보 마스터 ID (Operations Definition 식별자)
+    &quot;definitionId&quot;: &quot;DEF-OP-CELL-A&quot;,
+    
+    // 품질 및 엔지니어링 표준의 변경 여부를 통제하는 버전 마스터 정보
+    &quot;revision&quot;: &quot;REV-2.1.0&quot;,
+    
+    // 실행 제어 범위 및 물리 공장 영역 (Equipment Hierarchy 상의 Area/Work Center)
+    &quot;resourceScope&quot;: &quot;AREA-CLEAN-01&quot;,
+    
+    // 실행이 예정된 교대조 시간 프레임 (Shift A/B/C 등)
+    &quot;timeWindow&quot;: &quot;SHIFT-A&quot;,
+    
+    // ISO 8601 표준을 준수한 메시지 발행 절대 시각
+    &quot;timestamp&quot;: &quot;2026-05-22T20:10:00Z&quot;
+}
+
+// Response: 201 Created (커맨드가 성공적으로 대기 큐에 적재되고 처리가 시작됨)
+{
+    &quot;commandId&quot;: &quot;CMD-20260522-0001&quot;,
+    &quot;status&quot;: &quot;ACCEPTED&quot;,
+    &quot;queuedAt&quot;: &quot;2026-05-22T20:10:02Z&quot;,
+    &quot;estimatedProcessingMs&quot;: 120
+}
+
+// -----------------------------------------------------------------
+// [API 2] 특정 물리 객체(Lot, Batch 등)의 실시간 운영 상태 및 자격 가용성 조회
+// -----------------------------------------------------------------
+// - Method: GET
+// - Endpoint: /api/isa95/production/detailed-scheduling/current-state
+// -----------------------------------------------------------------
+GET  /api/isa95/production/detailed-scheduling/current-state?objectId=LOT-2026-A95
+Accept: application/json
+
+// Response: 200 OK
+{
+    &quot;objectId&quot;: &quot;LOT-2026-A95&quot;,
+    // 현재 공정 진행 상태 (ISA-95 표준 상태 기계 반영: WAITING, IN_PROGRESS, PAUSED, COMPLETED, HELD)
+    &quot;currentState&quot;: &quot;IN_PROGRESS&quot;,
+    // 마지막 상태 전이 변경 완료 절대 시간
+    &quot;lastUpdated&quot;: &quot;2026-05-22T20:12:30Z&quot;,
+    // 상태 변화를 지시한 실 사용자 및 관련 설비 ID 정보
+    &quot;context&quot;: {
+        &quot;operatorId&quot;: &quot;OP-USER-092&quot;,
+        &quot;workCenterId&quot;: &quot;WCTR-MACHINING-01&quot;
+    }
+}
+
+// -----------------------------------------------------------------
+// [API 3] 사후 감사 및 품질 Genealogy 추적을 위한 상태 전이 이력(Audit Trail) 조회
+// -----------------------------------------------------------------
+// - Method: GET
+// - Endpoint: /api/isa95/production/detailed-scheduling/history
+// - Query Parameters: from (조회 시작 시간), to (조회 종료 시간)
+// -----------------------------------------------------------------
+GET  /api/isa95/production/detailed-scheduling/history?from=2026-05-22T00:00:00Z&amp;to=2026-05-22T23:59:59Z</code></pre>
     </section>
 
     <section id="test" class="section">
@@ -150,11 +269,7 @@ GET  /api/isa95/production/detailed-scheduling/history?from={date}&to={date}</di
 
     <section id="ops" class="section">
       <h2>8. 운영 체크리스트</h2>
-      <ul><li>현재 상태와 마지막 정상 이벤트, 마지막 오류 이벤트를 한 화면에서 확인할 수 있다.</li>
-<li>모든 action은 실행자, 시각, 변경 전/후 상태, 사유, correlation id를 남긴다.</li>
-<li>외부 시스템 연동 실패 시 재처리 queue와 운영 알림이 있다.</li>
-<li>기준정보 변경 시 진행 중 작업과 미래 작업의 영향도를 조회할 수 있다.</li>
-<li>성과 분석과 추적 모델에서 이 activity의 이력을 재사용할 수 있다.</li></ul>
+      <ul><li>현재 상태와 마지막 정상 이벤트, 마지막 오류 이벤트를 한 화면에서 확인할 수 있다.</li><li>모든 action은 실행자, 시각, 변경 전/후 상태, 사유, correlation id를 남긴다.</li><li>외부 시스템 연동 실패 시 재처리 queue와 운영 알림이 있다.</li><li>기준정보 변경 시 진행 중 작업과 미래 작업의 영향도를 조회할 수 있다.</li><li>성과 분석과 추적 모델에서 이 activity의 이력을 재사용할 수 있다.</li></ul>
     </section>
   </main>
 </body>

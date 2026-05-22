@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,52 @@
 <tr><td>BR-03</td><td>수동 개입은 작업 이력에 남깁니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [로보틱스 - Robotics]
+// [목적] MES 작업 착수(Dispatch)와 로봇 AGV/AMR 이송 미션 간의 인터락 제어 및 상태 모니터링
+// =================================================================
+
+function dispatchRoboticMission(missionId, robotId, targetLocation) {
+
+  // [1단계] 지정 로봇의 물리 사양, 가동 상태 및 현재 배터리 잔량 실시간 확인
+  // 해당 로봇 에이전트의 현재 주행 가능 여부, Tool 충돌 위험 수준 및 자동 급속 충전 잔량이 충분한지 진단합니다.
+  const robot = loadRobotStatus(robotId);
+  
+  if (robot.status !== &quot;STANDBY&quot; || robot.batteryPercent &lt; 20.0) {
+    throw new Error(&quot;[미션 실패] 대상 로봇이 현재 가동 불능 상태이거나 배터리 잔량이 부족합니다.&quot;);
+  }
+
+
+  // [2단계] 로봇 이동 경로 상의 물리적 보안 구역 가동 상태(안전 셔터 개방 여부 등) 인터락 검증
+  // AMR 이동 경로에 레이저 안전 펜스가 작동 중이거나, AGV 통과용 자동 안전 셔터의 통신이 먹통인지 실시간 감지합니다.
+  const isRouteBlocked = checkPhysicalRouteInterlocks(robot.currentLocation, targetLocation);
+  if (isRouteBlocked) {
+    throw new Error(&quot;[이송 차단] 이동 경로 상에 안전 인터락(Safety Interlock)이 작동하여 물리적 주행이 불가능합니다.&quot;);
+  }
+
+
+  // [3단계] 로봇 제어 시스템(Fleet Management System)에 이송 미션 API 하달
+  // 플릿 매니저 서비스에 TCP/REST 커맨드를 쏘아 AMR 장치가 지정된 자재 적치 장소로 기동하도록 호출합니다.
+  const dispatchResponse = sendRobotCommand(robotId, &quot;EXECUTE_MISSION&quot;, {
+    missionId: missionId,
+    destination: targetLocation,
+    speedFactor: 1.0
+  });
+
+
+  // [4단계] 미션 수행 상태 실시간 추적 및 기록 개시
+  // 이송 중 장애물 회피 횟수 및 실시간 위치 좌표가 MES 물류 맵과 Digital Thread 계보 체인에 동기 바인딩됩니다.
+  if (dispatchResponse.success) {
+    updateOrderStatus(missionId, &quot;EXECUTING&quot;);
+    
+    publishEvent(&quot;ROBOT_MISSION_DISPATCHED&quot;, {
+      robotId: robotId,
+      missionId: missionId,
+      dispatchedAt: new Date().toISOString()
+    });
+  }
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +151,29 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/technology/robotics/events
-GET  /api/mesa-smart/technology/robotics/current-state?objectId={id}
-GET  /api/mesa-smart/technology/robotics/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [로보틱스 - Robotics]
+// 로봇 AGV/AMR 이송 미션 발행 및 안전 인터락 검증 API
+// =================================================================
+POST /api/mesa-smart/technologies/robotics/missions/dispatch
+Content-Type: application/json
+{
+  &quot;missionId&quot;: &quot;MSN-AMR-992384&quot;,
+  &quot;robotId&quot;: &quot;AMR-ROBOT-02&quot;,
+  &quot;sourceLocation&quot;: &quot;AREA-STAGING-01&quot;,
+  &quot;targetLocation&quot;: &quot;AREA-PRESS-03&quot;,    // 목적지 작업장 ID
+  &quot;payloadWeightKg&quot;: 120.5               // 이송 적치할 자재 무게 사양
+}
+
+Response: 201 Created
+{
+  &quot;missionId&quot;: &quot;MSN-AMR-992384&quot;,
+  &quot;robotId&quot;: &quot;AMR-ROBOT-02&quot;,
+  &quot;routeStatus&quot;: &quot;PATH_CLEAR&quot;,           // 물리적 안전 셔터/센서 인터락 통과 완료 여부
+  &quot;batteryPercent&quot;: 85.5,                // 로봇 현재 배터리
+  &quot;estimatedTravelTimeSeconds&quot;: 45,
+  &quot;status&quot;: &quot;DISPATCHED&quot;
+}</pre></div>
     </section>
 
     <section id="test" class="section">

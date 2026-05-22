@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,46 @@
 <tr><td>BR-03</td><td>AR 콘텐츠 변경은 문서 관리와 동기화합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [VR/AR]
+// [목적] 스마트 글래스 기반 정밀 조립 가이드 렌더링 및 작업 완료 증거 캡처/품질 이력 적재
+// =================================================================
+
+function handleArGuidedStep(sessionId, currentStepNo, operatorAction) {
+
+  // [1단계] 활성화된 AR 작업자 세션 정보 및 유효 SOP Revision 로드
+  // 조립 조작자가 안경을 구동한 세션 상태 정보와 현재 단계별 표준 SOP 도면 정보를 가져옵니다.
+  const session = loadArSession(sessionId);
+  const sopStep = getSopStepDefinition(session.operationId, currentStepNo);
+
+
+  // [2단계] 작업자가 조립을 완료한 순간, 스마트 글래스 카메라로부터 고해상도 이미지 실시간 캡처
+  // 작업자가 안경 컨트롤의 &#x27;조립확인&#x27;을 누르거나 음성 조작 시, 글래스 정면 카메라 이미지를 프레임 데이터로 확보합니다.
+  const capturedImageUri = captureArGlassCameraView(sessionId);
+
+
+  // [3단계] 비전 AI 모델을 사용하여 3D 형상 정합성 분석 및 조립 오류(Poka-Yoke) 자동 판별
+  // 조립된 부품들의 볼트 체결 개수나 체결 각도가 표준 형상 형상 견본과 완벽히 매칭하는지 비전 스캔을 돌립니다.
+  const visionVerification = verifyAssemblyViaAi(capturedImageUri, sopStep.3dTemplateId);
+  
+  if (!visionVerification.success) {
+    // 오류가 감지되면 작업자 글래스 화면에 빨간색 아웃라인 경고 및 시정 가이드 증강 표시
+    // 안경 뷰포트 영역에 실시간 3D 오버레이 기법으로 조립 미스 구간을 빨갛게 증강(Overlay) 가이드합니다.
+    renderArAlert(session.glassId, &quot;ASSEMBLY_ERROR_DETECTED&quot;, visionVerification.errorCoordinates);
+    return &quot;VERIFICATION_FAILED&quot;;
+  }
+
+
+  // [4단계] 성공적인 조립에 대해, 캡처 사진을 증거물로 디지털 스레드(Evidence Storage)에 영구 저장
+  // 비전 판독 통과된 검증 캡처 원본을 감사용 영구 저장소에 업로드하여 향후 조립 완벽성 입증용으로 사용합니다.
+  saveStepVerificationEvidence(sessionId, currentStepNo, {
+    imageUri: capturedImageUri,
+    verifiedAt: new Date().toISOString()
+  });
+
+  return &quot;STEP_COMPLETED&quot;;
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +145,28 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/technology/vr-ar/events
-GET  /api/mesa-smart/technology/vr-ar/current-state?objectId={id}
-GET  /api/mesa-smart/technology/vr-ar/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [VR/AR]
+// 스마트 글래스 기반 조립 완료 사진 비전 AI 매칭 및 품질 증거 적재 API
+// =================================================================
+POST /api/mesa-smart/technologies/vr-ar/sessions/verify-step
+Content-Type: application/json
+{
+  &quot;sessionId&quot;: &quot;AR-SES-938294829&quot;,
+  &quot;stepNo&quot;: 4,                           // 조립 단계 번호
+  &quot;operatorAction&quot;: &quot;COMPLETED&quot;,
+  &quot;capturedFrameBase64&quot;: &quot;data:image/jpeg;base64,/9j/4AAQSkZJRg...&quot; // 스마트글라스 촬영 캡처 프레임
+}
+
+Response: 200 OK
+{
+  &quot;sessionId&quot;: &quot;AR-SES-938294829&quot;,
+  &quot;stepNo&quot;: 4,
+  &quot;visionMatchSuccess&quot;: true,            // 비전 AI 패턴 매칭 통과 여부
+  &quot;deviationPercentage&quot;: 1.25,           // 조립 오차율
+  &quot;evidenceStoredUrl&quot;: &quot;https://storage.factory/ar-evidence/ses-938294829-step4.jpg&quot;, // 영구 증거 저장 URL
+  &quot;nextStepAllowed&quot;: true                // HMI 글래스상 다음 단계 조립 해제 여부
+}</pre></div>
     </section>
 
     <section id="test" class="section">

@@ -1,173 +1,88 @@
-<!doctype html>
-<html lang="ko">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>MESA MES - 문서 및 작업표준 관리</title>
-  <link rel="stylesheet" href="../mesa-page.css">
-  <style>
-    .lesson-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-    .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
-    .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
-    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
-    .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
-    .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
-    @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
-  </style>
-</head>
-<body>
-  <main class="page">
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MESA MES - 문서 및 작업표준 관리</title><link rel="stylesheet" href="../mesa-page.css"></head><body><main class="page">
     <div class="crumbs"><a href="../MESA_MES_Overview.html">MESA MES 기능</a> / 문서 및 작업표준 관리</div>
+    <section class="hero"><h1>문서 및 작업표준 관리</h1><p>Document Control 기반 MES 기능 정리</p><div class="chips"><span class="chip">MESA MES Function</span><span class="chip">ISA-95 Level 3</span></div></section>
+    <section class="section"><h2>목적</h2><p>작업 지시서, SOP, Recipe, 검사 기준서, 안전 지침, 도면의 최신 버전을 작업 시점에 맞게 제공하고 열람 이력을 남깁니다.</p><div class="note">문서 관리는 단순 게시판이 아닙니다. 작업이 시작되는 시점에 어떤 기준서가 유효했는지를 증명할 수 있어야 하며, 변경점이 Lot이나 Serial 이력과 연결되어야 합니다.</div></section>
+    <section class="section"><h2>기능 범위</h2><div class="grid"><div class="card"><strong>주요 범위</strong><ul><li>SOP/작업표준 버전 관리</li><li>작업별 문서 연결</li><li>전자 서명/승인</li><li>Recipe와 문서 동기화</li><li>개정 이력 추적</li></ul></div><div class="card"><strong>입력 정보</strong><ul><li>PLM/문서관리 시스템</li><li>공정 라우팅</li><li>제품/공정 변경 통보</li><li>품질 기준</li><li>EHS 문서</li></ul></div><div class="card"><strong>출력 정보</strong><ul><li>작업 문서 표시</li><li>문서 열람 이력</li><li>개정 적용 이력</li><li>전자 승인 기록</li><li>작업 기준 위반 알림</li></ul></div></div></section>
+    <section class="section"><h2>업무 DFD</h2><div class="diagram"><svg viewBox="0 0 1005 164" aria-label="MES DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="36" y="44" width="148" height="76"></rect><text x="110" y="76" text-anchor="middle">PLM/DMS</text><text class="tiny" x="110" y="100" text-anchor="middle">Input</text></g><g class="node"><rect x="216" y="44" width="148" height="76"></rect><text x="290" y="76" text-anchor="middle">MES Document Binding</text><text class="tiny" x="290" y="100" text-anchor="middle">Process</text></g><g class="node"><rect x="396" y="44" width="148" height="76"></rect><text x="470" y="76" text-anchor="middle">Operation Start</text><text class="tiny" x="470" y="100" text-anchor="middle">Process</text></g><g class="node"><rect x="576" y="44" width="148" height="76"></rect><text x="650" y="76" text-anchor="middle">Operator View</text><text class="tiny" x="650" y="100" text-anchor="middle">Process</text></g><g class="node"><rect x="756" y="44" width="148" height="76"></rect><text x="830" y="76" text-anchor="middle">Audit Log</text><text class="tiny" x="830" y="100" text-anchor="middle">Output</text></g><path class="arrow" d="M184 82 H216"></path><path class="arrow" d="M364 82 H396"></path><path class="arrow" d="M544 82 H576"></path><path class="arrow" d="M724 82 H756"></path></svg></div></section>
+    <section class="section"><h2>처리 로직 및 API 설계</h2>
+      <h3>핵심 의사코드</h3>
+      <div class="codebox"><pre>// =================================================================
+// 4. 문서 및 작업표준 관리 (Document Control)
+// =================================================================
+// [목적] 규제 산업(제약, 반도체 등) 및 정밀 제조 공정에서 작업자 HMI 화면에 최신 SOP(작업표준서),
+//        엔지니어링 변경 고시(ECN) 도면을 자동으로 실시간 바인딩하고 감사 추적(Audit Trail)용 열람 로그를 생성합니다.
+// =================================================================
 
-    <section class="hero">
-      <h1>문서 및 작업표준 관리</h1>
-      <p>Document Control. 작업자가 현장에서 사용하는 SOP, 작업지시서, 검사 기준서, recipe 변경 지침, 안전 문서가 올바른 버전인지 관리하는 기능입니다.</p>
-      <div class="chips">
-        <span class="chip">MESA MES Function</span>
-        <span class="chip">ISA-95 Level 3</span>
-        <span class="chip">교육용 상세 문서</span>
-      </div>
-    </section>
+function bindAndDisplayDocument(workOrderId, operationId, operatorId) {
+    
+    // [1단계] 대상 세부 공정(Operation) 및 제조 품목에 매핑되어 있는 필수 유효 표준 문서 규격 로드
+    // 기준정보 관리 모듈에서 해당 작업 절차상 요구하는 도면, SOP 문서 정보 매핑 테이블을 조회합니다.
+    const requiredDocs = loadRequiredDocumentMapping(operationId);
+    
+    const displayList = [];
+    
+    
+    // [2단계] 각 필수 문서 사양의 최신 개정본(Revision) 및 승인/유효성 만료일자 대조
+    // 유효하지 않거나 폐기된 옛날 표준서가 작업장 단말에 뜨지 않도록 완벽히 검증 차단합니다.
+    for (const doc of requiredDocs) {
+        
+        // PLM/문서관리 시스템(DMS) 인터페이스를 통해 현재 유효(Effective) 상태인 Revision을 가져옵니다.
+        const activeRevision = getActiveDocumentRevision(doc.documentId);
+        
+        if (!activeRevision) {
+            throw new Error(`[작업 표준 위반] 필수 바인딩 문서 [${doc.documentId}]의 유효한 승인 버전이 부재합니다.`);
+        }
+        
+        
+        // [3단계] 규정 준수 감사 추적(Audit Trail)을 위해 작업자의 문서 열람 로그 즉시 영구 적재
+        // 향후 품질 불량 검토 시, 작업자가 실제 올바른 버전의 도면을 확인하고 조립했는지 입증하는 규제 필수 데이터입니다.
+        const viewLog = {
+            logId: generateUniqueId(&quot;VLOG&quot;),         // 감사 로그 고유 식별 번호
+            documentId: doc.documentId,             // 열람된 문서 ID
+            revision: activeRevision.revision,       // 열람 시점의 문서 개정 버전 번호
+            workOrderId: workOrderId,               // 작업이 진행 중이던 생산 Lot/오더 ID
+            operatorId: operatorId,                 // 열람을 실행한 작업자 계정 ID
+            viewedAt: new Date().toISOString()       // 정확한 열람 시각 타임스탬프
+        };
+        
+        saveDocumentViewLog(viewLog);
+        
+        
+        // 3-2. 검증이 통과된 최신 활성 문서만 리스트에 추가
+        displayList.push({
+            documentId: doc.documentId,
+            title: doc.title,
+            revision: activeRevision.revision,
+            fileUrl: activeRevision.fileUrl
+        });
+        
+    }
+    
+    
+    // [4단계] 현장 HMI 및 키오스크 시스템 단말 화면에 PDF SOP 뷰어 레이아웃 호출 및 강제 렌더링
+    // 작업자가 별도로 문서를 수동 검색할 필요 없이, 공정 시작과 동시에 화면에 문서를 띄워 가독성을 높입니다.
+    renderSopViewer(displayList);
+    
+}</pre></div>
+      <h3>API 설계 예시</h3>
+      <div class="codebox"><pre>// =================================================================
+// MESA 작업 시작 전 필수 SOP 문서 바인딩 및 URL 획득 API
+// =================================================================
+GET /api/mesa/documents/bind-active?workOrderId=WO-2026-0001&amp;operationId=OP-30-WELD&amp;operatorId=OPR-9932
 
-    <section class="section">
-      <h2>학습 목표</h2>
-      <div class="lesson-index">
-        <a href="#concept">1. 기능의 목적</a>
-        <a href="#scope">2. 기능 범위</a>
-        <a href="#dfd">3. 업무 DFD</a>
-        <a href="#model">4. 데이터 모델</a>
-        <a href="#logic">5. 처리 로직</a>
-        <a href="#ui">6. 화면/API</a>
-        <a href="#test">7. 테스트</a>
-        <a href="#ops">8. 운영 체크</a>
-      </div>
-      <div class="callout">이 문서는 MESA MES 기능 모델을 학생과 개발자가 이해하기 쉽도록 재구성한 교육용 해설입니다. 실제 프로젝트에서는 회사의 MOM/MES 표준, ISA-95 모델, 고객 요구사항, 현장 운영 절차를 함께 확인해야 합니다.</div>
-      <p><strong>핵심 질문:</strong> 이 기능은 현장에서 어떤 의사결정을 자동화하거나 표준화하는가? 어떤 입력을 받아 어떤 상태와 이력을 만들며, 다른 MES 기능에 어떤 결과를 넘기는가?</p>
+Response: 200 OK
+{
+    &quot;boundDocuments&quot;: [
+        {
+            &quot;documentId&quot;: &quot;SOP-WELD-30&quot;,
+            &quot;title&quot;: &quot;정밀 용접 공정 표준 작업지도서&quot;,
+            &quot;revision&quot;: &quot;REV-3.2&quot;,
+            &quot;viewLogId&quot;: &quot;VLOG-93829482&quot;,
+            &quot;fileUrl&quot;: &quot;https://dms.factory.internal/sop/sop-weld-30-rev3.2.pdf&quot;
+        }
+    ]
+}</pre></div>
     </section>
-
-    <section id="concept" class="section">
-      <h2>1. 기능의 목적과 현장 배경</h2>
-      <p>작업자가 현장에서 사용하는 SOP, 작업지시서, 검사 기준서, recipe 변경 지침, 안전 문서가 올바른 버전인지 관리하는 기능입니다.</p>
-      <div class="two-col">
-        <div class="card"><strong>학생에게 설명하는 비유</strong><span>시험을 볼 때 학생들이 서로 다른 버전의 문제지를 받으면 안 되는 것처럼, 생산 현장에서도 작업자는 현재 승인된 문서만 봐야 합니다.</span></div>
-        <div class="card"><strong>개발자 관점</strong><span>이 기능은 단순 입력 화면이 아니라 기준정보, 현장 이벤트, 상태 전이, 권한, 감사 이력이 함께 움직이는 업무 서비스입니다. 따라서 DB, API, 화면을 한 덩어리로 설계해야 합니다.</span></div>
-      </div>
-      <p>MES는 ERP의 계획을 현장 실행으로 바꾸는 Level 3 시스템입니다. 문서 및 작업표준 관리 기능은 계획과 실제 사이의 차이를 줄이고, 작업자가 같은 기준으로 판단하도록 만드는 역할을 합니다.</p>
-    </section>
-
-    <section id="scope" class="section">
-      <h2>2. 기능 범위</h2>
-      <p>아래 범위는 프로젝트에서 요구사항을 나눌 때 사용할 수 있는 기본 단위입니다. 각 항목은 화면, API, 권한, 이력, 테스트 케이스로 이어져야 합니다.</p>
-      <table>
-        <thead><tr><th>세부 기능</th><th>설명</th><th>구현 산출물</th></tr></thead>
-        <tbody><tr><td><strong>문서 버전</strong></td><td>문서번호, revision, effective date, obsolete 상태를 관리합니다.</td><td>화면/서비스/API/이력 테이블/권한 정책</td></tr>
-<tr><td><strong>승인 워크플로</strong></td><td>작성, 검토, 승인, 배포, 폐기 과정을 추적합니다.</td><td>화면/서비스/API/이력 테이블/권한 정책</td></tr>
-<tr><td><strong>작업 연결</strong></td><td>제품, 공정, 설비, 고객 조건에 맞는 문서를 작업 화면에 연결합니다.</td><td>화면/서비스/API/이력 테이블/권한 정책</td></tr>
-<tr><td><strong>교육/숙련</strong></td><td>작업자가 새 문서를 열람하거나 교육받았는지 확인합니다.</td><td>화면/서비스/API/이력 테이블/권한 정책</td></tr></tbody>
-      </table>
-    </section>
-
-    <section id="dfd" class="section">
-      <h2>3. 업무 DFD</h2>
-      <div class="diagram"><svg viewBox="0 0 1005 164" aria-label="MES DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="36" y="44" width="148" height="76"></rect><text x="110" y="75" text-anchor="middle">문서 작성/개정</text><text class="tiny" x="110" y="100" text-anchor="middle">Input</text></g><path class="arrow" d="M184 82 H216"></path><g class="node"><rect x="221" y="44" width="148" height="76"></rect><text x="295" y="75" text-anchor="middle">검토 및 승인</text><text class="tiny" x="295" y="100" text-anchor="middle">Process</text></g><path class="arrow" d="M369 82 H401"></path><g class="node"><rect x="406" y="44" width="148" height="76"></rect><text x="480" y="75" text-anchor="middle">유효 버전 배포</text><text class="tiny" x="480" y="100" text-anchor="middle">Process</text></g><path class="arrow" d="M554 82 H586"></path><g class="node"><rect x="591" y="44" width="148" height="76"></rect><text x="665" y="75" text-anchor="middle">작업 화면 표시</text><text class="tiny" x="665" y="100" text-anchor="middle">Process</text></g><path class="arrow" d="M739 82 H771"></path><g class="node"><rect x="776" y="44" width="148" height="76"></rect><text x="850" y="75" text-anchor="middle">열람/준수 이력</text><text class="tiny" x="850" y="100" text-anchor="middle">Output</text></g></svg></div>
-      <p style="margin-top:14px">DFD는 프로그램 구조를 잡는 데 매우 유용합니다. 각 단계는 독립 서비스가 될 수도 있고, 하나의 transaction 안에서 처리되는 내부 단계가 될 수도 있습니다.</p>
-      <table>
-        <thead><tr><th>단계</th><th>업무 의미</th><th>저장/검증 포인트</th></tr></thead>
-        <tbody><tr><td><strong>1. 문서 작성/개정</strong></td><td>계획, 현장 이벤트, 기준정보처럼 기능을 시작시키는 입력입니다.</td><td>입력 원천, 수신 시각, 기준정보 버전을 남깁니다.</td></tr>
-<tr><td><strong>2. 검토 및 승인</strong></td><td>MES가 검증, 판단, 저장, 상태 전이를 수행하는 핵심 처리 단계입니다.</td><td>상태 변경 이력, 오류 사유, 담당자 또는 시스템 ID를 남깁니다.</td></tr>
-<tr><td><strong>3. 유효 버전 배포</strong></td><td>MES가 검증, 판단, 저장, 상태 전이를 수행하는 핵심 처리 단계입니다.</td><td>상태 변경 이력, 오류 사유, 담당자 또는 시스템 ID를 남깁니다.</td></tr>
-<tr><td><strong>4. 작업 화면 표시</strong></td><td>MES가 검증, 판단, 저장, 상태 전이를 수행하는 핵심 처리 단계입니다.</td><td>상태 변경 이력, 오류 사유, 담당자 또는 시스템 ID를 남깁니다.</td></tr>
-<tr><td><strong>5. 열람/준수 이력</strong></td><td>다른 MES 기능, ERP, 품질, KPI 화면으로 전달되는 결과입니다.</td><td>상태 변경 이력, 오류 사유, 담당자 또는 시스템 ID를 남깁니다.</td></tr></tbody>
-      </table>
-    </section>
-
-    <section id="model" class="section">
-      <h2>4. 권장 데이터 모델</h2>
-      <p>MES 데이터 모델은 현재 상태와 이력을 분리하는 것이 중요합니다. 현재 상태는 작업자 화면과 제어 판단에 쓰이고, 이력은 추적, 품질, KPI, 감사에 사용됩니다.</p>
-      <table>
-        <thead><tr><th>테이블</th><th>주요 컬럼</th><th>설계 이유</th></tr></thead>
-        <tbody><tr><td><strong>controlled_document</strong></td><td><code>document_id, doc_no, title, revision, status, effective_from, obsolete_at</code></td><td>업무 상태, 기준정보, 실행 이력, 감사 추적을 분리해 관리하기 위한 기본 구조입니다.</td></tr>
-<tr><td><strong>document_approval</strong></td><td><code>approval_id, document_id, step_name, approver_id, result, approved_at</code></td><td>업무 상태, 기준정보, 실행 이력, 감사 추적을 분리해 관리하기 위한 기본 구조입니다.</td></tr>
-<tr><td><strong>document_binding</strong></td><td><code>binding_id, document_id, product_id, operation_id, resource_id, required_flag</code></td><td>업무 상태, 기준정보, 실행 이력, 감사 추적을 분리해 관리하기 위한 기본 구조입니다.</td></tr>
-<tr><td><strong>document_acknowledgement</strong></td><td><code>ack_id, document_id, person_id, acknowledged_at, training_required</code></td><td>업무 상태, 기준정보, 실행 이력, 감사 추적을 분리해 관리하기 위한 기본 구조입니다.</td></tr></tbody>
-      </table>
-      <h3>공통 ERD 원칙</h3>
-      <ul><li>work_order_id, lot_id, operation_id, resource_id, person_id는 MES 기능을 연결하는 대표 키입니다.</li>
-<li>기준정보는 revision 또는 effective date를 가져야 과거 이력을 당시 기준으로 해석할 수 있습니다.</li>
-<li>작업자가 바꿀 수 있는 값은 변경 전/후와 변경 사유를 남깁니다.</li>
-<li>현장 이벤트는 나중에 재처리할 수 있도록 원본 payload나 source event id를 보존합니다.</li></ul>
-    </section>
-
-    <section id="logic" class="section">
-      <h2>5. 처리 로직과 업무 규칙</h2>
-      <p>아래 규칙은 이 기능을 구현할 때 반드시 코드나 설정으로 표현되어야 합니다. 회의록에만 남아 있으면 운영 중 예외가 반복됩니다.</p>
-      <table>
-        <thead><tr><th>번호</th><th>업무 규칙</th><th>시스템 반영 방식</th></tr></thead>
-        <tbody><tr><td>BR-01</td><td>작업 시작 시점에는 effective 상태의 문서만 표시합니다.</td><td>Domain Service 검증, Rule Engine, DB constraint, 또는 승인 workflow로 구현</td></tr>
-<tr><td>BR-02</td><td>공정 변경이 승인되기 전에는 새 문서를 현장에 배포하지 않습니다.</td><td>Domain Service 검증, Rule Engine, DB constraint, 또는 승인 workflow로 구현</td></tr>
-<tr><td>BR-03</td><td>중요 문서 변경 후에는 작업자 열람 또는 교육 확인을 시작 조건에 포함할 수 있습니다.</td><td>Domain Service 검증, Rule Engine, DB constraint, 또는 승인 workflow로 구현</td></tr>
-<tr><td>BR-04</td><td>폐기된 문서는 검색은 가능하되 작업 화면에서는 선택할 수 없어야 합니다.</td><td>Domain Service 검증, Rule Engine, DB constraint, 또는 승인 workflow로 구현</td></tr></tbody>
-      </table>
-      <h3>의사코드</h3>
-      <div class="codebox">function executeMesaFunction(command): // MESA 기능 실행 진입점
-  validateRequiredKeys(command) // 필수 파라미터 검증
-  master = loadMasterData(command.productId, command.operationId) // 기준 정보(제품, 공정 등) 조회
-  current = loadCurrentShopfloorState(command.lotId, command.resourceId) // 현장 상태(Lot, 설비 등) 확인
-  decision = evaluateBusinessRules(command, master, current) // 비즈니스 룰 및 제약 조건 검토
-  saveRawCommand(command) // 원본 명령어 저장 (이력 추적 목적)
-  if decision.allowed: // 조건 만족 시
-      applyStateTransition(decision) // 상태 변경 적용
-      appendHistory(decision) // 처리 이력 추가
-      publishMesEvent(decision) // 타 시스템으로 MES 이벤트 발행
-  else: // 조건 불만족 시
-      createException(decision.reason)
-      notifyResponsibleRole(decision.ownerRole)</div>
-    </section>
-
-    <section id="ui" class="section">
-      <h2>6. 화면과 API 설계</h2>
-      <p>현장 MES 화면은 설명서가 아니라 작업 도구여야 합니다. 작업자가 다음 행동을 바로 선택할 수 있게 현재 상태, 가능 작업, 차단 사유, 관련 문서를 함께 보여줘야 합니다.</p>
-      <div class="grid">
-        <div class="card"><strong>현장 작업 화면</strong><span>현재 lot/작업/자원 상태, 시작 가능 여부, 차단 사유, 다음 action 버튼을 제공합니다.</span></div>
-        <div class="card"><strong>관리자 화면</strong><span>기준정보, 규칙, 우선순위, 예외 승인, 변경 이력을 관리합니다.</span></div>
-        <div class="card"><strong>연동 API</strong><span>ERP, APS, 설비, 품질, KPI 시스템과 이벤트 기반으로 데이터를 주고받습니다.</span></div>
-      </div>
-      <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa/document-control/commands // 기능 수행 요청 API
-GET  /api/mesa/document-control/current-state?lotId={lotId} // 현재 상태 조회 API
-GET  /api/mesa/document-control/history?from={date}&to={date} // 과거 이력 조회 API</div>
-    </section>
-
-    <section id="test" class="section">
-      <h2>7. 테스트 시나리오</h2>
-      <p>MES 기능 테스트는 정상 등록 테스트만으로 부족합니다. 현장에서는 지연 이벤트, 잘못된 기준정보, 수동 변경, 권한 부족, 설비 장애가 자주 발생하므로 예외 시나리오가 더 중요합니다.</p>
-      <table>
-        <thead><tr><th>테스트 ID</th><th>시나리오</th><th>기대 결과</th></tr></thead>
-        <tbody><tr><td>TC-01</td><td>승인 전 문서 배포 차단</td><td>상태, 이력, 알림, 권한, 외부 연동 결과가 설계와 일치해야 합니다.</td></tr>
-<tr><td>TC-02</td><td>유효일 이후 새 revision 표시</td><td>상태, 이력, 알림, 권한, 외부 연동 결과가 설계와 일치해야 합니다.</td></tr>
-<tr><td>TC-03</td><td>작업자 미열람 시 시작 경고</td><td>상태, 이력, 알림, 권한, 외부 연동 결과가 설계와 일치해야 합니다.</td></tr>
-<tr><td>TC-04</td><td>obsolete 문서 선택 차단</td><td>상태, 이력, 알림, 권한, 외부 연동 결과가 설계와 일치해야 합니다.</td></tr></tbody>
-      </table>
-      <h3>추가로 확인할 위험</h3>
-      <div>
-        <span class="badge">기준정보 revision 불일치</span>
-        <span class="badge">수동 변경 감사 누락</span>
-        <span class="badge">중복 이벤트 처리</span>
-        <span class="badge">권한 없는 승인</span>
-        <span class="badge">ERP/MES 상태 불일치</span>
-      </div>
-    </section>
-
-    <section id="ops" class="section">
-      <h2>8. 운영 체크리스트</h2>
-      <p>운영 단계에서는 기능이 동작하는지보다, 문제가 생겼을 때 원인을 빠르게 찾을 수 있는지가 중요합니다. 아래 항목은 Go-Live 전에 반드시 확인하는 편이 좋습니다.</p>
-      <ul><li>현재 상태 화면에서 lot, operation, resource, person, hold 여부를 한 번에 확인할 수 있다.</li>
-<li>모든 주요 action은 실행자, 실행 시각, 변경 전/후 상태, 사유 코드를 남긴다.</li>
-<li>외부 시스템 연동 실패 시 재처리 queue와 운영 알림이 있다.</li>
-<li>기준정보 변경은 승인, 유효일, revision을 통해 통제된다.</li>
-<li>KPI 또는 추적 기능에서 이 기능의 실행 이력을 재사용할 수 있다.</li></ul>
-    </section>
-  </main>
-</body>
-</html>
+    <section class="section"><h2>권장 데이터 구성</h2><table><thead><tr><th>테이블</th><th>주요 컬럼</th></tr></thead><tbody><tr><td><strong>document_master</strong></td><td>document_id, document_type, title, current_revision, owner_dept</td></tr><tr><td><strong>document_revision</strong></td><td>document_id, revision, effective_from, effective_to, approval_status, file_url</td></tr><tr><td><strong>operation_document</strong></td><td>operation_id, product_id, document_id, required_flag</td></tr><tr><td><strong>document_view_log</strong></td><td>document_id, revision, work_order_id, viewer_id, viewed_at</td></tr></tbody></table></section>
+    <section class="section"><h2>구현/운영 체크포인트</h2><div class="grid"><div class="card"><strong>기준정보</strong><span>ERP, PLM, 설비 기준정보와 키 체계를 맞추고 변경 이력을 남깁니다.</span></div><div class="card"><strong>현장 실행</strong><span>작업자가 실제로 쓰는 화면, 스캔, 승인, 예외 처리 흐름을 우선 설계합니다.</span></div><div class="card"><strong>감사 추적</strong><span>누가, 언제, 어떤 기준으로 실행/변경/승인했는지 추적 가능해야 합니다.</span></div></div></section>
+    </main></body></html>

@@ -416,20 +416,42 @@ function renderActivity(domain, activity) {
         <tbody>${rows(activity.rules.map((rule, i) => [`BR-${String(i + 1).padStart(2, "0")}`, esc(rule), "Domain Service, Rule Engine, DB constraint, Workflow, Integration Contract로 구현"]))}</tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function handleIsa95Activity(command):
-  validateCorrelationId(command)
-  definition = loadOperationsDefinition(command.definitionId, command.revision)
-  capability = loadOperationsCapability(command.resourceScope, command.timeWindow)
-  current = loadCurrentState(command.objectId)
-  decision = evaluateRules(command, definition, capability, current)
-  saveRawCommand(command)
-  if decision.allowed:
-      updateCurrentState(decision)
-      appendActivityHistory(decision)
-      publishOperationsEvent(decision)
-  else:
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox">// =================================================================
+// ANSI/ISA-95 Level 3 MOM Activity 핵심 트랜잭션 처리 로직
+// =================================================================
+function handleIsa95Activity(command) {
+    // 1. 중복 요청 방지 및 감사 추적을 위한 고유 요청 ID(Correlation ID) 검증
+    validateCorrelationId(command);
+
+    // 2. 실행 기준이 되는 표준 정의 및 규칙(Operations Definition) 버전 정보 로드
+    const definition = loadOperationsDefinition(command.definitionId, command.revision);
+
+    // 3. 대상 공정 영역 및 가용 시간 범위 내의 자원 수행 능력(Capability) 상태 로드
+    const capability = loadOperationsCapability(command.resourceScope, command.timeWindow);
+
+    // 4. 추적 대상 물리 객체(Lot, Batch, Equipment 등)의 현재 상태 정보 획득
+    const current = loadCurrentState(command.objectId);
+
+    // 5. 비즈니스 규칙(BR) 및 적합성 조건 엔진을 통해 실행 적격 여부 최종 평가
+    const decision = evaluateRules(command, definition, capability, current);
+
+    // 6. 트랜잭션 추적 및 사후 감사를 위한 원시 커맨드 로그 영구 저장
+    saveRawCommand(command);
+
+    // 7. 평가 결과에 따른 상태 전이 및 이벤트 발행 처리
+    if (decision.allowed) {
+        // [정상 흐름]: 적격성 검증 통과 시 상태 전이 및 이력 기록
+        updateCurrentState(decision);
+        appendActivityHistory(decision);
+        
+        // 타 계층(Level 4 ERP 또는 Level 2 SCADA) 및 타 도메인에 비동기 실적 이벤트 발행
+        publishOperationsEvent(decision);
+    } else {
+        // [예외 흐름]: 규칙 위반 시 예외 개체 생성 및 담당 교대조/관리자 알림
+        createException(decision.reasonCode);
+        notifyOwner(decision.ownerRole);
+    }
+}</div>
     </section>
 
     <section id="ui" class="section">
@@ -441,8 +463,33 @@ function renderActivity(domain, activity) {
         <div class="card"><strong>통합 API</strong><span>ERP, APS, SCADA, 데이터 플랫폼과 request/schedule/performance를 주고받습니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/isa95/${esc(domain.key)}/${esc(activity.key)}/commands
+      <div class="codebox">// =================================================================
+// ANSI/ISA-95 Level 3 MOM Activity 통합 인터페이스 API 스펙
+// =================================================================
+
+// 1. 새로운 커맨드(작업 지시, 상태 변경, 실적 보고 등)를 수신하여 처리
+POST /api/isa95/${esc(domain.key)}/${esc(activity.key)}/commands
+Content-Type: application/json
+{
+    "commandId": "CMD-20260522-0001",
+    "objectId": "LOT-2026-A95",
+    "definitionId": "DEF-OP-CELL-A",
+    "revision": "REV-2.1.0",
+    "resourceScope": "AREA-CLEAN-01",
+    "timeWindow": "SHIFT-A",
+    "timestamp": "2026-05-22T20:10:00Z"
+}
+
+// 2. 특정 물리 객체(Lot, Batch 등)의 현재 운영 계층 상태 및 가용 정보 조회
 GET  /api/isa95/${esc(domain.key)}/${esc(activity.key)}/current-state?objectId={id}
+Response: 200 OK
+{
+    "objectId": "LOT-2026-A95",
+    "currentState": "IN_PROGRESS",
+    "lastUpdated": "2026-05-22T20:12:30Z"
+}
+
+// 3. 감사 및 추적을 위해 특정 시간 범위 내에서 발생한 상태 전이 이력 목록 조회
 GET  /api/isa95/${esc(domain.key)}/${esc(activity.key)}/history?from={date}&to={date}</div>
     </section>
 
@@ -542,13 +589,28 @@ function renderModel(model) {
         <tbody>${rows(model.rules.map((rule, i) => [`MR-${String(i + 1).padStart(2, "0")}`, esc(rule), "모델 validation, master data governance, integration contract test로 검증"]))}</tbody>
       </table>
       <h3>모델 검증 의사코드</h3>
-      <div class="codebox">function validateIsa95Model(modelObject):
-  assert modelObject.id is stable
-  assert modelObject.ownerSystem is not empty
-  assert modelObject.effectiveFrom is valid
-  validateHierarchyOrRelationship(modelObject)
-  validateExternalMappings(modelObject)
-  publishModelChangedEvent(modelObject)</div>
+      <div class="codebox">// =================================================================
+// ANSI/ISA-95 Object Model 데이터 무결성 및 구조적 일관성 검증 로직
+// =================================================================
+function validateIsa95Model(modelObject) {
+    // 1. 객체의 고유 식별자(ID)가 영속적이고 안정적으로 생성되었는지 확인
+    assert(modelObject.id !== null && modelObject.id !== undefined, "객체 ID는 필수값이며 고유해야 합니다.");
+
+    // 2. 마스터 데이터 거버넌스 보장을 위해 마스터 시스템(Owner System) 소유권 검증
+    assert(modelObject.ownerSystem !== "", "소유 시스템 정보가 명시되어야 합니다.");
+
+    // 3. 시간 경과에 따른 정보의 신뢰성을 위해 효력 개시일(Effective From) 유효성 검증
+    assert(isValidDate(modelObject.effectiveFrom), "효력 개시일 포맷이 유효해야 합니다.");
+
+    // 4. 설비/기능/자재 등 계층 구조(Hierarchy) 또는 부모-자식 간 참조 관계가 유효한지 확인
+    validateHierarchyOrRelationship(modelObject);
+
+    // 5. 외부 시스템(ERP 품목, MES 자재 코드, 설비 TAG 등) 간 상호 참조 맵 검증
+    validateExternalMappings(modelObject);
+
+    // 6. 모델 데이터 변경 시 타 계층 및 다운스트림 시스템과의 정합성을 위해 비동기 변경 이벤트 발행
+    publishModelChangedEvent(modelObject);
+}</div>
     </section>
 
     <section id="integration" class="section">

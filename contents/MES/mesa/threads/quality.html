@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,54 @@
 <tr><td>BR-03</td><td>CAPA는 원인, 조치, 효과 확인까지 추적합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [품질 스레드 - Quality Thread]
+// [목적] 실시간 공정 성적 수집, 통계적 제어 한계(SPC) 이탈 분석 및 실시간 물류 락(Auto-Hold) 연동
+// =================================================================
+
+function evaluateQualityMetrics(lotId, parameterName, measuredValue) {
+
+  // [1단계] 공정 및 품목 전용 공식 엔지니어링 스펙(LSL, USL) 검증 정보 로드
+  // 제품 스펙 마스터에서 측정된 항목의 스펙 규격 상한(USL), 하한(LSL) 및 목표값(Target)을 로드합니다.
+  const spec = loadInspectionSpec(lotId, parameterName);
+  
+  
+  // [2단계] 단순 규격 이탈(Out of Spec) 및 SPC 통계 규칙(예: Nelson Rules) 실시간 대조
+  // 단순히 공차를 벗어난 것 외에도, 평균선 연속 편향이나 지그재그 패턴 등 통계적 가동 불량이 있는지 분석합니다.
+  const isOos = (measuredValue &lt; spec.lsl || measuredValue &gt; spec.usl);
+  const isSpcAnomaly = runSpcStatisticalRules(lotId, parameterName, measuredValue);
+
+
+  // [3단계] 결함 감지 시 즉각적인 격리 조치 수행
+  if (isOos || isSpcAnomaly) {
+    const ncId = generateUniqueId(&quot;NC&quot;);
+    
+    // 3-1. Lot 마스터 상태를 즉각 &#x27;HOLD(품질보류)&#x27;로 강제 잠금하여 추가 가공 및 출고 원천 차단
+    // 부적합품 오투입으로 인한 후공정 연쇄 불량 파급을 막기 위해 MES 물리적 바코드를 Auto-Hold 처리합니다.
+    lockLotLogistics(lotId, &quot;QUALITY_HOLD&quot;, `PARAMETER: ${parameterName}, VALUE: ${measuredValue}`);
+    
+    
+    // 3-2. 부적합(Nonconformance) 보고서를 발행하고 시정 예방 조치(CAPA)에 자동 바인딩
+    // 품질 경영 규격 준수를 위한 부적합 보고서(NCR)를 정식 등록하고 트래킹 프로세스를 시동합니다.
+    createNonconformanceRecord({
+      ncId: ncId,
+      lotId: lotId,
+      defectType: isOos ? &quot;OUT_OF_SPEC&quot; : &quot;SPC_RULE_VIOLATION&quot;,
+      measuredValue: measuredValue,
+      severity: &quot;CRITICAL&quot;
+    });
+    
+    publishEvent(&quot;LOT_AUTO_HOLD_EXECUTED&quot;, { lotId, ncId, reason: &quot;QUALITY_VIOLATION&quot; });
+    return &quot;HOLD_EXECUTED&quot;;
+  }
+
+
+  // [4단계] 정상인 경우, 검사 실적 성적서 테이블에 안전 저장
+  // 이상이 없는 정상 성적은 실시간 추적(Traceability) DB에 저장되어 고객 성적 보증 기초 정보로 활용됩니다.
+  saveInspectionResult(lotId, parameterName, measuredValue, &quot;PASS&quot;);
+  return &quot;PASS&quot;;
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +153,28 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/thread/quality/events
-GET  /api/mesa-smart/thread/quality/current-state?objectId={id}
-GET  /api/mesa-smart/thread/quality/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [품질 스레드 - Quality Thread]
+// 공정 계측값 수집 및 SPC 규칙 위반 자동 홀드 처리 API
+// =================================================================
+POST /api/mesa-smart/threads/quality/inspections/measured
+Content-Type: application/json
+{
+  &quot;lotId&quot;: &quot;LOT-20260522-001&quot;,
+  &quot;operationId&quot;: &quot;OP-10-PRESS&quot;,
+  &quot;parameterName&quot;: &quot;Thickness_mm&quot;,        // 계측 항목 코드 (두께)
+  &quot;measuredValue&quot;: 1.285                 // 실제 물리 측정값
+}
+
+Response: 200 OK
+{
+  &quot;lotId&quot;: &quot;LOT-20260522-001&quot;,
+  &quot;inspectionResult&quot;: &quot;NG&quot;,              // 규격 이탈(LSL 1.300)로 인한 NG 판정
+  &quot;specLimits&quot;: { &quot;lsl&quot;: 1.300, &quot;usl&quot;: 1.400 },
+  &quot;autoHoldExecuted&quot;: true,              // 물류 이동 자동 Lock 처리 여부
+  &quot;nonconformanceId&quot;: &quot;NC-8293849182&quot;,   // 발행된 부적합 보고서 ID
+  &quot;notifiedTeams&quot;: [&quot;QUALITY-ASSURANCE&quot;, &quot;PRODUCTION-LINE-A&quot;]
+}</pre></div>
     </section>
 
     <section id="test" class="section">

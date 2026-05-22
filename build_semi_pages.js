@@ -37,13 +37,158 @@ const standards = [
 ].map(([id, code, name, group, summary, role, dfd, tables]) => ({ id, code, name, group, summary, role, dfd, tables }));
 
 const algorithms = [
-  { id: "Chan", code: "Chan", name: "Chan 평균/분산 병합 알고리즘", group: "Streaming Algorithm", summary: "분산된 Batch나 Stream Window의 count, mean, M2를 수치적으로 안정적으로 병합해 평균과 분산을 계산합니다.", role: "장비별, Chamber별, 시간창별 KPI를 병렬 집계한 뒤 상위 KPI 시스템에서 정확하게 합칠 때 유용합니다.", dfd: ["Raw Samples", "Local Aggregator", "n/mean/M2 State", "Merge Worker", "Variance KPI"], formula: "delta = meanB - meanA; n = nA + nB; mean = meanA + delta * nB / n; M2 = M2A + M2B + delta^2 * nA * nB / n", tables: [["stream_moment_state", "key, window_start, window_end, n, mean, m2, min_value, max_value"], ["moment_merge_log", "target_key, source_key_a, source_key_b, merged_n, merged_at"], ["variance_kpi", "key, window_start, window_end, mean, variance, stddev, sample_count"]] },
-  { id: "KLL", code: "KLL", name: "KLL Quantile Sketch", group: "Streaming Algorithm", summary: "전체 원시 데이터를 모두 저장하지 않고도 p50, p90, p95, p99 같은 분위수를 근사 계산하는 압축 Sketch입니다.", role: "Cycle Time, Queue Time, Sensor Peak, Alarm Duration의 분위수 KPI를 대량 Stream에서 계산할 때 유용합니다.", dfd: ["Raw Samples", "Compactor Level 0", "Compacted Levels", "Merge Sketch", "Quantile KPI"], formula: "값을 Level별 buffer에 삽입하고 용량 초과 시 정렬 후 절반을 상위 Level로 승격합니다. Query 시 Level 가중치를 반영해 rank를 근사합니다.", tables: [["kll_sketch_state", "sketch_id, key, window_start, window_end, k, total_n, serialized_blob"], ["kll_level_buffer", "sketch_id, level_no, weight, buffer_values_json, capacity"], ["quantile_kpi", "key, window_start, window_end, quantile, approx_value, error_bound, sample_count"]] }
+  {
+    id: "Chan",
+    code: "Chan",
+    name: "Chan's Convex Hull 알고리즘",
+    group: "Streaming Algorithm",
+    summary: "평면 상의 n개 점으로부터 Graham Scan과 Jarvis March를 결합하여 O(n log h) 속도로 Convex Hull(볼록 껍질)을 구하는 기하학적 최적화 알고리즘입니다.",
+    role: "설비 공정 파라미터(온도, 압력 등)의 다차원 분포를 분석하여 정상 가동 범위(Operating Envelope)를 산출하고 극단적인 이상치(Outlier)를 판별할 때 사용됩니다.",
+    dfd: ["Raw Samples", "Group Partition (m)", "Graham Scan CH_i", "Jarvis Tangent Merge", "Convex Envelope"],
+    formula: "\\(m = 2^{2^t}\\) 크기 그룹 분할 후, Graham Scan 적용 후 Jarvis March 접선 탐색 및 병합",
+    tables: [
+      ["process_parameter_envelope", "equipment_id, parameter_x, parameter_y, vertex_seq, vertex_x, vertex_y, updated_at"],
+      ["parameter_sample_stream", "equipment_id, sample_time, val_x, val_y, is_inside_envelope"]
+    ],
+    introduction: `
+      <h3>Convex Hull (볼록 껍질)의 개념</h3>
+      <p>2차원 또는 다차원 공간에 흩어져 있는 여러 점들을 모두 감싸는 <strong>가장 작은 볼록한 다각형(또는 다면체)</strong>을 의미합니다. 전산 기하학(Computational Geometry)에서 가장 기본적이면서도 중요한 개념입니다.</p>
+      <p>가장 직관적인 비유는 <strong>'고무줄 비유(Rubber Band Analogy)'</strong>입니다. 널빤지 위에 여러 개의 못(데이터 점)이 박혀 있다고 상상해 보세요. 커다란 고무줄을 팽팽하게 늘려서 모든 못을 바깥쪽에서 감싸도록 놓았을 때, 고무줄이 수축하면서 바깥쪽 못들에 걸쳐 만들어지는 형태가 바로 이 못들의 Convex Hull입니다.</p>
+      
+      <h4>기하학적 및 수학적 정의</h4>
+      <ul>
+        <li><strong>볼록(Convex)의 의미:</strong> 다각형 내부에 있는 임의의 두 점을 골라 선분으로 연결했을 때, 그 선분이 다각형의 경계선 밖으로 전혀 나가지 않는 형태를 말합니다.</li>
+        <li><strong>최소성(Minimality):</strong> 점 집합 S를 포함하는 볼록 다각형은 무수히 많을 수 있지만, Convex Hull은 그 중에서 '가장 작은(면적이 최소인)' 다각형입니다.</li>
+        <li><strong>정점(Vertex):</strong> Convex Hull의 꼭짓점을 이루는 점들을 '극단점(Extreme Points)'이라고 하며, 이들은 원래 점 집합 S에 속해 있는 데이터들 중 가장 외각에 위치한 데이터들입니다.</li>
+      </ul>
+      
+      <h4>주요 탐색 알고리즘 비교</h4>
+      <ul>
+        <li><strong>Jarvis March (선물 포장 알고리즘, Gift Wrapping):</strong> 가장 왼쪽 점에서 시작해 반시계 방향으로 선물을 포장하듯 다음 점을 찾아나갑니다. 시간 복잡도: \\(O(nh)\\) (n: 전체 점, h: 껍질 정점 수)</li>
+        <li><strong>Graham Scan (그레이엄 스캔):</strong> 각도 기준으로 전체 정렬(\\(O(n \\log n)\\)) 후 스택을 사용하여 오목점을 제거하며 껍질을 완성합니다.</li>
+        <li><strong>Chan's Algorithm (찬의 알고리즘):</strong> 데이터를 크기 m인 그룹으로 나누어 Graham Scan을 수행한 후, Jarvis March 방식으로 병합하여 \\(O(n \\log h)\\)라는 이론적 최적 복잡도를 달성합니다.</li>
+      </ul>
+    `,
+    steps: `
+      <ol>
+        <li><strong>그룹 분할 (Partitioning)</strong>
+          <p>전체 점 집합 P를 크기가 m인 r개의 그룹으로 나눕니다.</p>
+          <ul>
+            <li>그룹의 수: \\(r = \\lceil n/m \\rceil\\)</li>
+            <li>수식: \\(P = \\{P_1, P_2, ..., P_r\\}\\) 이며, 각 \\(|P_i| \\le m\\) 입니다.</li>
+          </ul>
+        </li>
+        <li><strong>개별 Convex Hull 생성 (Graham Scan)</strong>
+          <p>각 그룹 P_i에 대해 Graham Scan 알고리즘을 적용하여 각각의 작은 볼록 껍질 CH_i를 구합니다. 이 과정의 시간 복잡도는 그룹당 O(m log m)이 소요되므로 전체적으로 \\(O(n \\log m)\\)입니다.</p>
+        </li>
+        <li><strong>Jarvis March를 이용한 병합 (Gift Wrapping)</strong>
+          <p>가장 왼쪽에 있는 점 P_i에서 시작하여, 전체 껍질의 다음 정점 P_{k+1}을 찾습니다. 이때 각 그룹의 껍질(CH_i)과 현재 점(P_k) 사이의 <strong>접선(Tangent)</strong>을 이진 탐색으로 찾습니다.</p>
+          <ul>
+            <li>접점 탐색: \\(P_k\\)에서 각 \\(CH_i\\)로의 접선을 찾는 시간은 \\(O(\\log m)\\)입니다.</li>
+            <li>다음 정점 결정: r개의 그룹 중에서 가장 외곽에 있는 점을 고르는 과정은 \\(O(r \\log m)\\)입니다.</li>
+            <li>이 과정을 h번 반복하므로 최종 병합 시간은 \\(O(h \\cdot (n/m) \\log m)\\)입니다.</li>
+          </ul>
+        </li>
+        <li><strong>반복적 파라미터 최적화 (Iterative Strategy)</strong>
+          <p>우리는 h를 미리 알 수 없으므로, m을 \\(2^{2^t}\\) (t=1,2,...) 순으로 기하급수적으로 키우며 위 과정을 반복합니다.</p>
+          <div class="math-box">
+            \\(\\sum_{t=1}^{\\log\\log h} n \\cdot \\log(2^{2^t}) = \\sum_{t=1}^{\\log\\log h} n \\cdot 2^t = O(n \\log h)\\)
+          </div>
+        </li>
+      </ol>
+    `,
+    scenarios: `
+      <ul>
+        <li><strong>설비 파라미터 경계면(Envelope) 분석:</strong> OEE 성능 효율 계산 시, 단순히 평균값만 분석하는 대신 Chan's Algorithm을 사용하여 <strong>'정상 가동 범위(Normal Operating Zone)'</strong>의 다차원 기하학적 경계를 확정할 수 있습니다. 경계 밖의 데이터는 이상 센서 드리프트 등으로 판별하여 가동 손실 원인 추적에 사용합니다.</li>
+        <li><strong>분산 데이터 요약:</strong> 여러 대의 설비(r개)에서 각각 계산된 부분 Convex Hull(CH_i) 정보만 중앙 서버로 보내면, 서버는 전체 원시 데이터를 전송받을 필요 없이 접선 계산만으로 라인 전체의 공정 경계를 즉시 합성할 수 있습니다.</li>
+      </ul>
+    `
+  },
+  {
+    id: "KLL",
+    code: "KLL",
+    name: "KLL Quantile Sketch",
+    group: "Streaming Algorithm",
+    summary: "대규모 스트리밍 데이터에서 전체 데이터를 보관하지 않고, 아주 적은 고정 메모리만을 사용하여 분위수(Quantiles, p50, p99 등)를 고정 오차 범위 내로 추정하는 압축 Sketch 알고리즘입니다.",
+    role: "대량의 실시간 설비 데이터 스트림에서 Cycle Time, Queue Time의 백분위수(P99 극단값 필터링 및 P50 중앙값 검출)를 추정하여 성능가동율을 정밀하게 산출할 때 활용됩니다.",
+    dfd: ["Raw Samples", "Level 0 Buffer", "Compactor Trigger", "Random Coin Selection", "Quantile Output"],
+    formula: "용량 초과 시 Level i의 버퍼를 정렬하고, 동전 던지기 b \\in \\{0,1\\}에 따라 홀수/짝수 번째 값만 상위 Level i+1로 보내 가중치 2배 부여",
+    tables: [
+      ["kll_sketch_state", "sketch_id, equipment_id, k, total_n, error_bound, serialized_blob, updated_at"],
+      ["kll_level_buffer", "sketch_id, level_no, weight, capacity, buffer_values_json"]
+    ],
+    introduction: `
+      <h3>KLL (Karnin-Lang-Liberty) Sketch의 개념</h3>
+      <p>KLL 알고리즘은 스트리밍 데이터에서 <strong>Quantiles(분위수)</strong>를 추정하기 위해 설계된 최신 알고리즘입니다. Apache DataSketches 라이브러리 등에 포함되어 실무에서 대용량 모니터링 분석에 널리 쓰입니다.</p>
+      <p>수억 개의 데이터가 실시간으로 들어올 때, 모든 데이터를 정렬하여 "상위 1% 값"이나 "중간값(Median)"을 찾는 것은 메모리상 불가능합니다. KLL은 아주 적은 메모리만 사용하면서도 매우 높은 정확도로 이 값들을 추정합니다.</p>
+      
+      <h4>KLL 알고리즘의 구조: 계층적 버퍼 (Hierarchical Buffers)</h4>
+      <p>KLL은 여러 개의 <strong>Level(H)</strong>로 구성된 버퍼 구조를 가집니다. 각 레벨 i는 용량 k_i를 가지며, 레벨이 올라갈수록 데이터의 '가중치'는 2배씩 증가합니다.</p>
+      <ul>
+        <li><strong>Level 0:</strong> 원래의 데이터(가중치 1)가 들어오는 곳입니다.</li>
+        <li><strong>Level i:</strong> 가중치가 \\(2^i\\)인 데이터들이 저장됩니다.</li>
+      </ul>
+    `,
+    steps: `
+      <p>Compaction은 특정 레벨의 버퍼가 가득 찼을 때, 데이터를 상위 레벨로 보내면서 크기를 줄이는 핵심 프로세스입니다.</p>
+      <ol>
+        <li><strong>트리거 (Trigger)</strong>
+          <p>레벨 i의 데이터 개수가 미리 정의된 용량 \\(k_i\\)를 초과하면 압축이 시작됩니다.</p>
+        </li>
+        <li><strong>정렬 (Sorting)</strong>
+          <p>해당 레벨의 버퍼에 있는 데이터들을 오름차순으로 정렬합니다.</p>
+          <div class="math-box">
+            \\(X = \\{x_1, x_2, ..., x_n\\} \\quad (x_1 \\le x_2 \\le ... \\le x_n)\\)
+          </div>
+        </li>
+        <li><strong>선택 및 제거 (Selection &amp; Eviction)</strong>
+          <p>정렬된 데이터 중 홀수 번째 또는 짝수 번째 데이터만 선택하여 상위 레벨(i+1)로 보냅니다. 이때 선택은 무작위(Random)로 결정하여 편향(Bias)을 방지합니다.</p>
+          <ul>
+            <li><strong>동전 던지기(\\(b \\in \\{0,1\\}\\))</strong>를 통해 결정:</li>
+            <li>b=0이면: \\(\\{x_2, x_4, x_6, ...\\}\\) 를 상위 레벨로 전달</li>
+            <li>b=1이면: \\(\\{x_1, x_3, x_5, ...\\}\\) 를 상위 레벨로 전달</li>
+            <li>선택되지 않은 나머지 절반의 데이터는 메모리에서 완전히 삭제됩니다.</li>
+          </ul>
+        </li>
+        <li><strong>가중치 갱신 (Weight Update)</strong>
+          <p>상위 레벨로 올라간 데이터는 이제 이전보다 2배의 가중치를 갖게 됩니다.</p>
+          <p>Level i의 데이터 2개가 Level i+1의 데이터 1개로 대체되지만, 가중치가 \\(2^i\\)에서 \\(2^{i+1}\\)로 변하므로 전체 통계적 분포(Sum of Weights)는 유지됩니다.</p>
+        </li>
+      </ol>
+    `,
+    scenarios: `
+      <ul>
+        <li><strong>실시간 OEE 모니터링:</strong> 설비에서 발생하는 수백만 건의 Cycle Time 데이터를 DB에 다 쌓지 않고도, 메모리 내에서 즉시 95% 신뢰 구간의 성능 지표를 산출할 수 있습니다.</li>
+        <li><strong>이상치(Outlier) 필터링:</strong> 성능 효율을 계산할 때, 비정상적으로 길게 측정된 Cycle Time을 KLL의 분위수 기반 필터링(예: 상위 99% 제외)을 통해 자동 제거하여 데이터의 정밀도를 높일 수 있습니다.</li>
+        <li><strong>분산 데이터 통합:</strong> 여러 대의 설비(Equipment)에서 각각 생성된 KLL Sketch를 중앙 서버로 보내기만 하면, 추가 연산 없이 '병합(Merge)'하여 라인 전체의 통합 통계 데이터를 얻을 수 있습니다.</li>
+      </ul>
+    `,
+    mathematics: `
+      <h4>수식적 이해와 오차 보장</h4>
+      <p>KLL 알고리즘의 가장 큰 장점은 메모리 사용량과 오차 범위 사이의 관계를 수학적으로 증명했다는 점입니다.</p>
+      <ul>
+        <li><strong>레벨별 용량 설정 (\\(k_i\\))</strong>
+          <p>메모리를 효율적으로 쓰기 위해 상위 레벨로 갈수록 버퍼 크기를 기하급수적으로 줄입니다.</p>
+          <div class="math-box">
+            \\(k_i \\approx k \\cdot c^{H-i}\\)
+          </div>
+          <p>(여기서 k는 전체 파라미터, c는 1보다 작은 상수(약 2/3)입니다.)</p>
+        </li>
+        <li><strong>오차 범위 (\\(\\epsilon\\))</strong>
+          <p>사용자가 허용하는 오차 \\(\\epsilon\\)에 대해, KLL Sketch가 필요한 메모리 공간 M은 다음과 같습니다.</p>
+          <div class="math-box">
+            \\(M = O(1/\\epsilon \\cdot \\log(\\log 1/\\epsilon))\\)
+          </div>
+          <p>이는 기존의 다른 알고리즘(예: GK Array)보다 훨씬 적은 메모리로도 동일한 정확도를 낼 수 있음을 의미합니다.</p>
+        </li>
+      </ul>
+    `
+  }
 ];
 
 const css = `
 :root{--ink:#17202a;--muted:#64748b;--line:#d7dde8;--panel:#fff;--paper:#f5f7fb;--accent:#137a7f;--blue:#2864a8;--orange:#b85c18;--green:#517d2f;--shadow:0 18px 42px rgba(25,35,58,.10)}
-*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--paper);font-family:Arial,"Malgun Gothic",sans-serif;line-height:1.6}.page{max-width:1180px;margin:0 auto;padding:28px}.hero{background:#101826;color:#fff;border-radius:14px;padding:30px;box-shadow:var(--shadow);border-bottom:5px solid #e7b84a}.hero h1{margin:0 0 10px;font-size:clamp(26px,4vw,42px);letter-spacing:0}.hero p{margin:0;color:#dbe3ef;max-width:980px}.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.chip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:700}.section{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:22px;margin-top:18px}.section h2{margin:0 0 12px;font-size:21px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:14px}.card strong{display:block;color:#1d3557;margin-bottom:4px}.card span,.muted{color:var(--muted);font-size:13px}.diagram{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:14px}svg{display:block;min-width:880px;width:100%;height:auto}.node rect{fill:#fff;stroke:#ccd6e2;stroke-width:1.4;rx:8}.node text{font-size:13px;fill:#182233;font-weight:700}.tiny{font-size:11px!important;fill:#667085!important;font-weight:400!important}.arrow{stroke:#2864a8;stroke-width:1.7;fill:none;marker-end:url(#arrow)}table{width:100%;border-collapse:collapse;background:#fff;font-size:13px}th,td{border:1px solid var(--line);padding:10px;vertical-align:top}th{background:#eef3f8;color:#24364b;text-align:left}.note{border-left:4px solid var(--orange);background:#fff8ef;border-radius:8px;padding:13px;color:#4c3a25}.crumbs{margin:16px 0;color:var(--muted);font-size:13px}.crumbs a{color:#1f68b3;text-decoration:none}.list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.list a{display:block;border:1px solid var(--line);border-radius:9px;background:#fff;padding:12px;color:var(--ink);text-decoration:none}.list a:hover{border-color:var(--accent);background:#f0fbfa}@media(max-width:820px){.page{padding:14px}.grid,.list{grid-template-columns:1fr}.hero{padding:22px}}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--paper);font-family:Arial,"Malgun Gothic",sans-serif;line-height:1.6}.page{max-width:1180px;margin:0 auto;padding:28px}.hero{background:#101826;color:#fff;border-radius:14px;padding:30px;box-shadow:var(--shadow);border-bottom:5px solid #e7b84a}.hero h1{margin:0 0 10px;font-size:clamp(26px,4vw,42px);letter-spacing:0}.hero p{margin:0;color:#dbe3ef;max-width:980px}.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.chip{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 10px;font-size:12px;font-weight:700}.section{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:22px;margin-top:18px}.section h2{margin:0 0 12px;font-size:21px;border-bottom:2px solid var(--line);padding-bottom:8px;color:#182233}.section h3{margin:22px 0 10px;font-size:17px;color:var(--blue)}.section h4{margin:16px 0 6px;font-size:14px;color:var(--accent)}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.card{border:1px solid var(--line);border-radius:10px;background:#fff;padding:14px}.card strong{display:block;color:#1d3557;margin-bottom:4px}.card span,.muted{color:var(--muted);font-size:13px}.diagram{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:#fff;padding:14px}svg{display:block;min-width:880px;width:100%;height:auto}.node rect{fill:#fff;stroke:#ccd6e2;stroke-width:1.4;rx:8}.node text{font-size:13px;fill:#182233;font-weight:700}.tiny{font-size:11px!important;fill:#667085!important;font-weight:400!important}.arrow{stroke:#2864a8;stroke-width:1.7;fill:none;marker-end:url(#arrow)}table{width:100%;border-collapse:collapse;background:#fff;font-size:13px;margin-top:12px}th,td{border:1px solid var(--line);padding:10px;vertical-align:top}th{background:#eef3f8;color:#24364b;text-align:left}.note{border-left:4px solid var(--orange);background:#fff8ef;border-radius:8px;padding:13px;color:#4c3a25}.crumbs{margin:16px 0;color:var(--muted);font-size:13px}.crumbs a{color:#1f68b3;text-decoration:none}.list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.list a{display:block;border:1px solid var(--line);border-radius:9px;background:#fff;padding:12px;color:var(--ink);text-decoration:none}.list a:hover{border-color:var(--accent);background:#f0fbfa}.math-box{background:#f8fafc;border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-family:"Courier New",Courier,monospace;font-weight:bold;color:var(--accent);display:inline-block;margin:2px 0}div.math-box{display:block;padding:12px;margin:10px 0;text-align:center;font-size:1.1em;background:#f8fafc}@media(max-width:820px){.page{padding:14px}.grid,.list{grid-template-columns:1fr}.hero{padding:22px}}
 `;
 
 fs.writeFileSync(path.join(guideDir, "semi-page.css"), css, "utf8");
@@ -84,13 +229,82 @@ function standardUnifiedPage(s) {
 }
 
 function algorithmPage(a) {
-  return shell(`${a.code} Developer`, a.name, `
+  const introSec = a.introduction ? `<section class="section"><h2>알고리즘 상세 개요</h2>${a.introduction}</section>` : "";
+  const stepsSec = a.steps ? `<section class="section"><h2>상세 작동 단계</h2>${a.steps}</section>` : "";
+  const mathSec = a.mathematics ? `<section class="section"><h2>수학적 오차 보장 및 분석</h2>${a.mathematics}</section>` : "";
+  const scenarioSec = a.scenarios ? `<section class="section"><h2>실시간 설비 OEE 적용 시나리오</h2>${a.scenarios}</section>` : "";
+
+  // MathJax 설정 추가
+  const mathjaxConfig = `
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\\\(', '\\\\)']],
+          displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']]
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  `;
+
+  // 결합 통합 섹션
+  const integrationSec = `
+    <section class="section">
+      <h2>KLL & Chan 기반 설비 효율 분석 통합 로직 및 아키텍처</h2>
+      <p>설비 상태 및 효율에 기반하여 대규모 설비 데이터 스트림을 처리하기 위해, <strong>Chan's Algorithm(기하학적 경계 산출)</strong>과 <strong>KLL Sketch(통계적 분포 추정)</strong>를 결합한 통합 이상치 제거 및 성능 지표 산출 로직을 설계합니다. 이 통합 로직은 다차원 데이터의 경계(Hull)와 단일 변수의 분포(Quantile)를 모두 고려하여 정교하게 이상치를 필터링하고, 최종적으로 정확한 성능 효율(Performance Efficiency)을 계산하는 데 초점을 맞춥니다.</p>
+
+      <h3>1. 통합 분석 로직 개요</h3>
+      <ul>
+        <li><strong>E10 RUN Filter:</strong> 설비 상태가 'PRD(Production)'인 유효 가동 시간 데이터만 추출합니다.</li>
+        <li><strong>Chan Engine:</strong> 다차원 공정 파라미터(예: 온도 vs 압력)의 기하학적 정상 가동 범위(Operating Envelope)를 계산하여 외곽점(Outlier)을 감지합니다.</li>
+        <li><strong>KLL Engine:</strong> 성능 효율의 핵심 지표인 Cycle Time(CT)에 대한 실시간 백분위수(P99, Median)를 추정합니다.</li>
+        <li><strong>이중 이상치 제거:</strong> 신규 데이터 x에 대해 기하학적 정상 가동 범위 내부에 있고, Cycle Time이 P99 임계값보다 작은 경우에만 <strong>'정상 데이터 D_clean'</strong>으로 판별합니다.
+          <div class="math-box">$$D_{clean} = \\{x \\in D \\mid (isInside(H, x.v)) \\land (x.CT < \\hat{q}_{0.99})\\}$$</div>
+        </li>
+        <li><strong>E79 성능 효율 산출:</strong> 정상 데이터 D_clean의 KLL 추정 중위수(Median CT, $\\hat{q}_{0.50}$)를 실제 속도로 사용하여 성능가동율을 산출합니다.
+          <div class="math-box">$$\\text{성능가동율} = \\frac{\\text{Theoretical Cycle Time (TCT)}}{\\hat{q}_{0.50}} \\times 100(\\%)$$</div>
+        </li>
+      </ul>
+
+      <h3>2. 설비 효율 분석 시스템 아키텍처</h3>
+      <ul>
+        <li><strong>Edge Network (데이터 수집):</strong> 설비(PLC/GEM)로부터 SECS/GEM 프로토콜을 통해 실시간 상태(E10), 공정 변수, Cycle Time을 Edge Gateway가 수집하여 전송합니다.</li>
+        <li><strong>Stream Processor (실시간 분석 계층):</strong> 스트림 처리 엔진 내에서 Chan Engine과 KLL Engine이 각각 기하학적 경계와 통계적 분포를 모델링하고, 통합 필터를 통해 스파이크성 에러와 가짜 데이터를 차단합니다.</li>
+        <li><strong>MES DB / RDBMS:</strong> 정제된 성능 지표, E10 상태 로그, 최신 요약본(Convex Hull 정점 및 KLL Sketch 요약본)을 안정적으로 저장합니다.</li>
+        <li><strong>OEE Calculator & Dashboard (시각화 계층):</strong> 정제된 실제 속도와 SEMI Product Time 기반의 표준시간(Standard Time)을 비교하여 종합설비효율(OEE)을 산출하고 운영자에게 실시간으로 공유합니다. (양품율은 배제하고 시간가동율과 성능가동율의 곱으로만 OEE 계산)</li>
+      </ul>
+
+      <h3>3. DFD [Level 1] - 결합형 설비 효율 분석 시스템</h3>
+      <div class="diagram">
+        <svg viewBox="0 0 1000 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs>
+          <g class="node"><rect x="10" y="44" width="130" height="76"></rect><text x="75" y="78" text-anchor="middle">Equipment</text><text class="tiny" x="75" y="101" text-anchor="middle">Entity</text></g>
+          <path class="arrow" d="M140 82 H170"></path>
+          <g class="node"><rect x="170" y="44" width="130" height="76"></rect><text x="235" y="78" text-anchor="middle">1.0 E10 Filter</text><text class="tiny" x="235" y="101" text-anchor="middle">Process</text></g>
+          <path class="arrow" d="M300 82 H330"></path>
+          <g class="node"><rect x="330" y="44" width="130" height="76"></rect><text x="395" y="78" text-anchor="middle">2.0 Feature Eng.</text><text class="tiny" x="395" y="101" text-anchor="middle">Process</text></g>
+          <path class="arrow" d="M460 82 H490"></path>
+          <g class="node"><rect x="490" y="44" width="130" height="76"></rect><text x="555" y="78" text-anchor="middle">3.0 Outlier Filter</text><text class="tiny" x="555" y="101" text-anchor="middle">Process</text></g>
+          <path class="arrow" d="M620 82 H650"></path>
+          <g class="node"><rect x="650" y="44" width="130" height="76"></rect><text x="715" y="78" text-anchor="middle">4.0 E79 Calc</text><text class="tiny" x="715" y="101" text-anchor="middle">Process</text></g>
+          <path class="arrow" d="M780 82 H810"></path>
+          <g class="node"><rect x="810" y="44" width="130" height="76"></rect><text x="875" y="78" text-anchor="middle">OEE Dashboard</text><text class="tiny" x="875" y="101" text-anchor="middle">Output</text></g>
+        </svg>
+      </div>
+    </section>
+  `;
+
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(a.code)} Developer</title><link rel="stylesheet" href="../semi-page.css">${mathjaxConfig}</head><body><main class="page">
     <div class="crumbs"><a href="../SEMI_Data_Flow_Developer.html">SEMI Developer</a> / ${esc(a.code)}</div>
     <section class="hero"><h1>${esc(a.name)}</h1><p>${esc(a.summary)}</p><div class="chips"><span class="chip">Streaming KPI</span><span class="chip">Developer</span></div></section>
     <section class="section"><h2>개발 기능 요약</h2><p>${esc(a.role)}</p><div class="note"><strong>핵심 로직:</strong> ${esc(a.formula)}</div></section>
+    ${introSec}
     <section class="section"><h2>개발 DFD</h2><div class="diagram">${diagram(a.dfd)}</div></section>
+    ${stepsSec}
+    ${mathSec}
+    ${scenarioSec}
+    ${integrationSec}
     <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody>${tableRows(a.tables)}</tbody></table></section>
-  `);
+  </main></body></html>`;
 }
 
 function overviewPage(type) {

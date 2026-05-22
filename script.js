@@ -239,6 +239,7 @@ const menuConfig = [
     {
         title: "MES / Analytics",
         items: [
+            iframeItem("SEMI · MESA · ISA-95 관계 정의", "contents/MES/semi-mesa-isa95-relationship.html"),
             htmlItem("AI 포함 4-Tier MES 개발 가이드", "contents/MES/ai-4tier-mes.html"),
             semiStandards,
             mesaSmartModel,

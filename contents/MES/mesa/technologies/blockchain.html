@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,45 @@
 <tr><td>BR-03</td><td>다자간 프로세스에 실제 이득이 있을 때만 적용합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [블록체인 - Blockchain]
+// [목적] 공급망 간의 위변조가 불가능한 완제품 성적서 및 원자재 계보 정보 스마트 컨트랙트 기록
+// =================================================================
+
+function notarizeLotQualityOnLedger(lotId, qualityResultId) {
+
+  // [1단계] 로컬 MES 데이터베이스에서 최종 승인된 제품 성적 및 원자재 족보 데이터 로드
+  // 품질 부서에서 최종 서명 완료된 CoA 성적 마스터 결과 및 하위 원소재들의 추적 Lot 관계 리스트를 수집합니다.
+  const qualityReport = getLotInspectionSummary(lotId);
+  const materialGenealogy = getLotGenealogyList(lotId);
+
+
+  // [2단계] 데이터 프라이버시 보호를 위해 중요 가공 수치는 제외하고 핵심 정보들의 해시(SHA-256)값 생성
+  // 경쟁사에 기밀 제조 레시피 수치 등이 노출되지 않도록, 대조용 위변조 확인 암호화 해시(Hash) 지문만 연산합니다.
+  const originPayloadString = JSON.stringify({ qualityReport, materialGenealogy });
+  const docHash = generateSha256Hash(originPayloadString);
+
+
+  // [3단계] 분산 원장용 스마트 컨트랙트(Smart Contract) 함수 호출 준비
+  // 다자간 검증을 지원하는 스마트 공증 컨트랙트 인스턴스를 로드합니다.
+  const contract = loadSmartContract(&quot;LotQualityNotarization&quot;);
+  
+  
+  // [4단계] 기업 프라이빗 키(Private Key)로 서명하여 블록체인에 영구 기록 (Transaction Sign)
+  // 기업간 위변조 시비를 방재하기 위해 고유 전자서명(Cryptography Sign)을 입혀 트랜잭션을 체인 네트워크에 블록 보관합니다.
+  const tx = contract.methods.notarize({
+    lotId: lotId,
+    notarizedHash: docHash,
+    qualityResultId: qualityResultId,
+    notarizedAt: new Date().toISOString()
+  });
+
+  const txReceipt = sendTransactionToBlockchain(tx);
+  
+  // 블록체인 트랜잭션 수신증(Tx Hash) 정보를 내부 Traceability DB에 매핑 저장
+  saveLedgerTxMapping(lotId, txReceipt.transactionHash);
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +144,25 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/technology/blockchain/events
-GET  /api/mesa-smart/technology/blockchain/current-state?objectId={id}
-GET  /api/mesa-smart/technology/blockchain/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [블록체인 - Blockchain]
+// 완제품 및 원자재 성적 해시값 분산 원장 기록 및 스마트 컨트랙트 서명 API
+// =================================================================
+POST /api/mesa-smart/technologies/blockchain/ledger/transact
+Content-Type: application/json
+{
+  &quot;lotId&quot;: &quot;LOT-20260522-001&quot;,
+  &quot;qualityResultId&quot;: &quot;QRES-938294829&quot;,
+  &quot;hashValue&quot;: &quot;e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855&quot; // 품질 성적 위변조 대조용 해시값
+}
+
+Response: 201 Created
+{
+  &quot;lotId&quot;: &quot;LOT-20260522-001&quot;,
+  &quot;blockchainTxHash&quot;: &quot;0x98b3c434918239e248b12fcfcf9e8a7d7f98e98348918249&quot;, // 발행된 블록체인 트랜잭션 수신 해시
+  &quot;blockNumber&quot;: 18293849,               // 원장 원본 적재 블록 고유 번호
+  &quot;notarizedStatus&quot;: &quot;CONFIRMED&quot;         // 공증 상태 확정 여부
+}</pre></div>
     </section>
 
     <section id="test" class="section">

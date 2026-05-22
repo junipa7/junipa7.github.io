@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,57 @@
 <tr><td>BR-03</td><td>작업 완료는 필수 수집 데이터와 품질 판정이 충족된 후 확정합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [생산 라이프사이클 - Production Lifecycle]
+// [목적] 작업지시 접수부터 원자재/자원/자격 검증, 실시간 현장 실행 통제 및 실적 ERP 피드백까지의 흐름 제어
+// =================================================================
+
+function executeProductionWorkflow(lotId) {
+
+  // [1단계] 실시간 대기 오더 정보 및 라우팅 사양 로드
+  // 수급 요건에 따라 MES 실행 큐에서 대상 Lot의 작업 지시와 제품 라우팅을 로드합니다.
+  const lot = loadLotContext(lotId);
+  const route = loadProductRoute(lot.productId, lot.currentOperationId);
+
+
+  // [2단계] 실행 3대 핵심 요건(자재, 설비, 작업자) 실시간 교차 검증
+  // - checkMaterialStaging: 원재료 또는 이전 공정 완료품이 해당 공정 워크스테이션에 Staging 되었는지 검사
+  // - checkResourceAvailability: 대상 설비의 가동 상태가 &#x27;가용(AVAILABLE)&#x27;이고 인터락(Interlock)이 해제되었는지 검사
+  // - checkWorkerQualification: 투입하려는 작업자 계정이 해당 특정 가공 장비와 공정 자격(Skill Level)을 보유했는지 검사
+  const isMaterialReady = checkMaterialStaging(lotId, route.requiredMaterials);
+  const isResourceAvailable = checkResourceAvailability(lot.resourceId);
+  const isWorkerQualified = checkWorkerQualification(lot.operatorId, lot.currentOperationId);
+
+  if (!isMaterialReady || !isResourceAvailable || !isWorkerQualified) {
+    throw new Error(&quot;[생산 통제 실패] 생산 착수 요건이 불충족되었습니다. (자재/설비/작업자 확인 필요)&quot;);
+  }
+
+
+  // [3단계] 현장 설비 시작 신호 전송 및 Recipe 자동 매핑/다운로드
+  // EAP(Equipment Automation Protocol) 통신 채널을 통해 설비 PLC에 해당 제품 가공용 검증 완료된 레시피 변수를 하달합니다.
+  const downloadSuccess = downloadRecipeParameters(lot.resourceId, route.recipeId);
+  if (!downloadSuccess) {
+    throw new Error(&quot;[통신 오류] 설비 레시피 다운로드 트랜잭션이 실패했습니다.&quot;);
+  }
+
+
+  // [4단계] Lot 생산 상태 &#x27;STARTED&#x27; 전이 및 Digital Thread 계보 트래킹 시작
+  // Lot 마스터의 현재 작업 상태를 &#x27;가동중(RUNNING)&#x27;으로 승격하고 디지털 스레드 레코드를 생성하여
+  // 향후 4M (Man, Machine, Material, Method) 이력을 추적할 수 있도록 컨텍스트를 바인딩합니다.
+  updateLotStatus(lotId, &quot;STARTED&quot;);
+  const threadId = startDigitalThread(lotId, {
+    workOrderId: lot.workOrderId,
+    resourceId: lot.resourceId,
+    operatorId: lot.operatorId,
+    timestamp: new Date().toISOString()
+  });
+
+
+  // [5단계] 실시간 ANDON 보드 및 타 도메인에 시작 완료 이벤트 전파
+  // 이벤트 브로커에 PRODUCTION_STARTED 이벤트를 전송하여 물류(AGV) 및 원자재 모듈에 생산 소비 트랙을 동기화합니다.
+  publishEvent(&quot;PRODUCTION_STARTED&quot;, { lotId, threadId });
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +156,28 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/lifecycle/production/events
-GET  /api/mesa-smart/lifecycle/production/current-state?objectId={id}
-GET  /api/mesa-smart/lifecycle/production/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [생산 라이프사이클 - Production Lifecycle]
+// 생산 작업 착수 지시 및 Digital Thread 추적 시작 API
+// =================================================================
+POST /api/mesa-smart/lifecycles/production/orders/WO-2026-X01/start
+Content-Type: application/json
+Authorization: Bearer &lt;JWT_TOKEN&gt;
+{
+  &quot;lotId&quot;: &quot;LOT-20260522-001&quot;,           // 생산 시작할 대상 반제품/제품 Lot ID
+  &quot;resourceId&quot;: &quot;EQP-CNC-05&quot;,            // 투입하는 장비의 고유 식별 번호
+  &quot;operatorId&quot;: &quot;OPR-USER-2394&quot;,         // 작업을 착수시키는 조작자 ID
+  &quot;recipeId&quot;: &quot;REC-CNC-T5-REV1&quot;          // 다운로드할 검증 완료된 레시피 ID
+}
+
+Response: 201 Created
+{
+  &quot;success&quot;: true,
+  &quot;digitalThreadId&quot;: &quot;DTH-982938491&quot;,    // 이 Lot의 평생 이력을 추적할 디지털 스레드 ID
+  &quot;startedState&quot;: &quot;RUNNING&quot;,             // 전이 완료된 실행 상태 코드
+  &quot;recipeDownloadStatus&quot;: &quot;SUCCESS&quot;,     // 설비 레시피 전송 성공 여부
+  &quot;timestamp&quot;: &quot;2026-05-22T20:15:00Z&quot;
+}</pre></div>
     </section>
 
     <section id="test" class="section">

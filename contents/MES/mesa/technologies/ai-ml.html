@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,40 @@
 <tr><td>BR-03</td><td>모델 drift가 감지되면 재학습 또는 rollback 기준을 적용합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [AI/ML]
+// [목적] 공정 데이터 예측 분석(Predictive Model) 및 신뢰 점수(Confidence) 기반 예외 감지 통제
+// =================================================================
+
+function executePredictiveMaintenance(equipmentId) {
+
+  // [1단계] 최근 24시간 동안 축적된 설비 상태 및 가동 시계열 Feature 로드
+  // 실시간 피쳐 스토어에서 온전하게 보정 및 스케일링된 최신 설비 특징 벡터값을 가져옵니다.
+  const features = loadEquipmentFeatures(equipmentId);
+  
+  
+  // [2단계] 학습 완료된 예지보전 AI 분류 모델(RUL XGBoost Model)에 Feature 대조
+  // 배포된 인공지능 추론 API를 작동시켜 예상 설비 잔여 유효 수명(RUL)과 정답 확신도(Confidence) 점수를 판독합니다.
+  const inference = runAiModel(&quot;PREDICTIVE_MAINTENANCE_RUL&quot;, features);
+  
+  const predictedRulHours = inference.remainingUsefulLifeHours;
+  const confidenceScore = inference.confidence;
+
+
+  // [3단계] 예측 결과 신뢰성 검증 및 비즈니스 Rule 적용
+  if (predictedRulHours &lt; 48 &amp;&amp; confidenceScore &gt; 0.90) {
+    // 3-1. 신뢰도 점수가 90% 이상인 경우, 사람 개입 없이 보전 계획 작업 지시서 자동 릴리스 및 통보
+    // 정확도가 확보된 긴급 고장 알람이므로, 정비 시스템에 PM Work Order를 자율 에이전트 승인 하에 발행합니다.
+    const autoMwoId = createAutoMaintenanceWorkOrder(equipmentId, &quot;PREDICTED_FAILURE_48H&quot;);
+    publishEvent(&quot;PREDICTIVE_ACTION_EXECUTED&quot;, { equipmentId, autoMwoId, score: confidenceScore });
+  } else if (predictedRulHours &lt; 48 &amp;&amp; confidenceScore &lt;= 0.90) {
+    // 3-2. 신뢰도 점수가 낮으면 자동 발행하지 않고 품질 엔지니어 수동 승인 보드로 격리
+    // AI 모델의 자신감이 떨어지는 애매한 구간은 수동 교차 검토를 유도하여 가짜 오류 경보(False Alarm)를 방어합니다.
+    const reviewId = sendToHumanReviewBoard(equipmentId, inference);
+    publishEvent(&quot;PREDICTIVE_REVIEW_REQUIRED&quot;, { equipmentId, reviewId });
+  }
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +139,31 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/technology/ai-ml/events
-GET  /api/mesa-smart/technology/ai-ml/current-state?objectId={id}
-GET  /api/mesa-smart/technology/ai-ml/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [AI/ML]
+// AI 설비 예지보전 RUL 추론 및 추천 액션 실시간 획득 API
+// =================================================================
+POST /api/mesa-smart/technologies/ai-ml/predictions/infer
+Content-Type: application/json
+{
+  &quot;equipmentId&quot;: &quot;EQP-CNC-05&quot;,
+  &quot;modelType&quot;: &quot;PREDICTIVE_MAINTENANCE_RUL&quot;,
+  &quot;features&quot;: {
+    &quot;runTimeHours&quot;: 2450.0,
+    &quot;meanTemperature&quot;: 85.6,
+    &quot;maxVibrationLevel&quot;: 0.045
+  }
+}
+
+Response: 200 OK
+{
+  &quot;predictionId&quot;: &quot;PRD-9382948&quot;,
+  &quot;modelName&quot;: &quot;XGBoost-RUL-CNC-05&quot;,
+  &quot;predictedRemainingUsefulLifeHours&quot;: 32.5, // AI 예측 설비 잔여 수명
+  &quot;confidenceScore&quot;: 0.94,               // 추론 신뢰도
+  &quot;recommendedAction&quot;: &quot;PM_WORK_ORDER&quot;,  // AI 추천 액션 조치 코드
+  &quot;autoActionExecuted&quot;: true             // 신뢰도 기준 90% 이상으로 자동 예방 정비 오더 발행 여부
+}</pre></div>
     </section>
 
     <section id="test" class="section">

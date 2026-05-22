@@ -10,7 +10,7 @@
     .lesson-index a{display:block;border:1px solid var(--line);border-radius:8px;padding:10px;text-decoration:none;color:var(--blue);background:#fff;font-weight:700;font-size:13px}
     .callout{border-left:5px solid var(--accent);background:#eefafa;padding:14px 16px;border-radius:8px;margin:14px 0}
     .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .codebox{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
+    .codebox{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px;overflow:auto;font-family:Consolas,monospace;font-size:13px;line-height:1.55}
     .badge{display:inline-block;border:1px solid #cbd5e1;border-radius:999px;padding:2px 8px;margin:2px;background:#f8fafc;font-size:12px}
     .section h3{margin:20px 0 8px;font-size:16px;color:#1d3557}
     @media(max-width:900px){.lesson-index,.two-col{grid-template-columns:1fr}}
@@ -95,20 +95,37 @@
 <tr><td>BR-03</td><td>Rule/model 배포는 canary와 rollback을 지원합니다.</td><td>Domain Service, Rule Engine, Workflow, Data Quality Rule, Integration Contract로 구현</td></tr></tbody>
       </table>
       <h3>의사코드</h3>
-      <div class="codebox">function runSmartManufacturingActivity(command):
-  validateBusinessContext(command)
-  master = loadApprovedMasterData(command.context)
-  current = loadCurrentOperationalState(command.objectId)
-  dataQuality = evaluateDataQuality(command.payload)
-  decision = applySmartManufacturingRules(master, current, dataQuality)
-  saveRawEvent(command)
-  if decision.allowed: // 조건 만족 시
-      updateCurrentState(decision)
-      appendDigitalThread(decision)
-      publishActionOrInsight(decision)
-  else: // 조건 불만족 시
-      createException(decision.reasonCode)
-      notifyOwner(decision.ownerRole)</div>
+      <div class="codebox"><pre>// =================================================================
+// [엣지-클라우드 - Edge to Cloud]
+// [목적] 초 단위 실시간 판단(Edge)과 대규모 데이터 분석 및 전사 ML 학습(Cloud) 간의 동적 하이브리드 연동
+// =================================================================
+
+function syncEdgeTelemetryToCloud(edgeNodeId, eventBatch) {
+
+  // [1단계] 엣지 로컬에서의 초실시간 연동 판단 동작 완료
+  // 설비 현장 엣지 PC 내에서 초 단위 응답 속도로 긴급 세이프티 인터락 및 가동 상태 변경 통제를 선행합니다.
+  executeEdgeCriticalInterlocks(eventBatch);
+
+
+  // [2단계] 클라우드 대역폭 및 요금 절감을 위해 엣지 단에서 1차 실시간 압축 및 요약 데이터셋 생성
+  // 로시계열 로데이터를 그대로 클라우드에 쏘지 않고, 시간대별 평균값 및 OEE 집계 정보로 가볍게 차원 압축합니다.
+  const compressedPayload = compressAndSummarize(eventBatch);
+
+
+  // [3단계] 멱등성(Idempotent)을 보장하는 REST/gRPC 채널을 통해 클라우드 동기화 큐에 발송
+  // 중복 패킷 전송 시 데이터 오집계를 막기 위해 멱등성 유일 키(UUID)를 헤더에 엮어 클라우드 API에 안전 전파합니다.
+  const syncResponse = postToCloudSyncGateway(edgeNodeId, compressedPayload, {
+    idempotencyKey: generateUuid()
+  });
+
+
+  // [4단계] 동기화 성공 확인 시 로컬 디스크 내의 오래된 원시 데이터 안심 제거 (버퍼 정리)
+  // 클라우드 적재 성공 응답(200 OK)이 확정된 안전 세그먼트 데이터 범위만 엣지 로컬 큐에서 삭제하여 디스크를 환산합니다.
+  if (syncResponse.success) {
+    purgeLocalEdgeBuffer(edgeNodeId, eventBatch.maxTimestamp);
+  }
+
+}</pre></div>
     </section>
 
     <section id="ui" class="section">
@@ -119,9 +136,31 @@
         <div class="card"><strong>통합 API</strong><span>ERP, MES, PLM, IIoT, 품질, 보전, 데이터 플랫폼과 이벤트 기반으로 연결합니다.</span></div>
       </div>
       <h3>API 예시</h3>
-      <div class="codebox">POST /api/mesa-smart/technology/edge-to-cloud/events
-GET  /api/mesa-smart/technology/edge-to-cloud/current-state?objectId={id}
-GET  /api/mesa-smart/technology/edge-to-cloud/digital-thread?objectId={id}</div>
+      <div class="codebox"><pre>// =================================================================
+// [엣지-클라우드 - Edge to Cloud]
+// 엣지 단말 실시간 압축 요약 데이터 클라우드 비동기 동기화 API
+// =================================================================
+POST /api/mesa-smart/technologies/edge-to-cloud/sync/flush
+Content-Type: application/json
+X-Idempotency-Key: 82938192-3849-11ed-a261-0242ac120002
+{
+  &quot;edgeNodeId&quot;: &quot;EDGE-NODE-ASSEMBLY-02&quot;,
+  &quot;batchSequenceNo&quot;: 993829,
+  &quot;summaryData&quot;: {
+    &quot;producingTimeSeconds&quot;: 28800,
+    &quot;goodPartsCount&quot;: 4200,
+    &quot;rejectPartsCount&quot;: 12,
+    &quot;oeePercent&quot;: 92.4
+  }
+}
+
+Response: 200 OK
+{
+  &quot;syncSuccess&quot;: true,
+  &quot;edgeNodeId&quot;: &quot;EDGE-NODE-ASSEMBLY-02&quot;,
+  &quot;purgedBufferMaxTimestamp&quot;: &quot;2026-05-22T20:19:30Z&quot;, // 동기화 확인 완료되어 엣지 로컬에서 안심 비우기 처리할 기준 시각
+  &quot;cloudModelVersionUpdateAvailable&quot;: false
+}</pre></div>
     </section>
 
     <section id="test" class="section">

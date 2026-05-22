@@ -162,22 +162,84 @@ body {
 
 .section-toggle::before,
 .submenu-toggle::before {
-    content: "v";
+    content: "\2212"; /* Premium Unicode Minus (−) */
     display: inline-flex;
     justify-content: center;
     width: 14px;
     color: var(--muted);
     font-size: 11px;
+    font-weight: bold;
 }
 
 .menu-section.collapsed > .section-toggle::before,
 .submenu.collapsed > .submenu-toggle::before {
-    content: ">";
+    content: "+";
 }
 
 .menu-section.collapsed > .section-items,
 .submenu.collapsed > .submenu-items {
     display: none;
+}
+
+/* 사이드바 메뉴 레벨 세로 가이드 라인 */
+.section-items,
+.submenu-items {
+    position: relative;
+}
+
+.section-items::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 16px;
+    left: 15px; /* section-toggle의 ::before 가로 중앙 */
+    width: 1px;
+    background: var(--line);
+    pointer-events: none;
+}
+
+.submenu.depth-0 > .submenu-items::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 16px;
+    left: 27px; /* submenu-toggle.depth-0의 ::before 가로 중앙 */
+    width: 1px;
+    background: var(--line);
+    pointer-events: none;
+}
+
+.submenu.depth-1 > .submenu-items::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 16px;
+    left: 39px; /* submenu-toggle.depth-1의 ::before 가로 중앙 */
+    width: 1px;
+    background: var(--line);
+    pointer-events: none;
+}
+
+.submenu.depth-2 > .submenu-items::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 16px;
+    left: 51px; /* submenu-toggle.depth-2의 ::before 가로 중앙 */
+    width: 1px;
+    background: var(--line);
+    pointer-events: none;
+}
+
+.submenu.depth-3 > .submenu-items::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 16px;
+    left: 63px; /* submenu-toggle.depth-3의 ::before 가로 중앙 */
+    width: 1px;
+    background: var(--line);
+    pointer-events: none;
 }
 
 .section-toggle:hover,

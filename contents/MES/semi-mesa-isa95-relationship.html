@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SEMI · MESA · ISA-95 관계 정리</title>
+  <link rel="stylesheet" href="isa95/isa95-page.css">
+  <style>
+    /* 다크모드 대응을 위한 미세 튜닝 */
+    body.dark-mode .card,
+    body.dark-mode td,
+    body.dark-mode th {
+      background: var(--panel-soft);
+      border-color: var(--line);
+    }
+    body.dark-mode .diagram,
+    body.dark-mode svg {
+      background: #1e293b;
+    }
+    body.dark-mode .node rect {
+      fill: #0f172a;
+      stroke: var(--line);
+    }
+    body.dark-mode .node text {
+      fill: #f1f5f9;
+    }
+    body.dark-mode .note {
+      background: #332112;
+      color: #ffd8a8;
+      border-left-color: #f77f00;
+    }
+    body.dark-mode .callout {
+      background: #0f2d30;
+      color: #a5f3fc;
+      border-left-color: #14b8a6;
+    }
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .timeline-item {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 16px;
+      border-left: 3px solid var(--accent);
+      padding-left: 18px;
+      margin-left: 8px;
+      position: relative;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      top: 4px;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 3px solid var(--panel);
+    }
+    .timeline-step {
+      font-weight: 800;
+      color: var(--accent);
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .timeline-content strong {
+      display: block;
+      color: #1d3557;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+    body.dark-mode .timeline-content strong {
+      color: #93c5fd;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="crumbs">
+      <a href="#">MES / Analytics</a> &gt; SEMI · MESA · ISA-95 관계 정리
+    </div>
+    
+    <section class="hero">
+      <h1>SEMI · MESA · ISA-95 융합 가이드</h1>
+      <p>현대 하이테크 제조 생태계(반도체, 디스플레이 등)를 지탱하는 3대 글로벌 제조 표준의 아키텍처적 포지셔닝과 실무 데이터 연계 시나리오를 상세히 정리합니다.</p>
+      <div class="chips">
+        <span class="chip">SEMI Standards</span>
+        <span class="chip">MESA MOM</span>
+        <span class="chip">ANSI/ISA-95</span>
+        <span class="chip">스마트 제조 융합</span>
+        <span class="chip">계층구조 아키텍처</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>1. 제조 시스템 표준 삼각 편대 개요</h2>
+      <p>
+        성공적인 스마트 팩토리와 제조 실행 시스템(MES)을 구축하기 위해서는 장비 단부터 기업 경영 시스템 단까지의 데이터가 끊김 없이 흘러야 합니다. 
+        글로벌 제조 엔지니어링 업계는 이를 위해 세 가지 핵심 표준 기구 및 아키텍처 모델을 채택하고 있으며, 각각 독자적인 문제 해결 영역을 가집니다.
+      </p>
+      <div class="list">
+        <div class="card">
+          <strong>SEMI Standards (Level 1~2)</strong>
+          <span>
+            <strong>장비 및 인터페이스 표준</strong><br>
+            반도체 및 디스플레이 장비와 상위 제어 시스템(EAP/MES) 간의 물리적·논리적 연결을 담당합니다. SECS/GEM 프로토콜부터 고속 데이터 수집 규격인 EDA(Interface A)까지 장비 레벨의 데이터 취득 및 제어를 표준화합니다.
+          </span>
+        </div>
+        <div class="card">
+          <strong>MESA Model (Level 3)</strong>
+          <span>
+            <strong>MOM/MES 기능적 프레임워크</strong><br>
+            제조 실행 시스템(MES)이 공장에서 수행해야 하는 기능적 영역(MES 11대 핵심 기능)과 비즈니스 가치 창출을 위한 비즈니스 라이프사이클 모델을 제시하여 '무엇(What)'을 관리해야 하는지 프레임워크를 제공합니다.
+          </span>
+        </div>
+        <div class="card">
+          <strong>ANSI/ISA-95 (Level 3~4)</strong>
+          <span>
+            <strong>기업 정보-제어 시스템 통합 표준</strong><br>
+            Level 4(ERP/PLM)와 Level 3(MOM/MES) 간의 역할 분담, 인터페이스 정보 모델(인력, 설비, 자재, 공정) 및 데이터 송수신 규격을 명확히 하여 정보 고립(Information Silo) 현상을 제거하고 유연한 통합 아키텍처를 제시합니다.
+          </span>
+        </div>
+      </div>
+
+      <!-- 3대 표준 융합 관계도 이미지 -->
+      <div style="margin-top: 24px; text-align: center; background: var(--paper); padding: 20px; border-radius: 10px; border: 1px solid var(--line);">
+        <img src="../../img/semi_mesa_isa95_relationship.png" alt="SEMI, MESA, ISA-95 관계도" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid var(--line);">
+        <p class="muted" style="margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--accent);">[그림 1] 스마트 제조를 구성하는 3대 표준(SEMI, MESA, ISA-95)의 유기적 매핑 관계도</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>2. 3대 핵심 표준 비교 매트릭스</h2>
+      <p>각 표준이 표방하는 철학, 주관 단체, 적용 타겟 및 핵심 스펙을 대조하여 상호 역할 분담 관계를 명확히 정의합니다.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>구분</th>
+            <th>SEMI Standards</th>
+            <th>MESA Model</th>
+            <th>ANSI/ISA-95</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>주관 기관</th>
+            <td>SEMI (Semiconductor Equipment and Materials International)</td>
+            <td>MESA International (Manufacturing Enterprise Solutions Association)</td>
+            <td>ISA (International Society of Automation) / ANSI / ISO (IEC 62264)</td>
+          </tr>
+          <tr>
+            <th>중점 대상 레이어</th>
+            <td>Level 1 ~ Level 2 (장비, 컨트롤러, 센서 및 물리 제어계)</td>
+            <td>Level 3 (MOM / MES 생산 실행 제어 영역 전체)</td>
+            <td>Level 3 ~ Level 4 (MOM과 ERP/PLM 간 연계 및 MOM 내부 통합)</td>
+          </tr>
+          <tr>
+            <th>핵심 철학 및 목적</th>
+            <td>장비 인터페이스 표준화를 통한 설비 호환성 향상 및 데이터 획득 비용 최소화</td>
+            <td>제조 비즈니스의 민첩성 확보를 위한 MOM 기능 가이드라인 및 모범 사례 제시</td>
+            <td>통합 모델링 표준화를 통해 ERP-MES 간의 상호 운용성 보장 및 시스템 연동 비용 절감</td>
+          </tr>
+          <tr>
+            <th>대표적인 핵심 규격</th>
+            <td>
+              - SECS/GEM (E4, E5, E37, E30)<br>
+              - GEM300 (E39, E40, E87, E90, E94)<br>
+              - EDA / Interface A (E120, E125, E134)<br>
+              - RAM/Cybersecurity (E10, E116, E187)
+            </td>
+            <td>
+              - Legacy MES 11대 기능 영역<br>
+              - Smart Manufacturing Lifecycles (5대 라이프사이클)<br>
+              - Cross-Lifecycle Threads (품질, 컴플라이언스 등)
+            </td>
+            <td>
+              - Part 1: 기능 및 객체 모델 (4대 자원 등)<br>
+              - Part 2: 개체 속성 모델 (인터페이스 속성)<br>
+              - Part 3: 제조 운영 관리의 활동 모델 (8대 활동)<br>
+              - Part 4: MOM 내부 데이터 흐름 규격
+            </td>
+          </tr>
+          <tr>
+            <th>데이터 인터페이스 형태</th>
+            <td>바이너리 스트림(SECS-II) 및 고속 XML/JSON 웹 서비스 (HTTP/SOAP, gRPC)</td>
+            <td>기능적 요구사항 정의 중심 (특정 전송 프로토콜을 규정하지 않음)</td>
+            <td>XML 스키마 기반 데이터 모델 표준(B2MML: Business to Manufacturing Markup Language)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>3. 융합 데이터 흐름 아키텍처 (Level 1~4 통합 맵)</h2>
+      <p>ERP(Level 4)에서 수립된 오더가 MES(Level 3)를 거쳐 장비(Level 1~2)로 하달되고, 실시간 데이터가 상향 취득되는 구조적 맵입니다.</p>
+      
+      <div class="diagram">
+        <svg viewBox="0 0 920 460" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#2864a8"/>
+            </marker>
+          </defs>
+
+          <!-- Level 4: Enterprise Layer -->
+          <g class="node">
+            <rect x="20" y="20" width="880" height="90" fill="#f8fafc" stroke="#2864a8" stroke-width="2" rx="10"/>
+            <text x="40" y="45" font-size="14" fill="#1e3a8a" font-weight="800">LEVEL 4 : ENTERPRISE SYSTEM (경영 및 기업 자원 영역)</text>
+            <text x="40" y="65" class="tiny">ERP (자원 계획), PLM (제품 수명 주기 관리), SCM (공급망 관리)</text>
+            <rect x="520" y="35" width="350" height="60" fill="#fff" stroke="#94a3b8" rx="6"/>
+            <text x="535" y="55" font-size="12" fill="#475569" font-weight="700">ISA-95 인터페이스 스콥 (B2M)</text>
+            <text x="535" y="75" class="tiny" fill="#64748b">B2MML 규격 기반 데이터 바인딩 (자재/자원/주문 정의)</text>
+          </g>
+
+          <!-- Inter-layer Flow: Level 4 -> Level 3 -->
+          <path d="M 280 110 L 280 160" class="arrow"/>
+          <text x="290" y="140" class="tiny" fill="#2864a8" font-weight="700">생산 지시 하달 (Operations Schedule)</text>
+
+          <path d="M 440 160 L 440 110" class="arrow"/>
+          <text x="450" y="140" class="tiny" fill="#517d2f" font-weight="700">생산 실적 및 품질 보고 (Performance)</text>
+
+          <!-- Level 3: MOM/MES Layer -->
+          <g class="node">
+            <rect x="20" y="170" width="880" height="150" fill="#f0fbfb" stroke="#137a7f" stroke-width="2" rx="10"/>
+            <text x="40" y="195" font-size="14" fill="#0f766e" font-weight="800">LEVEL 3 : MOM / MES LAYER (제조 실행 및 운영 관리 영역)</text>
+            <text x="40" y="215" class="tiny">생산 정의 관리 / 자원 관리 / 상세 스케줄링 / 디스패칭 / 데이터 수집 및 분석</text>
+            
+            <!-- MESA 11대 기능 블록 -->
+            <rect x="50" y="235" width="380" height="70" fill="#fff" stroke="#137a7f" rx="6"/>
+            <text x="65" y="255" font-size="12" fill="#0f766e" font-weight="700">MESA 기능 스콥 (MES의 역할)</text>
+            <text x="65" y="275" class="tiny" fill="#0f766e">11대 핵심 기능 (스케줄링, 디스패칭, 추적, 성과분석 등)</text>
+            <text x="65" y="292" class="tiny" fill="#64748b">Smart Manufacturing Lifecycles &amp; Threads 통합 관리</text>
+
+            <!-- ISA-95 Part 3 활동 블록 -->
+            <rect x="490" y="235" width="380" height="70" fill="#fff" stroke="#137a7f" rx="6"/>
+            <text x="505" y="255" font-size="12" fill="#0f766e" font-weight="700">ISA-95 활동 모델 (Activity Models)</text>
+            <text x="505" y="275" class="tiny" fill="#0f766e">생산, 품질, 보전, 재고 4대 도메인별 공통 8대 활동 흐름</text>
+            <text x="505" y="292" class="tiny" fill="#64748b">내부 데이터 흐름 표준화 (Part 4) 및 정보 모델링</text>
+          </g>
+
+          <!-- Inter-layer Flow: Level 3 -> Level 1~2 -->
+          <path d="M 280 320 L 280 360" class="arrow"/>
+          <text x="290" y="345" class="tiny" fill="#b85c18" font-weight="700">EAP/GEM300 제어 명령 (E40/E94 Job)</text>
+
+          <path d="M 640 360 L 640 320" class="arrow"/>
+          <text x="650" y="345" class="tiny" fill="#2864a8" font-weight="700">SECS/GEM &amp; EDA 실시간 데이터 상향 획득</text>
+
+          <!-- Level 1~2: Shop Floor Layer -->
+          <g class="node">
+            <rect x="20" y="370" width="880" height="80" fill="#fff8ef" stroke="#b85c18" stroke-width="2" rx="10"/>
+            <text x="40" y="395" font-size="14" fill="#7c2d12" font-weight="800">LEVEL 1~2 : SHOP FLOOR &amp; EQUIPMENT LAYER (현장 설비 영역)</text>
+            <text x="40" y="415" class="tiny">반도체 가공 설비 (Cluster Tool, Exposure, Etcher, CVD), 센서, 컨트롤러, PLC</text>
+
+            <rect x="520" y="380" width="350" height="60" fill="#fff" stroke="#b85c18" rx="6"/>
+            <text x="535" y="400" font-size="12" fill="#9a3412" font-weight="700">SEMI 인터페이스 스콥 (GEM / EDA)</text>
+            <text x="535" y="420" class="tiny" fill="#64748b">E30 GEM 설비 상태 기계 모델 &amp; E125 EDA 고속 패킷 스트림</text>
+          </g>
+        </svg>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>4. 반도체 실무 시나리오 기반의 3대 표준 연계 워크플로우</h2>
+      <p>
+        신규 반도체 웨이퍼 가공 오더가 기업의 ERP 시스템에서 생성되어 최종 장비에서 가공되고, 
+        그 수율 데이터가 다시 환류되기까지 3대 표준은 아래와 같은 타임라인 흐름에 따라 긴밀히 공조합니다.
+      </p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <span class="timeline-step">Step 1</span>
+          <div class="timeline-content">
+            <strong>ERP 생산 주문 정보의 하향 전송 (ISA-95 인터페이스 작동)</strong>
+            <p class="muted">
+              Level 4 ERP 시스템에서 웨이퍼 가공 주문(Work Order)이 확정됩니다. 이 주문 정보는 ISA-95 규격의 <strong>Operations Schedule</strong> 모델에 입각하여 XML 구조(B2MML 규격)로 변환됩니다. 
+              여기에는 생산 제품 코드, 목표 수량, 투입 원자재 사양, 납기 윈도우 등의 정보가 엄밀히 모델링되어 비동기 메시지 큐를 통해 Level 3 MES로 안정적으로 전달됩니다.
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <span class="timeline-step">Step 2</span>
+          <div class="timeline-content">
+            <strong>MES 상세 계획 수립 및 배정 (MESA 11대 기능 &amp; ISA-95 Part 3 작동)</strong>
+            <p class="muted">
+              주문을 접수한 MES는 MESA 모델의 <strong>상세 생산 스케줄링(Operations Detail Scheduling)</strong> 및 <strong>작업 단위 디스패칭(Dispatching)</strong> 활동을 가동합니다. 
+              공장 내의 설비 부하량, 챔버 상태(SEMI E10 RAM 데이터 기준), 원자재 위치(재고 운영 관리)를 검토하고, 특정 설비 포트(E87 Carrier Management 기준)에 웨이퍼 캐리어를 투입할 일정을 계산하여 최적의 제어 지시를 결정합니다.
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <span class="timeline-step">Step 3</span>
+          <div class="timeline-content">
+            <strong>설비 가공 명령 및 물리 실행 제어 (SEMI GEM300 표준 작동)</strong>
+            <p class="muted">
+              일정이 결정되면 MES 상위의 EAP(Equipment Application Program)는 설비 인터페이스 규격을 작동합니다. 
+              <strong>SEMI E40 (Processing Job)</strong>으로 작업 순서 및 레시피 파라미터를 바인딩하고, <strong>SEMI E94 (Control Job)</strong>를 통해 설비 챔버의 운전 방식을 규정합니다. 
+              설비는 <strong>SEMI E87 (Carrier Management)</strong>과 <strong>SEMI E90 (Substrate Tracking)</strong>에 의거하여 FOUP(캐리어) 내 웨이퍼들의 물리적 로딩 및 반송 이벤트를 실시간 검증하며 가공을 완수합니다.
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <span class="timeline-step">Step 4</span>
+          <div class="timeline-content">
+            <strong>실시간 엔지니어링 데이터 수집 및 실적 상향 보고 (SEMI SECS/GEM 및 EDA 작동)</strong>
+            <p class="muted">
+              설비 가공 중 발생하는 알람 및 가공 상태 이행(Idle -> Running -> Done)은 <strong>SEMI E30 GEM</strong> 이벤트 보고 체계로 MES에 전송됩니다. 
+              동시에 가스 유량, 압력, RF 파워 등 공정 제어계 고유의 센서 데이터는 <strong>SEMI E125/E134 EDA (Interface A)</strong> 패킷에 실려 메가헤르츠(MHz)급의 초고속 속도로 빅데이터 분석계로 직행합니다.
+            </p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <span class="timeline-step">Step 5</span>
+          <div class="timeline-content">
+            <strong>OEE 분석 및 ERP 실적 정산 환류 (ISA-95 &amp; MESA 성과 분석 가동)</strong>
+            <p class="muted">
+              작업 완료 시 MES는 설비 데이터 스트림을 결합하여 MESA의 <strong>성과 분석(Performance Analysis)</strong> 규칙에 의거해 설비종합효율(OEE) 및 시간당 산출 속도를 집계합니다. 
+              이 정보는 다시 ISA-95의 <strong>Operations Performance</strong> 모델로 격상되어 최종 생산 실적 보고서 형태로 ERP 시스템에 자동 통보됨으로써, 다음 자원 계획(SCM) 및 원가 산정 프로세스에 즉시 반영됩니다.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>5. 스마트 제조 프레임워크와 미래 동향</h2>
+      <div class="callout">
+        <strong>융합 아키텍처의 미래: Smart Manufacturing Lifecycles &amp; IoT Threads</strong>
+        <p>
+          최근 MESA와 ISA-95 기구는 IIoT, 인공지능(AI/ML), 디지털 트윈과 같은 파괴적 기술을 표준 프레임워크 내에 완전히 수용하고 있습니다. 
+          특히 MESA는 전통적인 11대 기능 범위를 뛰어넘어, 비즈니스 중심의 5대 핵심 라이프사이클과 이를 가로지르는 크로스 스레드(품질 스레드, 디지털 트윈 스레드 등) 모델을 구축하였습니다. 
+          또한, ISA-95는 Edge computing 및 클라우드 네이티브 환경에 부합하도록 비동기 메시지 및 gRPC API 데이터 교환 스펙(Part 8/9)을 확대 개발하여, 현장 설비(Level 1~2)의 고속 센서 정보를 클라우드 비즈니스 로직에 직결시킬 수 있는 플랫 아키텍처의 기틀을 다지고 있습니다.
+        </p>
+      </div>
+
+      <div class="note">
+        <strong>핵심 아키텍처 Insight</strong>
+        <ul>
+          <li><strong>SEMI는 손발(물리적 실행 및 센싱 인터페이스)</strong>에 대응하며, 초고속 전송 및 물리 정합성에 최적화되어 있습니다.</li>
+          <li><strong>MESA는 두뇌(기능적 의사결정 프레임워크)</strong>에 대응하며, 사업 목표 달성을 위해 MES 시스템이 갖추어야 할 지능의 범위를 가이드합니다.</li>
+          <li><strong>ISA-95는 신경계(시스템 간 인터페이스 표준)</strong>에 대응하며, 분산된 두뇌와 이종 정보 시스템들이 오해 없이 공통 언어(B2MML)로 통신하도록 허브 역할을 수행합니다.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
