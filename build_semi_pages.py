@@ -5,9 +5,10 @@ root = os.path.dirname(os.path.abspath(__file__))
 guideDir = os.path.join(root, "SEMI_Interactive_Guide")
 developerDir = os.path.join(root, "SEMI_Interactive_Developer")
 guideStandardsDir = os.path.join(guideDir, "standards")
+guideAlgorithmsDir = os.path.join(guideDir, "algorithms")
 developerAlgorithmsDir = os.path.join(developerDir, "algorithms")
 
-for d in [guideDir, developerDir, guideStandardsDir, developerAlgorithmsDir]:
+for d in [guideDir, developerDir, guideStandardsDir, developerAlgorithmsDir, guideAlgorithmsDir]:
     os.makedirs(d, exist_ok=True)
 
 standards_raw = [
@@ -64,56 +65,111 @@ algorithms = [
       ["parameter_sample_stream", "equipment_id, sample_time, val_x, val_y, is_inside_envelope"]
     ],
     "introduction": """
-      <h3>Convex Hull (볼록 껍질)의 개념</h3>
-      <p>2차원 또는 다차원 공간에 흩어져 있는 여러 점들을 모두 감싸는 <strong>가장 작은 볼록한 다각형(또는 다면체)</strong>을 의미합니다. 전산 기하학(Computational Geometry)에서 가장 기본적이면서도 중요한 개념입니다.</p>
-      <p>가장 직관적인 비유는 <strong>'고무줄 비유(Rubber Band Analogy)'</strong>입니다. 널빤지 위에 여러 개의 못(데이터 점)이 박혀 있다고 상상해 보세요. 커다란 고무줄을 팽팽하게 늘려서 모든 못을 바깥쪽에서 감싸도록 놓았을 때, 고무줄이 수축하면서 바깥쪽 못들에 걸쳐 만들어지는 형태가 바로 이 못들의 Convex Hull입니다.</p>
+      <h3>1. Convex Hull (볼록 껍질)의 전산기하학적 정의</h3>
+      <p>수학적으로 2차원 공간 또는 다차원 유클리드 공간 $\\mathbb{R}^d$에 존재하는 유한한 점 집합 $S = \\{p_1, p_2, \\dots, p_n\\}$가 주어졌을 때, <strong>Convex Hull $\\text{CH}(S)$</strong>는 이 모든 점들을 포함하는 가장 작은 볼록 다각형(Convex Polygon)으로 정의됩니다. 볼록함의 기하학적 의미는 다각형 경계 내부 또는 경계선 상의 어떤 임의의 두 점 $A, B$를 선분 $\\overline{AB}$로 연결하더라도 선분의 모든 좌표가 다각형 내부 영역에 완벽히 포함되는 성질을 의미합니다.</p>
       
-      <h4>기하학적 및 수학적 정의</h4>
-      <ul>
-        <li><strong>볼록(Convex)의 의미:</strong> 다각형 내부에 있는 임의의 두 점을 골라 선분으로 연결했을 때, 그 선분이 다각형의 경계선 밖으로 전혀 나가지 않는 형태를 말합니다.</li>
-        <li><strong>최소성(Minimality):</strong> 점 집합 S를 포함하는 볼록 다각형은 무수히 많을 수 있지만, Convex Hull은 그 중에서 '가장 작은(면적이 최소인)' 다각형입니다.</li>
-        <li><strong>정점(Vertex):</strong> Convex Hull의 꼭짓점을 이루는 점들을 '극단점(Extreme Points)'이라고 하며, 이들은 원래 점 집합 S에 속해 있는 데이터들 중 가장 외곽에 위치한 데이터들입니다.</li>
-      </ul>
+      <div class="box box-primary">
+        <span class="box-title">💡 볼록성(Convexity)의 수학적 조건</span>
+        <p class="mb-0">$$\\text{CH}(S) = \\left\\{ \\sum_{i=1}^{n} \\alpha_i p_i \\ \\middle|\\ \\sum_{i=1}^{n} \\alpha_i = 1, \\ \\alpha_i \\ge 0 \\right\\}$$</p>
+        <p class="mb-0 mt-1">즉, 집합 $S$의 모든 볼록 결합(Convex Combination)을 모은 부분 공간이 바로 Convex Hull이 되며, 경계를 구성하는 최외각 극단점(Extreme Points)들만이 다각형의 정점(Vertices)으로 결정됩니다.</p>
+      </div>
+
+      <h3>2. 대표적인 Convex Hull 알고리즘 비교 분석</h3>
+      <p>대용량 스트리밍 설비 로그를 기하학적으로 프로파일링하기 위해서는 시간 및 메모리 복잡도, 그리고 최종 볼록 껍질을 구성하는 정점의 수 $h$에 따른 최적화 수준을 고려해야 합니다.</p>
       
-      <h4>주요 탐색 알고리즘 비교</h4>
-      <ul>
-        <li><strong>Jarvis March (선물 포장 알고리즘, Gift Wrapping):</strong> 가장 왼쪽 점에서 시작해 반시계 방향으로 선물을 포장하듯 다음 점을 찾아나갑니다. 시간 복잡도: \\(O(nh)\\) (n: 전체 점, h: 껍질 정점 수)</li>
-        <li><strong>Graham Scan (그레이엄 스캔):</strong> 각도 기준으로 전체 정렬(\\(O(n \\log n)\\)) 후 스택을 사용하여 오목점을 제거하며 껍질을 완성합니다.</li>
-        <li><strong>Chan's Algorithm (찬의 알고리즘):</strong> 데이터를 크기 m인 그룹으로 나누어 Graham Scan을 수행한 후, Jarvis March 방식으로 병합하여 \\(O(n \\log h)\\)라는 이론적 최적 복잡도를 달성합니다.</li>
-      </ul>
+      <table class="common-table">
+        <thead>
+          <tr>
+            <th>알고리즘 명칭</th>
+            <th>시간 복잡도</th>
+            <th>공간 복잡도</th>
+            <th>출력 민감성 (Output-Sensitive)</th>
+            <th>기하학적 연산 특성 및 장단점</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hover:bg-slate-50">
+            <td><strong>Jarvis March (선물 포장)</strong></td>
+            <td>$O(nh)$</td>
+            <td>$O(1)$ 추가공간</td>
+            <td>예 (정점 수 $h$에 정비례)</td>
+            <td>가장 왼쪽 점에서 시작하여 반시계 방향으로 다음 정점을 탐색. $h$가 매우 작을 때는(예: 3~4개) 극대로 빠르나, 모든 점이 원주 상에 존재해 $h \\approx n$이 될 경우 $O(n^2)$으로 대폭 성능이 하락함.</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td><strong>Graham Scan (스캔 방식)</strong></td>
+            <td>$O(n \\log n)$</td>
+            <td>$O(n)$ 스택공간</td>
+            <td>아니오 (항상 정렬 비용 포함)</td>
+            <td>y좌표가 가장 낮은 극단점을 기준점으로 두고 나머지 모든 점을 극좌표 기준 각도로 정렬한 뒤, 스택 구조와 좌회전/우회전 기하 연산(CCW)을 통해 오목점(Concave Point)을 제거. $h$ 크기에 무관하게 정렬 복잡도가 병목이 됨.</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td><strong>Chan's Algorithm (찬의 최적화)</strong></td>
+            <td>$O(n \\log h)$</td>
+            <td>$O(n)$</td>
+            <td><strong>예 (이론적 최적 달성)</strong></td>
+            <td>Graham Scan의 빠른 서브그룹 계산 능력과 Jarvis March의 외곽 접선 병합 메커니즘을 결합. $h$를 모르는 상태에서 이중 로그 스케일로 그룹 크기 $m$을 기하급수적으로 키우며 탐색하여 $O(n \\log h)$의 상한선을 최초로 증명함.</td>
+          </tr>
+        </tbody>
+      </table>
     """,
     "steps": """
+      <p>Chan의 알고리즘은 전체 점의 개수 $n$과 껍질의 최종 정점 개수 $h$의 차이를 이용하며, 사전에 정점 개수 $h$를 알 수 없는 한계를 극복하기 위해 <strong>매개변수 $m$ (그룹의 크기)을 점진적으로 키우는(Iterative) 전략</strong>을 취합니다. 작동 로직은 다음과 같이 크게 4가지 단계로 전개됩니다.</p>
+      
       <ol>
-        <li><strong>그룹 분할 (Partitioning)</strong>
-          <p>전체 점 집합 P를 크기가 m인 r개의 그룹으로 나눕니다.</p>
+        <li><strong>서브그룹 파티셔닝 및 경계값 설정 (Partitioning)</strong>
+          <p>전체 점 집합 $P$를 크기가 정확히 $m$인 $r = \\lceil n/m \\rceil$개의 독립적인 서브그룹 $P_1, P_2, \\dots, P_r$로 등분합니다. 각 서브그룹 내부에서는 데이터의 부분 집합만을 다루며 독립적으로 연산을 수행할 수 있어 병렬화 처리에 매우 용이한 구조를 지닙니다.</p>
+        </li>
+        
+        <li><strong>서브그룹별 로컬 Convex Hull 생성 (Local Graham Scan)</strong>
+          <p>각각의 독립된 서브그룹 $P_i$ ($|P_i| \\le m$)에 대해 개별적으로 Graham Scan 알고리즘을 적용하여 로컬 볼록 껍질 $CH_i$를 도출합니다.</p>
           <ul>
-            <li>그룹의 수: \\(r = \\lceil n/m \\rceil\\)</li>
-            <li>수식: \\(P = \\{P_1, P_2, ..., P_r\\}\\) 이며, 각 \\(|P_i| \\le m\\) 입니다.</li>
+            <li><strong>시간 복잡도:</strong> 한 그룹당 $O(m \\log m)$이 소요되므로, 전체 $r$개 그룹의 계산 총합은 $O(r \\cdot m \\log m) = O( \\frac{n}{m} \\cdot m \\log m ) = O(n \\log m)$입니다.</li>
+            <li><strong>기하 판별식 (CCW - Counter Clockwise):</strong> 연속된 세 점 $A(x_1, y_1), B(x_2, y_2), C(x_3, y_3)$에 대해 외적(Cross Product) 부호를 확인하여 반시계 방향 회전(우회전 배제)을 판별합니다.
+              <div class="math-box">$$CCW(A, B, C) = (x_2 - x_1)(y_3 - y_1) - (y_2 - y_1)(x_3 - x_1)$$</div>
+              $CCW(A, B, C) > 0$ 이면 좌회전(정상 껍질 유지), $\\le 0$ 이면 우회전 또는 일직선이므로 중간점 $B$를 스택에서 배제(Eviction)합니다.
+            </li>
           </ul>
         </li>
-        <li><strong>개별 Convex Hull 생성 (Graham Scan)</strong>
-          <p>각 그룹 P_i에 대해 Graham Scan 알고리즘을 적용하여 각각의 작은 볼록 껍질 CH_i를 구합니다. 이 과정의 시간 복잡도는 그룹당 O(m log m)이 소요되므로 전체적으로 \\(O(n \\log m)\\)입니다.</p>
-        </li>
-        <li><strong>Jarvis March를 이용한 병합 (Gift Wrapping)</strong>
-          <p>가장 왼쪽에 있는 점 P_i에서 시작하여, 전체 껍질의 다음 정점 P_{k+1}을 찾습니다. 이때 각 그룹의 껍질(CH_i)과 현재 점(P_k) 사이의 <strong>접선(Tangent)</strong>을 이진 탐색으로 찾습니다.</p>
+        
+        <li><strong>Jarvis March 접선 병합 및 외곽 질의 (Sub-hull Wrapping)</strong>
+          <p>전체 평면에서 $y$좌표가 가장 낮아 무조건 볼록 껍질의 정점임이 보장되는 초기 전역 기준점 $p_0$에서 병합 처리를 개시합니다. 현재 껍질 정점이 $p_k$일 때, 반시계 방향 기준 다음 정점 $p_{k+1}$을 찾기 위해 각 서브그룹 껍질 $CH_i$에서 $p_k$를 지나는 <strong>외곽 접선(Exterior Tangent Line)</strong>을 구합니다.</p>
           <ul>
-            <li>접점 탐색: \\(P_k\\)에서 각 \\(CH_i\\)로의 접선을 찾는 시간은 \\(O(\\log m)\\)입니다.</li>
-            <li>다음 정점 결정: r개의 그룹 중에서 가장 외곽에 있는 점을 고르는 과정은 \\(O(r \\log m)\\)입니다.</li>
-            <li>이 과정을 h번 반복하므로 최종 병합 시간은 \\(O(h \\cdot (n/m) \\log m)\\)입니다.</li>
+            <li><strong>이진 탐색(Binary Search)의 활용:</strong> 정렬된 정점 구조를 가진 각 로컬 $CH_i$에 대해 $p_k$와의 각도가 최대인 접점을 찾는 과정은 선형 탐색($O(m)$)이 아닌 <strong>이진 탐색 $O(\\log m)$</strong>으로 극도로 빠르게 연산할 수 있습니다.</li>
+            <li><strong>전역 최적 정점 선택:</strong> 전체 $r$개의 서브그룹에서 도출된 접점 후보군 중 각도가 최대인 접점을 선택하여 전역 껍질의 다음 정점 $p_{k+1}$로 정의합니다. 이 전역 결합 비용은 $O(r \\log m) = O(\\frac{n}{m} \\log m)$입니다.</li>
+            <li><strong>제한적 루프 탈출 조건:</strong> 이 래핑 루프를 최대 $m$번 반복합니다. 만약 $m$번 이하의 반복 내에 최초 출발 정점인 $p_0$로 귀환하면 전체 볼록 껍질의 완성을 선언하고 종료합니다. 만약 $m$번을 초과해도 $p_0$에 도달하지 못했다면 현재 추정한 그룹 크기 $m$이 최종 정점 개수 $h$보다 작음을 뜻하므로 중단하고 다음 반복으로 이행합니다.</li>
           </ul>
         </li>
-        <li><strong>반복적 파라미터 최적화 (Iterative Strategy)</strong>
-          <p>우리는 h를 미리 알 수 없으므로, m을 \\(2^{2^t}\\) (t=1,2,...) 순으로 기하급수적으로 키우며 위 과정을 반복합니다.</p>
-          <div class="math-box">
-            \\(\\sum_{t=1}^{\\log\\log h} n \\cdot \\log(2^{2^t}) = \\sum_{t=1}^{\\log\\log h} n \\cdot 2^t = O(n \\log h)\\)
-          </div>
+        
+        <li><strong>이중 로그 스케일 반복 매개변수 최적화 (Double-Logarithmic Search)</strong>
+          <p>알고리즘의 동작 중 $h$값을 모르기 때문에 매개변수 $m$의 크기를 기하급수적으로 키우는 스케줄링을 수행합니다. 매 단계 $t$ ($t = 1, 2, \\dots$)에 대해 그룹 크기를 $m_t = 2^{2^t}$로 급격하게 증폭시킵니다.</p>
+          <ul>
+            <li>매개변수 이행 추이: $m_1 = 2^2 = 4 \\rightarrow m_2 = 2^4 = 16 \\rightarrow m_3 = 2^8 = 256 \\rightarrow m_4 = 2^{16} = 65,536 \\dots$</li>
+            <li>이 방식은 $m_t$가 최초로 최종 껍질 정점 개수 $h$ 이상이 될 때까지 진행되며, 총 반복 횟수는 최대 $\\log \\log h$번입니다.</li>
+            <li><strong>이론적 총 시간 복잡도 유도:</strong>
+              <div class="math-box">$$\\sum_{t=1}^{\\lceil \\log\\log h \\rceil} O\\left(n \\log(2^{2^t})\\right) = \\sum_{t=1}^{\\lceil \\log\\log h \\rceil} O(n \\cdot 2^t) = O(n \\cdot 2^{\\lceil \\log\\log h \\rceil + 1}) = O(n \\log h)$$</div>
+              이처럼 기하급수적 성장 덕분에 이전 반복 단계들의 모든 연산량 합이 마지막 최적화 루프 한 번의 비용보다 작아져, 전산기하학적 하한선인 **$O(n \\log h)$**를 완벽하게 달성하게 됩니다.
+            </li>
+          </ul>
         </li>
       </ol>
     """,
     "scenarios": """
+      <p>Chan의 Convex Hull 알고리즘은 반도체 제조 FAB 공정의 대량의 실시간 데이터 수집 환경에서 다음과 같이 혁신적인 스마트 팩토리 지표 분석에 활용될 수 있습니다.</p>
+      
       <ul>
-        <li><strong>설비 파라미터 경계면(Envelope) 분석:</strong> OEE 성능 효율 계산 시, 단순히 평균값만 분석하는 대신 Chan's Algorithm을 사용하여 <strong>'정상 가동 범위(Normal Operating Zone)'</strong>의 다차원 기하학적 경계를 확정할 수 있습니다. 경계 밖의 데이터는 이상 센서 드리프트 등으로 판별하여 가동 손실 원인 추적에 사용합니다.</li>
-        <li><strong>분산 데이터 요약:</strong> 여러 대의 설비(r개)에서 각각 계산된 부분 Convex Hull(CH_i) 정보만 중앙 서버로 보내면, 서버는 전체 원시 데이터를 전송받을 필요 없이 접선 계산만으로 라인 전체의 공정 경계를 즉시 합성할 수 있습니다.</li>
+        <li><strong>반도체 플라즈마 식각 설비의 FDC (실시간 정상 작동 경계면 산출)</strong>
+          <p>에칭(Etching) 공정 중 수집되는 <strong>Chamber 내부 압력(Pressure)</strong>과 **Source RF 파워(Power)**는 상호 연관되어 설비 내부 환경의 건전성을 대변합니다. SEMI E134 (Interface A) 고속 데이터 수집 계획(DCP)을 통해 50ms 주기로 수집되는 정상 가동 데이터에서 Chan's Algorithm을 사용하여 2D 기하 경계면(Operating Envelope)을 산출합니다.</p>
+          <p>이후 유입되는 새로운 원시 데이터 스트림 $z = (P_z, W_z)$에 대해 경계선 면적 내부 포함 여부를 판단(Wedge-based Binary Search 또는 Ray Casting 기법)하여, 영역 이탈 감지 시 실시간으로 GEM Alarm (SEMI E30)을 트리거해 불량 웨이퍼(Wafer Scrap) 발생을 원천 차단합니다.</p>
+        </li>
+        
+        <li><strong>다변량 설비 OEE 성능 병목 상관관계 기하적 요약</strong>
+          <p>장비의 **온도 분포(Temperature)**와 **정상 웨이퍼 이송 속도(Robot Arm Speed)**를 다차원으로 결합하여 설비 성능이 최상으로 발휘되는 핵심 영역을 도출합니다. 데이터가 실시간으로 입력됨에 따라 오래된 경계를 버리고 최신 데이터로 동적 갱신(Sliding Window Convex Hull)하여 설비 부품의 노화에 따른 최적 가동 영역의 이동 추이(Centroid Drift)를 머신러닝 피처로 주입할 수 있습니다.</p>
+        </li>
+        
+        <li><strong>분산 에지(Edge-Gateway) 컴퓨터 부하 분산 및 네트워크 전송 제약 극복</strong>
+          <p>FAB 내 수천 대의 Chamber에서 100Hz 급으로 쏟아지는 원시 데이터를 DB 서버로 전량 전송할 경우 네트워크 대역폭 폭증과 대규모 IO 지연을 야기합니다. Chan의 1단계 파티셔닝 개념을 대입하여, 각 설비 단의 Edge Gateway PC가 자체 1차 로컬 Graham Scan을 수행하여 극단점(Extreme Vertices) 수십 개만을 추출합니다.</p>
+          <p>중앙 MES 분석 서버는 원시 데이터 대신 각 에지 단에서 보내온 가볍게 압축된 서브 정점(Sub-hull Vertices) 데이터만 전송받아 2단계 접선 병합(Wrapping) 연산만을 수행해 전체 FAB의 공정 기하 경계를 0.1ms 이내로 즉각 합성(Synthesize)해냅니다.</p>
+        </li>
       </ul>
     """
   },
@@ -131,68 +187,140 @@ algorithms = [
       ["kll_level_buffer", "sketch_id, level_no, weight, capacity, buffer_values_json"]
     ],
     "introduction": """
-      <h3>KLL (Karnin-Lang-Liberty) Sketch의 개념</h3>
-      <p>KLL 알고리즘은 스트리밍 데이터에서 <strong>Quantiles(분위수)</strong>를 추정하기 위해 설계된 최신 알고리즘입니다. Apache DataSketches 라이브러리 등에 포함되어 실무에서 대용량 모니터링 분석에 널리 쓰입니다.</p>
-      <p>수억 개의 데이터가 실시간으로 들어올 때, 모든 데이터를 정렬하여 "상위 1% 값"이나 "중간값(Median)"을 찾는 것은 메모리상 불가능합니다. KLL은 아주 적은 메모리만 사용하면서도 매우 높은 정확도로 이 값들을 추정합니다.</p>
+      <h3>1. 실시간 스트림 환경에서의 Quantile 추정 문제</h3>
+      <p>반도체 FAB 공정이나 대형 IT 분산 환경에서 발생하는 대용량 센서 로그 및 이벤트 스트림에서 특정 시간 윈도우의 <strong>백분위수(Quantiles, p50 중위값, p95/p99 극단값 등)</strong>를 추정하는 것은 매우 중요합니다. 예를 들어, 설비 가동 효율을 높이기 위해 Cycle Time의 99% 선에 달하는 이상치를 필터링하거나 데이터의 중앙값을 참 속도로 대입해야 합니다.</p>
       
-      <h4>KLL 알고리즘의 구조: 계층적 버퍼 (Hierarchical Buffers)</h4>
-      <p>KLL은 여러 개의 <strong>Level(H)</strong>로 구성된 버퍼 구조를 가집니다. 각 레벨 i는 용량 k_i를 가지며, 레벨이 올라갈수록 데이터의 '가중치'는 2배씩 증가합니다.</p>
+      <div class="box box-danger">
+        <span class="box-title">⚠️ 기존 방식의 치명적인 한계</span>
+        <p class="mb-0"><strong>정렬 기반 나이브 방식(Naive Sorting):</strong> 들어오는 원시 데이터를 메모리에 모두 보관하고 매번 정렬할 경우, 데이터 수 $N$에 대해 메모리 공간 복잡도 $O(N)$ 및 시간 복잡도 $O(N \\log N)$이 요구됩니다. 수천만 건에 달하는 실시간 스트림 환경에서는 메모리 오버플로우가 즉각적으로 발생합니다.</p>
+      </div>
+
+      <h3>2. KLL (Karnin-Lang-Liberty) 알고리즘 개요</h3>
+      <p>KLL은 2016년에 발표된 스트리밍 분위수 추정 알고리즘으로, 이론상 최적에 수렴하는 공간 복잡도 하한선을 달성했습니다. 전체 데이터를 보관하는 대신, <strong>용량이 각기 다른 여러 단계의 계층형 버퍼(Hierarchical Buffers, Levels)</strong>를 두고 데이터를 선별적으로 거르면서(Eviction) 상위 레벨로 밀어 올리는 확률적 축소 메커니즘을 사용합니다.</p>
+
+      <h3>3. 분위수 추정 알고리즘 스펙 비교</h3>
+      <table class="common-table">
+        <thead>
+          <tr>
+            <th>알고리즘 명칭</th>
+            <th>공간 복잡도 (메모리)</th>
+            <th>오차 범위 보장</th>
+            <th>병합 가능성 (Mergeable)</th>
+            <th>수학적 특징 및 실무 한계</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hover:bg-slate-50">
+            <td><strong>나이브 정렬 (Naive)</strong></td>
+            <td>$O(N)$ (무제한)</td>
+            <td>완벽함 (오차 0%)</td>
+            <td>아니오</td>
+            <td>스트림이 커질수록 메모리 고갈. 실시간 대용량 모니터링 시스템에는 적용 불가.</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td><strong>Greenwald-Khanna (GK)</strong></td>
+            <td>$O(\\frac{1}{\\epsilon} \\log(\\epsilon N))$</td>
+            <td>결정론적 오차 $\\epsilon$ 보장</td>
+            <td>매우 어려움</td>
+            <td>결정론적으로 정확한 경계 오차를 제공하지만, 두 개의 Sketch를 중앙 서버에서 병합(Merge)하는 성능이 매우 낮아 분산 노드 분석에 불리함.</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td><strong>T-Digest</strong></td>
+            <td>$O(\\text{고정 센트로이드 수})$</td>
+            <td>경계면(p01, p99) 오차 극소화</td>
+            <td>예</td>
+            <td>양 끝단의 분위수를 매우 정교하게 짚어내어 금융/성능 로그에서 인기가 높으나, 수학적/최악의 시나리오 하에서 엄밀한 에러 바운드 가이드라인 증명이 약함.</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td><strong>KLL Sketch (본 알고리즘)</strong></td>
+            <td>$O(\\frac{1}{\\epsilon} \\log \\log \\frac{1}{\\epsilon})$</td>
+            <td>확률론적 오차 $\\epsilon$ 보장</td>
+            <td><strong>예 (완벽한 병합 지원)</strong></td>
+            <td>이론상 공간 복잡도의 최적 하한선을 달성. 여러 에지 장비에서 수집된 KLL Sketch들을 추가 오차 왜곡 없이 중앙 서버에서 즉각 병합 가능. Apache DataSketches 표준 내장.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>4. KLL 계층형 버퍼 및 레벨 스케줄링 구조</h3>
+      <p>KLL은 내부적으로 $0$부터 $H$까지의 <strong>계층화된 레벨(Levels)</strong>을 관리합니다. 각 레벨 $i$는 동일한 데이터 $k_i$개를 담는 임시 메모리 버퍼를 유지하며, 레벨이 깊어질수록 포함된 데이터들의 **통계적 가중치(Weight)**는 $2^i$배로 정확히 기하급수적으로 증가합니다.</p>
       <ul>
-        <li><strong>Level 0:</strong> 원래의 데이터(가중치 1)가 들어오는 곳입니다.</li>
-        <li><strong>Level i:</strong> 가중치가 \\(2^i\\)인 데이터들이 저장됩니다.</li>
+        <li><strong>Level 0 (원시 유입 버퍼):</strong> 원시 스트림 데이터가 가중치 $1$ ($2^0$)을 가진 상태로 최초 수집 및 기록되는 공간입니다.</li>
+        <li><strong>Level i (압축 전이 버퍼):</strong> 하위 레벨로부터 무작위 압축(Compaction) 처리를 받아 올라온 값들이며, 데이터 1개당 가중치 $2^i$를 지닙니다.</li>
+        <li><strong>레벨별 한계 용량 설정 ($k_i$):</strong> 메모리 낭비를 줄이기 위해 상위 레벨로 이동할수록 각 레벨의 버퍼 한계 크기를 약 $2/3$ 비율로 점진적으로 감소시킵니다.
+          <div class="math-box">$$k_i = \\lfloor k \\cdot c^{H-i} \\rfloor \\quad (c \\approx 2/3, \\ H \\text{는 최대 레벨 수})$$</div>
+        </li>
       </ul>
     """,
     "steps": """
-      <p>Compaction은 특정 레벨의 버퍼가 가득 찼을 때, 데이터를 상위 레벨로 보내면서 크기를 줄이는 핵심 프로세스입니다.</p>
+      <p>KLL 알고리즘의 무결성(Unbiased Estimation)을 유지하며 메모리를 일정량 이하로 고정시키는 핵심 동력은 **확률적 압축(Compaction) 루프**에 있습니다.</p>
+      
       <ol>
-        <li><strong>트리거 (Trigger)</strong>
-          <p>레벨 i의 데이터 개수가 미리 정의된 용량 \\(k_i\\)를 초과하면 압축이 시작됩니다.</p>
+        <li><strong>압축 트리거 조건 감지 (Triggering)</strong>
+          <p>새로운 데이터가 주입되어 특정 레벨 $i$의 현재 데이터 개수가 미리 계산된 허용 임계 용량 $k_i$를 초과하는 즉시 압축 프로세스가 백그라운드에서 실행됩니다.</p>
         </li>
-        <li><strong>정렬 (Sorting)</strong>
-          <p>해당 레벨의 버퍼에 있는 데이터들을 오름차순으로 정렬합니다.</p>
-          <div class="math-box">
-            \\(X = \\{x_1, x_2, ..., x_n\\} \\quad (x_1 \\le x_2 \\le ... \\le x_n)\\)
-          </div>
+        
+        <li><strong>버퍼 정렬 및 공간 배치 (Sorting)</strong>
+          <p>해당 레벨 $i$ 버퍼 안에 저장되어 있는 모든 숫자 데이터들을 오름차순으로 완벽히 정렬하여 가상 수직선 상에 배치합니다.
+            <div class="math-box">$$X_{\\text{level } i} = \\{x_1, x_2, \\dots, x_{2n}\\} \\quad (x_1 \\le x_2 \\le \\dots \\le x_{2n})$$</div>
+          </p>
         </li>
-        <li><strong>선택 및 제거 (Selection &amp; Eviction)</strong>
-          <p>정렬된 데이터 중 홀수 번째 또는 짝수 번째 데이터만 선택하여 상위 레벨(i+1)로 보냅니다. 이때 선택은 무작위(Random)로 결정하여 편향(Bias)을 방지합니다.</p>
+        
+        <li><strong>무작위 동전 던지기 기반 편향 방지 제거 (Randomized Selection & Eviction)</strong>
+          <p>정렬된 $2n$개의 데이터 쌍에 대해 확률적 편향(Unbiased Estimate)을 방지하기 위해 물리 공정한 동전 던지기 결과인 임의의 비트 $b \\in \\{0, 1\\}$를 하나 생성합니다.</p>
           <ul>
-            <li><strong>동전 던지기(\\(b \\in \\{0,1\\}\\))</strong>를 통해 결정:</li>
-            <li>b=0이면: \\(\\{x_2, x_4, x_6, ...\\}\\) 를 상위 레벨로 전달</li>
-            <li>b=1이면: \\(\\{x_1, x_3, x_5, ...\\}\\) 를 상위 레벨로 전달</li>
-            <li>선택되지 않은 나머지 절반의 데이터는 메모리에서 완전히 삭제됩니다.</li>
+            <li><strong>$b = 0$ 인 경우 (짝수 인덱스 승격):</strong> 홀수 번째 위치한 데이터들을 메모리에서 완전히 소거하고, 짝수 번째 데이터 $\\{x_2, x_4, x_6, \\dots\\}$만을 선택하여 상위 레벨 $i+1$ 버퍼로 이송합니다.</li>
+            <li><strong>$b = 1$ 인 경우 (홀수 인덱스 승격):</strong> 짝수 번째 위치한 데이터들을 메모리에서 완전히 소거하고, 홀수 번째 데이터 $\\{x_1, x_3, x_5, \\dots\\}$만을 선택하여 상위 레벨 $i+1$ 버퍼로 이송합니다.</li>
+            <li>이 과정을 거치면 레벨 $i$의 데이터 개수는 즉시 절반으로 경감되어 새로운 유입 버퍼 공간을 확보하게 됩니다.</li>
           </ul>
         </li>
-        <li><strong>가중치 갱신 (Weight Update)</strong>
-          <p>상위 레벨로 올라간 데이터는 이제 이전보다 2배의 가중치를 갖게 됩니다.</p>
-          <p>Level i의 데이터 2개가 Level i+1의 데이터 1개로 대체되지만, 가중치가 \\(2^i\\)에서 \\(2^{i+1}\\)로 변하므로 전체 통계적 분포(Sum of Weights)는 유지됩니다.</p>
+        
+        <li><strong>보존성 가중치 갱신 (Weight Update)</strong>
+          <p>상위 레벨 $i+1$로 승격되어 올라간 데이터들은 이제 이전보다 2배에 해당하는 가중치 $2^{i+1}$를 새로이 부여받습니다. 비록 원시 데이터의 절반이 탈락하여 정보 손실이 발생했으나, 살아남은 인자가 2배의 가중치 역할을 대리하므로 <strong>수학적 기댓값(Expected Cumulative Distribution Function)은 왜곡 없이(Unbiased) 유지</strong>됩니다.</p>
+        </li>
+
+        <li><strong>분위수 근사 계산 및 랭크 질의 (Rank &amp; Quantile Query)</strong>
+          <p>사용자가 특정 분위수 $p$ (예: $0.99$ 분위값)를 질의하면, KLL 스케치 내부의 모든 레벨에 흩어져 있는 잔여 인자들을 가중치 정보와 함께 단일 배열로 결합 및 정렬합니다. 이후 누적 가중치의 누적합(CDF)을 계산하여 목표 랭크에 도달하는 값을 반환합니다.</p>
+          <div class="math-box">
+            $$\\text{추정 랭크 } \\hat{r}(v) = \\sum_{x \\in \\text{Sketch}, x < v} w(x) \\qquad \\hat{q}(p) = v \\text{ such that } \\hat{r}(v) \\approx p \\cdot N$$
+          </div>
         </li>
       </ol>
     """,
     "scenarios": """
+      <p>KLL Sketch는 반도체 제조 현장의 초고속 데이터 스트리밍 파이프라인에서 메모리와 속도 제약을 완벽하게 조율하며 활용됩니다.</p>
+      
       <ul>
-        <li><strong>실시간 OEE 모니터링:</strong> 설비에서 발생하는 수백만 건의 Cycle Time 데이터를 DB에 다 쌓지 않고도, 메모리 내에서 즉시 95% 신뢰 구간의 성능 지표를 산출할 수 있습니다.</li>
-        <li><strong>이상치(Outlier) 필터링:</strong> 성능 효율을 계산할 때, 비정상적으로 길게 측정된 Cycle Time을 KLL의 분위수 기반 필터링(예: 상위 99% 제외)을 통해 자동 제거하여 데이터의 정밀도를 높일 수 있습니다.</li>
-        <li><strong>분산 데이터 통합:</strong> 여러 대의 설비(Equipment)에서 각각 생성된 KLL Sketch를 중앙 서버로 보내기만 하면, 추가 연산 없이 '병합(Merge)'하여 라인 전체의 통합 통계 데이터를 얻을 수 있습니다.</li>
+        <li><strong>SEMI E116 / E10 표준 기반 실시간 설비 Cycle Time의 극단값 필터링 및 대표 성능 산출</strong>
+          <p>웨이퍼 1장당 공정 진행에 소요되는 시간인 Cycle Time(CT)이나 설비 로봇 팔의 이송 대기 시간인 Queue Time(QT)은 정규 분포를 따르지 않고 극단적인 우측 롱테일(Long-tail) 형태를 띱니다. 레시피 체인지나 기계적 마찰, 알람 상황(SEMI E10 Down)으로 인해 수시간 동안 멈춘 스파이크 데이터가 혼입되면 산술 평균값은 즉각적으로 오염됩니다.</p>
+          <p>KLL Sketch를 각 설비별 Edge 수집 모듈에 1KB 크기의 저메모리로 상주시켜 CT의 실시간 $p50$ (중앙값)과 $p99$ (99% 임계값)를 동적으로 추정합니다. p99를 초과하는 비정상 데이터는 장비 병목 및 에러 지연으로 자동 필터링 처리하고, 오염되지 않은 p50 중앙값만을 설비 OEE(종합효율, SEMI E79)의 실시간 가동 효율 속도인 실제 가공율의 대리 지표로 활용하여 정밀도를 비약적으로 높입니다.</p>
+        </li>
+        
+        <li><strong>고대역폭 장비 데이터 수집(Interface A) 센서 주파수 요약 및 RDBMS 보관비 절감</strong>
+          <p>SEMI E134 수집 계획에 따라 온도, 유량, RF Reflectance 등 수백 개의 아날로그 센서 데이터가 매초 1,000건씩 쏟아질 때 이를 전부 DB에 인서트하면 스토리지 유지비용이 기하급수적으로 폭증합니다.</p>
+          <p>KLL Sketch를 이용해 인메모리에서 초단위 요약 데이터 스트림을 형성합니다. 하루 종일 들어오는 원시 데이터 86,400,000개의 상태 스케치를 직렬화(Serialization)하면 불과 수십 KB의 직렬화 바이너리 블록(`kll_sketch_state` 테이블의 `serialized_blob` 컬럼) 하나로 축소되어 관계형 DB에 저장이 가능하므로, 99.9% 이상의 스토리지 용량을 절감하면서도 임의 시점의 통계 분포를 마이크로초 이내로 정확히 복원해 냅니다.</p>
+        </li>
+        
+        <li><strong>다중 챔버(Chambers) 개별 상태의 실시간 전역 병합 (FAB-wide Mergeability)</strong>
+          <p>KLL Sketch는 수학적으로 <strong>가산성(Additivity/Mergeability)</strong>을 지닙니다. 즉, FAB 내에 분산되어 있는 100대의 CVD Chamber가 각각 수집 및 빌드한 KLL Sketch 상태 파일들을 중앙 클라우드 분석 서버로 보내오면, 분석 서버는 어떠한 원시 데이터 로그도 가져올 필요 없이 100개의 Sketch 객체를 1ms 만에 상호 합산(Merge) 연산 처리합니다.</p>
+          <p>병합된 결과는 전체 100대 설비 라인의 전체 데이터 1억 개를 한 번에 넣고 정렬한 것과 동일한 확률적 오차 범위 $\\epsilon$ 내에서 동일한 전체 분위수 분포 곡선(FAB-wide Cumulative Profile)을 완벽하게 재구성하므로 분산 빅데이터 처리에 극도로 강력합니다.</p>
+        </li>
       </ul>
     """,
     "mathematics": """
-      <h4>수식적 이해와 오차 보장</h4>
-      <p>KLL 알고리즘의 가장 큰 장점은 메모리 사용량과 오차 범위 사이의 관계를 수학적으로 증명했다는 점입니다.</p>
+      <h4>1. 메모리 절약과 오차율($\\epsilon$) 보장에 대한 이론적 증명</h4>
+      <p>KLL Sketch가 널리 쓰이는 이유는 사용자가 요구하는 최대 분위수 오차 범위 $\\epsilon$에 대해 **필요한 메모리 공간의 상한선이 하드웨어 수준에서 사전에 예측 및 고정 가능함**을 수학적으로 완전 증명했기 때문입니다.</p>
+      
       <ul>
-        <li><strong>레벨별 용량 설정 (\\(k_i\\))</strong>
-          <p>메모리를 효율적으로 쓰기 위해 상위 레벨로 갈수록 버퍼 크기를 기하급수적으로 줄입니다.</p>
-          <div class="math-box">
-            \\(k_i \\approx k \\cdot c^{H-i}\\)
-          </div>
-          <p>(여기서 k는 전체 파라미터, c는 1보다 작은 상수(약 2/3)입니다.)</p>
+        <li><strong>오차율의 수학적 정의:</strong>
+          <p>전체 데이터 수 $N$에 대해 임의의 백분율 $p \\in [0, 1]$을 질의했을 때, KLL Sketch가 반환하는 추정 값 $\\hat{q}(p)$의 실제 누적 순위(Rank)는 다음과 같은 오차 경계를 절대로 벗어나지 않습니다.</p>
+          <div class="math-box">$$\\text{Pr}\\left( \\left| \\text{Rank}( \\hat{q}(p) ) - p \\cdot N \\right| \\le \\epsilon \\cdot N \\right) \\ge 1 - \\delta$$</div>
+          <p>여기서 $\\epsilon$은 오차 한계(예: $\\epsilon = 0.01$ 이면 실제 백분위수 대비 $\\pm 1\\%$ 오차 보장)이며, $\\delta$는 무작위 압축 실패 확률(통상 $10^{-6}$ 이하의 극소값 설정)입니다.</p>
         </li>
-        <li><strong>오차 범위 (\\(\\epsilon\\))</strong>
-          <p>사용자가 허용하는 오차 \\(\\epsilon\\)에 대해, KLL Sketch가 필요한 메모리 공간 M은 다음과 같습니다.</p>
-          <div class="math-box">
-            \\(M = O(1/\\epsilon \\cdot \\log(\\log 1/\\epsilon))\\)
-          </div>
-          <p>이는 기존의 다른 알고리즘(예: GK Array)보다 훨씬 적은 메모리로도 동일한 정확도를 낼 수 있음을 의미합니다.</p>
+        
+        <li><strong>KLL의 엄밀한 공간 복잡도 상한선:</strong>
+          <p>허용 오차율 $\\epsilon$과 신뢰 상수 $\\delta$가 주어졌을 때, KLL Sketch를 유지하기 위해 예약해야 하는 최대 활성 데이터 정점의 개수 $M$은 다음과 같습니다.</p>
+          <div class="math-box">$$M = O\\left(\\frac{1}{\\epsilon} \\log \\log \\frac{1}{\\epsilon}\\right)$$</div>
+          <p>이는 기존 GK 알고리즘의 $O(\\frac{1}{\\epsilon} \\log \\epsilon N)$과 비교하여 **유입 데이터 수 $N$에 완전히 독립적(N-independent)**이라는 파격적인 이점을 지닙니다. 즉, 데이터가 무한대로 유입되는 반영구적 대용량 설비 스트림 분석에서도 메모리가 단 1바이트도 추가로 증가하지 않고 항상 고정적인 초경량 크기(예: 1% 오차 보장 시 약 1.2KB)를 안전하게 유지합니다.</p>
         </li>
       </ul>
     """
@@ -567,24 +695,58 @@ def algorithmPage(a):
 def overviewPage(type):
     isDev = type == "developer"
     base = "../SEMI_Interactive_Guide/standards" if isDev else "standards"
-    links = []
-    for s in standards:
-        links.append(f'<a href="{base}/{s["id"]}.html"><strong>{esc(s["code"])}</strong><span class="muted">{esc(s["name"])} · {esc(s["group"])}</span></a>')
     
+    # 5개의 그룹으로 분류
+    secs_gem = []
+    g300_exec = []
+    eda_interface = []
+    data_prod_sec = []
+    
+    for s in standards:
+        link = f'<a href="{base}/{s["id"]}.html"><strong>{esc(s["code"])}</strong><span class="muted">{esc(s["name"])} · {esc(s["group"])}</span></a>'
+        g = s["group"]
+        if g == "SECS/GEM 기본":
+            secs_gem.append(link)
+        elif g in ["GEM300 생산 실행", "G300 생산 실행"]:
+            g300_exec.append(link)
+        elif g == "EDA / Interface A":
+            eda_interface.append(link)
+        else:
+            data_prod_sec.append(link)
+            
     algo = []
     for a in algorithms:
-        algo.append(f'<a href="algorithms/{a["id"]}.html"><strong>{esc(a["code"])}</strong><span class="muted">{esc(a["name"])}</span></a>')
-    
-    algo_sec = f'<section class="section"><h2>Streaming Algorithm</h2><div class="list">{"".join(algo)}</div></section>' if isDev else ""
+        name = "Chan Algorithm" if a["id"] == "Chan" else "KLL Sketch"
+        algo.append(f'<a href="algorithms/{a["id"]}.html"><strong>{name}</strong><span class="muted">{esc(a["name"])}</span></a>')
+        
     title = "SEMI Developer" if isDev else "SEMI Guide"
     subtitle = "SEMI 표준별 개발 DFD, 인터페이스 설계 포인트, 권장 테이블 구조를 분리해 정리했습니다." if isDev else "설비 Message 수집부터 TC/EAP, EES/APC/FDC, MOS/MES, KPI 관리까지 이어지는 SEMI 표준 관계를 업무 관점으로 정리했습니다."
     
-    return shell(title, "", f"""
+    body_content = f"""
     <section class="hero"><h1>{"SEMI Interactive Developer" if isDev else "SEMI Interactive Guide"}</h1><p>{subtitle}</p><div class="chips"><span class="chip">SECS/GEM</span><span class="chip">GEM300</span><span class="chip">EDA / Interface A</span><span class="chip">KPI</span></div></section>
     <section class="section"><h2>전체 흐름</h2><div class="diagram">{diagram(["Equipment", "SECS/GEM", "GEM300/EDA", "TC/EAP", "EES/APC/FDC", "MOS/MES", "KPI System"])}</div></section>
-    <section class="section"><h2>{"표준별 개발 문서" if isDev else "표준별 가이드 문서"}</h2><div class="list">{"".join(links)}</div></section>
-    {algo_sec}
-    """, "semi-page.css")
+    
+    <section class="section">
+        <h2>{"표준별 개발 문서" if isDev else "표준별 가이드 문서"}</h2>
+        
+        <h3 style="margin-top: 24px; margin-bottom: 12px; color: var(--blue); border-left: 4px solid var(--blue); padding-left: 8px;">SECS/GEM 기본</h3>
+        <div class="list">{"".join(secs_gem)}</div>
+        
+        <h3 style="margin-top: 24px; margin-bottom: 12px; color: var(--blue); border-left: 4px solid var(--blue); padding-left: 8px;">G300 생산 실행</h3>
+        <div class="list">{"".join(g300_exec)}</div>
+        
+        <h3 style="margin-top: 24px; margin-bottom: 12px; color: var(--blue); border-left: 4px solid var(--blue); padding-left: 8px;">EDA / Inrerface A</h3>
+        <div class="list">{"".join(eda_interface)}</div>
+        
+        <h3 style="margin-top: 24px; margin-bottom: 12px; color: var(--blue); border-left: 4px solid var(--blue); padding-left: 8px;">Data Dictionary / Productivity / Security</h3>
+        <div class="list">{"".join(data_prod_sec)}</div>
+        
+        <h3 style="margin-top: 24px; margin-bottom: 12px; color: var(--blue); border-left: 4px solid var(--blue); padding-left: 8px;">Streaming Algorithm</h3>
+        <div class="list">{"".join(algo)}</div>
+    </section>
+    """
+    
+    return shell(title, "", body_content, "semi-page.css")
 
 for s in standards:
     if s["id"] in ["E4", "E5", "E37"]:
@@ -593,8 +755,11 @@ for s in standards:
         f.write(standardUnifiedPage(s))
 
 for a in algorithms:
+    html_content = algorithmPage(a)
     with open(os.path.join(developerAlgorithmsDir, f'{a["id"]}.html'), "w", encoding="utf8") as f:
-        f.write(algorithmPage(a))
+        f.write(html_content)
+    with open(os.path.join(guideAlgorithmsDir, f'{a["id"]}.html'), "w", encoding="utf8") as f:
+        f.write(html_content)
 
 with open(os.path.join(guideDir, "SEMI_Data_Flow_Main.html"), "w", encoding="utf8") as f:
     f.write(overviewPage("guide"))

@@ -1,7 +1,170 @@
-<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chan Developer</title><link rel="stylesheet" href="../semi-page.css"></head><body><main class="page">
-    <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / Chan</div>
-    <section class="hero"><h1>Chan 평균/분산 병합 알고리즘</h1><p>분산된 Batch나 Stream Window의 count, mean, M2를 수치적으로 안정적으로 병합해 평균과 분산을 계산합니다.</p><div class="chips"><span class="chip">Streaming KPI</span><span class="chip">Developer</span></div></section>
-    <section class="section"><h2>개발 기능 요약</h2><p>장비별, Chamber별, 시간창별 KPI를 병렬 집계한 뒤 상위 KPI 시스템에서 정확하게 합칠 때 유용합니다.</p><div class="note"><strong>핵심 로직:</strong> delta = meanB - meanA; n = nA + nB; mean = meanA + delta * nB / n; M2 = M2A + M2B + delta^2 * nA * nB / n</div></section>
-    <section class="section"><h2>개발 DFD</h2><div class="diagram"><svg viewBox="0 0 1055 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">Raw Samples</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">Local Aggregator</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">n/mean/M2 State</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">Merge Worker</text><text class="tiny" x="685" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="800" y="44" width="150" height="76"></rect><text x="875" y="78" text-anchor="middle">Variance KPI</text><text class="tiny" x="875" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path><path class="arrow" d="M760 82 H800"></path></svg></div></section>
-    <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>stream_moment_state</strong></td><td>key, window_start, window_end, n, mean, m2, min_value, max_value</td></tr><tr><td><strong>moment_merge_log</strong></td><td>target_key, source_key_a, source_key_b, merged_n, merged_at</td></tr><tr><td><strong>variance_kpi</strong></td><td>key, window_start, window_end, mean, variance, stddev, sample_count</td></tr></tbody></table></section>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chan Developer</title><link rel="stylesheet" href="../semi-page.css">
+    <script>
+      MathJax = {
+        tex: {
+          inlineMath: [['$', '$'], ['\\(', '\\)']],
+          displayMath: [['$$', '$$'], ['\\[', '\\]']]
+        }
+      };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </head><body><main class="page">
+    <div class="crumbs"><a href="../SEMI_Data_Flow_Developer.html">SEMI Developer</a> / Chan</div>
+    <section class="hero"><h1>Chan&#039;s Convex Hull 알고리즘</h1><p>평면 상의 n개 점으로부터 Graham Scan과 Jarvis March를 결합하여 O(n log h) 속도로 Convex Hull(볼록 껍질)을 구하는 기하학적 최적화 알고리즘입니다.</p><div class="chips"><span class="chip">Streaming KPI</span><span class="chip">Developer</span></div></section>
+    <section class="section"><h2>개발 기능 요약</h2><p>설비 공정 파라미터(온도, 압력 등)의 다차원 분포를 분석하여 정상 가동 범위(Operating Envelope)를 산출하고 극단적인 이상치(Outlier)를 판별할 때 사용됩니다.</p><div class="note"><strong>핵심 로직:</strong> \(m = 2^{2^t}\) 크기 그룹 분할 후, Graham Scan 적용 후 Jarvis March 접선 탐색 및 병합</div></section>
+    <section class="section"><h2>알고리즘 상세 개요</h2>
+      <h3>1. Convex Hull (볼록 껍질)의 전산기하학적 정의</h3>
+      <p>수학적으로 2차원 공간 또는 다차원 유클리드 공간 $\mathbb{R}^d$에 존재하는 유한한 점 집합 $S = \{p_1, p_2, \dots, p_n\}$가 주어졌을 때, <strong>Convex Hull $\text{CH}(S)$</strong>는 이 모든 점들을 포함하는 가장 작은 볼록 다각형(Convex Polygon)으로 정의됩니다. 볼록함의 기하학적 의미는 다각형 경계 내부 또는 경계선 상의 어떤 임의의 두 점 $A, B$를 선분 $\overline{AB}$로 연결하더라도 선분의 모든 좌표가 다각형 내부 영역에 완벽히 포함되는 성질을 의미합니다.</p>
+      
+      <div class="box box-primary">
+        <span class="box-title">💡 볼록성(Convexity)의 수학적 조건</span>
+        <p class="mb-0">$$\text{CH}(S) = \left\{ \sum_{i=1}^{n} \alpha_i p_i \ \middle|\ \sum_{i=1}^{n} \alpha_i = 1, \ \alpha_i \ge 0 \right\}$$</p>
+        <p class="mb-0 mt-1">즉, 집합 $S$의 모든 볼록 결합(Convex Combination)을 모은 부분 공간이 바로 Convex Hull이 되며, 경계를 구성하는 최외각 극단점(Extreme Points)들만이 다각형의 정점(Vertices)으로 결정됩니다.</p>
+      </div>
+
+      <h3>2. 대표적인 Convex Hull 알고리즘 비교 분석</h3>
+      <p>대용량 스트리밍 설비 로그를 기하학적으로 프로파일링하기 위해서는 시간 및 메모리 복잡도, 그리고 최종 볼록 껍질을 구성하는 정점의 수 $h$에 따른 최적화 수준을 고려해야 합니다.</p>
+      
+      <table class="common-table">
+        <thead>
+          <tr>
+            <th>알고리즘 명칭</th>
+            <th>시간 복잡도</th>
+            <th>공간 복잡도</th>
+            <th>출력 민감성 (Output-Sensitive)</th>
+            <th>기하학적 연산 특성 및 장단점</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hover:bg-slate-50">
+            <td><strong>Jarvis March (선물 포장)</strong></td>
+            <td>$O(nh)$</td>
+            <td>$O(1)$ 추가공간</td>
+            <td>예 (정점 수 $h$에 정비례)</td>
+            <td>가장 왼쪽 점에서 시작하여 반시계 방향으로 다음 정점을 탐색. $h$가 매우 작을 때는(예: 3~4개) 극대로 빠르나, 모든 점이 원주 상에 존재해 $h \approx n$이 될 경우 $O(n^2)$으로 대폭 성능이 하락함.</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td><strong>Graham Scan (스캔 방식)</strong></td>
+            <td>$O(n \log n)$</td>
+            <td>$O(n)$ 스택공간</td>
+            <td>아니오 (항상 정렬 비용 포함)</td>
+            <td>y좌표가 가장 낮은 극단점을 기준점으로 두고 나머지 모든 점을 극좌표 기준 각도로 정렬한 뒤, 스택 구조와 좌회전/우회전 기하 연산(CCW)을 통해 오목점(Concave Point)을 제거. $h$ 크기에 무관하게 정렬 복잡도가 병목이 됨.</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td><strong>Chan's Algorithm (찬의 최적화)</strong></td>
+            <td>$O(n \log h)$</td>
+            <td>$O(n)$</td>
+            <td><strong>예 (이론적 최적 달성)</strong></td>
+            <td>Graham Scan의 빠른 서브그룹 계산 능력과 Jarvis March의 외곽 접선 병합 메커니즘을 결합. $h$를 모르는 상태에서 이중 로그 스케일로 그룹 크기 $m$을 기하급수적으로 키우며 탐색하여 $O(n \log h)$의 상한선을 최초로 증명함.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+    <section class="section"><h2>개발 DFD</h2><div class="diagram"><svg viewBox="0 0 1055 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">Raw Samples</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">Group Partition (m)</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">Graham Scan CH_i</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">Jarvis Tangent Merge</text><text class="tiny" x="685" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="800" y="44" width="150" height="76"></rect><text x="875" y="78" text-anchor="middle">Convex Envelope</text><text class="tiny" x="875" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path><path class="arrow" d="M760 82 H800"></path></svg></div></section>
+    <section class="section"><h2>상세 작동 단계</h2>
+      <p>Chan의 알고리즘은 전체 점의 개수 $n$과 껍질의 최종 정점 개수 $h$의 차이를 이용하며, 사전에 정점 개수 $h$를 알 수 없는 한계를 극복하기 위해 <strong>매개변수 $m$ (그룹의 크기)을 점진적으로 키우는(Iterative) 전략</strong>을 취합니다. 작동 로직은 다음과 같이 크게 4가지 단계로 전개됩니다.</p>
+      
+      <ol>
+        <li><strong>서브그룹 파티셔닝 및 경계값 설정 (Partitioning)</strong>
+          <p>전체 점 집합 $P$를 크기가 정확히 $m$인 $r = \lceil n/m \rceil$개의 독립적인 서브그룹 $P_1, P_2, \dots, P_r$로 등분합니다. 각 서브그룹 내부에서는 데이터의 부분 집합만을 다루며 독립적으로 연산을 수행할 수 있어 병렬화 처리에 매우 용이한 구조를 지닙니다.</p>
+        </li>
+        
+        <li><strong>서브그룹별 로컬 Convex Hull 생성 (Local Graham Scan)</strong>
+          <p>각각의 독립된 서브그룹 $P_i$ ($|P_i| \le m$)에 대해 개별적으로 Graham Scan 알고리즘을 적용하여 로컬 볼록 껍질 $CH_i$를 도출합니다.</p>
+          <ul>
+            <li><strong>시간 복잡도:</strong> 한 그룹당 $O(m \log m)$이 소요되므로, 전체 $r$개 그룹의 계산 총합은 $O(r \cdot m \log m) = O( \frac{n}{m} \cdot m \log m ) = O(n \log m)$입니다.</li>
+            <li><strong>기하 판별식 (CCW - Counter Clockwise):</strong> 연속된 세 점 $A(x_1, y_1), B(x_2, y_2), C(x_3, y_3)$에 대해 외적(Cross Product) 부호를 확인하여 반시계 방향 회전(우회전 배제)을 판별합니다.
+              <div class="math-box">$$CCW(A, B, C) = (x_2 - x_1)(y_3 - y_1) - (y_2 - y_1)(x_3 - x_1)$$</div>
+              $CCW(A, B, C) > 0$ 이면 좌회전(정상 껍질 유지), $\le 0$ 이면 우회전 또는 일직선이므로 중간점 $B$를 스택에서 배제(Eviction)합니다.
+            </li>
+          </ul>
+        </li>
+        
+        <li><strong>Jarvis March 접선 병합 및 외곽 질의 (Sub-hull Wrapping)</strong>
+          <p>전체 평면에서 $y$좌표가 가장 낮아 무조건 볼록 껍질의 정점임이 보장되는 초기 전역 기준점 $p_0$에서 병합 처리를 개시합니다. 현재 껍질 정점이 $p_k$일 때, 반시계 방향 기준 다음 정점 $p_{k+1}$을 찾기 위해 각 서브그룹 껍질 $CH_i$에서 $p_k$를 지나는 <strong>외곽 접선(Exterior Tangent Line)</strong>을 구합니다.</p>
+          <ul>
+            <li><strong>이진 탐색(Binary Search)의 활용:</strong> 정렬된 정점 구조를 가진 각 로컬 $CH_i$에 대해 $p_k$와의 각도가 최대인 접점을 찾는 과정은 선형 탐색($O(m)$)이 아닌 <strong>이진 탐색 $O(\log m)$</strong>으로 극도로 빠르게 연산할 수 있습니다.</li>
+            <li><strong>전역 최적 정점 선택:</strong> 전체 $r$개의 서브그룹에서 도출된 접점 후보군 중 각도가 최대인 접점을 선택하여 전역 껍질의 다음 정점 $p_{k+1}$로 정의합니다. 이 전역 결합 비용은 $O(r \log m) = O(\frac{n}{m} \log m)$입니다.</li>
+            <li><strong>제한적 루프 탈출 조건:</strong> 이 래핑 루프를 최대 $m$번 반복합니다. 만약 $m$번 이하의 반복 내에 최초 출발 정점인 $p_0$로 귀환하면 전체 볼록 껍질의 완성을 선언하고 종료합니다. 만약 $m$번을 초과해도 $p_0$에 도달하지 못했다면 현재 추정한 그룹 크기 $m$이 최종 정점 개수 $h$보다 작음을 뜻하므로 중단하고 다음 반복으로 이행합니다.</li>
+          </ul>
+        </li>
+        
+        <li><strong>이중 로그 스케일 반복 매개변수 최적화 (Double-Logarithmic Search)</strong>
+          <p>알고리즘의 동작 중 $h$값을 모르기 때문에 매개변수 $m$의 크기를 기하급수적으로 키우는 스케줄링을 수행합니다. 매 단계 $t$ ($t = 1, 2, \dots$)에 대해 그룹 크기를 $m_t = 2^{2^t}$로 급격하게 증폭시킵니다.</p>
+          <ul>
+            <li>매개변수 이행 추이: $m_1 = 2^2 = 4 \rightarrow m_2 = 2^4 = 16 \rightarrow m_3 = 2^8 = 256 \rightarrow m_4 = 2^{16} = 65,536 \dots$</li>
+            <li>이 방식은 $m_t$가 최초로 최종 껍질 정점 개수 $h$ 이상이 될 때까지 진행되며, 총 반복 횟수는 최대 $\log \log h$번입니다.</li>
+            <li><strong>이론적 총 시간 복잡도 유도:</strong>
+              <div class="math-box">$$\sum_{t=1}^{\lceil \log\log h \rceil} O\left(n \log(2^{2^t})\right) = \sum_{t=1}^{\lceil \log\log h \rceil} O(n \cdot 2^t) = O(n \cdot 2^{\lceil \log\log h \rceil + 1}) = O(n \log h)$$</div>
+              이처럼 기하급수적 성장 덕분에 이전 반복 단계들의 모든 연산량 합이 마지막 최적화 루프 한 번의 비용보다 작아져, 전산기하학적 하한선인 **$O(n \log h)$**를 완벽하게 달성하게 됩니다.
+            </li>
+          </ul>
+        </li>
+      </ol>
+    </section>
+    
+    <section class="section"><h2>실시간 설비 OEE 적용 시나리오</h2>
+      <p>Chan의 Convex Hull 알고리즘은 반도체 제조 FAB 공정의 대량의 실시간 데이터 수집 환경에서 다음과 같이 혁신적인 스마트 팩토리 지표 분석에 활용될 수 있습니다.</p>
+      
+      <ul>
+        <li><strong>반도체 플라즈마 식각 설비의 FDC (실시간 정상 작동 경계면 산출)</strong>
+          <p>에칭(Etching) 공정 중 수집되는 <strong>Chamber 내부 압력(Pressure)</strong>과 **Source RF 파워(Power)**는 상호 연관되어 설비 내부 환경의 건전성을 대변합니다. SEMI E134 (Interface A) 고속 데이터 수집 계획(DCP)을 통해 50ms 주기로 수집되는 정상 가동 데이터에서 Chan's Algorithm을 사용하여 2D 기하 경계면(Operating Envelope)을 산출합니다.</p>
+          <p>이후 유입되는 새로운 원시 데이터 스트림 $z = (P_z, W_z)$에 대해 경계선 면적 내부 포함 여부를 판단(Wedge-based Binary Search 또는 Ray Casting 기법)하여, 영역 이탈 감지 시 실시간으로 GEM Alarm (SEMI E30)을 트리거해 불량 웨이퍼(Wafer Scrap) 발생을 원천 차단합니다.</p>
+        </li>
+        
+        <li><strong>다변량 설비 OEE 성능 병목 상관관계 기하적 요약</strong>
+          <p>장비의 **온도 분포(Temperature)**와 **정상 웨이퍼 이송 속도(Robot Arm Speed)**를 다차원으로 결합하여 설비 성능이 최상으로 발휘되는 핵심 영역을 도출합니다. 데이터가 실시간으로 입력됨에 따라 오래된 경계를 버리고 최신 데이터로 동적 갱신(Sliding Window Convex Hull)하여 설비 부품의 노화에 따른 최적 가동 영역의 이동 추이(Centroid Drift)를 머신러닝 피처로 주입할 수 있습니다.</p>
+        </li>
+        
+        <li><strong>분산 에지(Edge-Gateway) 컴퓨터 부하 분산 및 네트워크 전송 제약 극복</strong>
+          <p>FAB 내 수천 대의 Chamber에서 100Hz 급으로 쏟아지는 원시 데이터를 DB 서버로 전량 전송할 경우 네트워크 대역폭 폭증과 대규모 IO 지연을 야기합니다. Chan의 1단계 파티셔닝 개념을 대입하여, 각 설비 단의 Edge Gateway PC가 자체 1차 로컬 Graham Scan을 수행하여 극단점(Extreme Vertices) 수십 개만을 추출합니다.</p>
+          <p>중앙 MES 분석 서버는 원시 데이터 대신 각 에지 단에서 보내온 가볍게 압축된 서브 정점(Sub-hull Vertices) 데이터만 전송받아 2단계 접선 병합(Wrapping) 연산만을 수행해 전체 FAB의 공정 기하 경계를 0.1ms 이내로 즉각 합성(Synthesize)해냅니다.</p>
+        </li>
+      </ul>
+    </section>
+    
+    <section class="section">
+      <h2>KLL & Chan 기반 설비 효율 분석 통합 로직 및 아키텍처</h2>
+      <p>설비 상태 및 효율에 기반하여 대규모 설비 데이터 스트림을 처리하기 위해, <strong>Chan's Algorithm(기하학적 경계 산출)</strong>과 <strong>KLL Sketch(통계적 분포 추정)</strong>를 결합한 통합 이상치 제거 및 성능 지표 산출 로직을 설계합니다. 이 통합 로직은 다차원 데이터의 경계(Hull)와 단일 변수의 분포(Quantile)를 모두 고려하여 정교하게 이상치를 필터링하고, 최종적으로 정확한 성능 효율(Performance Efficiency)을 계산하는 데 초점을 맞춥니다.</p>
+
+      <h3>1. 통합 분석 로직 개요</h3>
+      <ul>
+        <li><strong>E10 RUN Filter:</strong> 설비 상태가 'PRD(Production)'인 유효 가동 시간 데이터만 추출합니다.</li>
+        <li><strong>Chan Engine:</strong> 다차원 공정 파라미터(예: 온도 vs 압력)의 기하학적 정상 가동 범위(Operating Envelope)를 계산하여 외곽점(Outlier)을 감지합니다.</li>
+        <li><strong>KLL Engine:</strong> 성능 효율의 핵심 지표인 Cycle Time(CT)에 대한 실시간 백분위수(P99, Median)를 추정합니다.</li>
+        <li><strong>이중 이상치 제거:</strong> 신규 데이터 x에 대해 기하학적 정상 가동 범위 내부에 있고, Cycle Time이 P99 임계값보다 작은 경우에만 <strong>'정상 데이터 D_clean'</strong>으로 판별합니다.
+          <div class="math-box">$$D_{clean} = \{x \in D \mid (isInside(H, x.v)) \land (x.CT < \hat{q}_{0.99})\}$$</div>
+        </li>
+        <li><strong>E79 성능 효율 산출:</strong> 정상 데이터 D_clean의 KLL 추정 중위수(Median CT, $\hat{q}_{0.50}$)를 실제 속도로 사용하여 성능가동율을 산출합니다.
+          <div class="math-box">$$\text{성능가동율} = \frac{\text{Theoretical Cycle Time (TCT)}}{\hat{q}_{0.50}} \times 100(\%)$$</div>
+        </li>
+      </ul>
+
+      <h3>2. 설비 효율 분석 시스템 아키텍처</h3>
+      <ul>
+        <li><strong>Edge Network (데이터 수집):</strong> 설비(PLC/GEM)로부터 SECS/GEM 프로토콜을 통해 실시간 상태(E10), 공정 변수, Cycle Time을 Edge Gateway가 수집하여 전송합니다.</li>
+        <li><strong>Stream Processor (실시간 분석 계층):</strong> 스트림 처리 엔진 내에서 Chan Engine과 KLL Engine이 각각 기하학적 경계와 통계적 분포를 모델링하고, 통합 필터를 통해 스파이크성 에러와 가짜 데이터를 차단합니다.</li>
+        <li><strong>MES DB / RDBMS:</strong> 정제된 성능 지표, E10 상태 로그, 최신 요약본(Convex Hull 정점 및 KLL Sketch 요약본)을 안정적으로 저장합니다.</li>
+        <li><strong>OEE Calculator & Dashboard (시각화 계층):</strong> 정제된 실제 속도와 SEMI Product Time 기반의 표준시간(Standard Time)을 비교하여 종합설비효율(OEE)을 산출하고 운영자에게 실시간으로 공유합니다. (양품율은 배제하고 시간가동율과 성능가동율의 곱으로만 OEE 계산)</li>
+      </ul>
+
+      <h3>3. DFD [Level 1] - 결합형 설비 효율 분석 시스템</h3>
+      <div class="diagram">
+        <svg viewBox="0 0 1000 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs>
+          <g class="node"><rect x="10" y="44" width="130" height="76"></rect><text x="75" y="78" text-anchor="middle">Equipment</text><text class="tiny" x="75" y="101" text-anchor="middle">Entity</text></g>
+          <path class="arrow" d="M140 82 H170"></path>
+          <g class="node"><rect x="170" y="44" width="130" height="76"></rect><text x="235" y="78" text-anchor="middle">1.0 E10 Filter</text><text class="tiny" x="235" y="101" text-anchor="middle">Process</text></g>
+          <path class="arrow" d="M300 82 H330"></path>
+          <g class="node"><rect x="330" y="44" width="130" height="76"></rect><text x="395" y="78" text-anchor="middle">2.0 Feature Eng.</text><text class="tiny" x="395" y="101" text-anchor="middle">Process</text></g>
+          <path class="arrow" d="M460 82 H490"></path>
+          <g class="node"><rect x="490" y="44" width="130" height="76"></rect><text x="555" y="78" text-anchor="middle">3.0 Outlier Filter</text><text class="tiny" x="555" y="101" text-anchor="middle">Process</text></g>
+          <path class="arrow" d="M620 82 H650"></path>
+          <g class="node"><rect x="650" y="44" width="130" height="76"></rect><text x="715" y="78" text-anchor="middle">4.0 E79 Calc</text><text class="tiny" x="715" y="101" text-anchor="middle">Process</text></g>
+          <path class="arrow" d="M780 82 H810"></path>
+          <g class="node"><rect x="810" y="44" width="130" height="76"></rect><text x="875" y="78" text-anchor="middle">OEE Dashboard</text><text class="tiny" x="875" y="101" text-anchor="middle">Output</text></g>
+        </svg>
+      </div>
+    </section>
+    
+    <section class="section"><h2>권장 테이블 구성</h2><table><thead><tr><th>테이블</th><th>권장 컬럼</th></tr></thead><tbody><tr><td><strong>process_parameter_envelope</strong></td><td>equipment_id, parameter_x, parameter_y, vertex_seq, vertex_x, vertex_y, updated_at</td></tr><tr><td><strong>parameter_sample_stream</strong></td><td>equipment_id, sample_time, val_x, val_y, is_inside_envelope</td></tr></tbody></table></section>
   </main></body></html>

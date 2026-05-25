@@ -13,58 +13,113 @@
     <section class="hero"><h1>Chan&#039;s Convex Hull 알고리즘</h1><p>평면 상의 n개 점으로부터 Graham Scan과 Jarvis March를 결합하여 O(n log h) 속도로 Convex Hull(볼록 껍질)을 구하는 기하학적 최적화 알고리즘입니다.</p><div class="chips"><span class="chip">Streaming KPI</span><span class="chip">Developer</span></div></section>
     <section class="section"><h2>개발 기능 요약</h2><p>설비 공정 파라미터(온도, 압력 등)의 다차원 분포를 분석하여 정상 가동 범위(Operating Envelope)를 산출하고 극단적인 이상치(Outlier)를 판별할 때 사용됩니다.</p><div class="note"><strong>핵심 로직:</strong> \(m = 2^{2^t}\) 크기 그룹 분할 후, Graham Scan 적용 후 Jarvis March 접선 탐색 및 병합</div></section>
     <section class="section"><h2>알고리즘 상세 개요</h2>
-      <h3>Convex Hull (볼록 껍질)의 개념</h3>
-      <p>2차원 또는 다차원 공간에 흩어져 있는 여러 점들을 모두 감싸는 <strong>가장 작은 볼록한 다각형(또는 다면체)</strong>을 의미합니다. 전산 기하학(Computational Geometry)에서 가장 기본적이면서도 중요한 개념입니다.</p>
-      <p>가장 직관적인 비유는 <strong>'고무줄 비유(Rubber Band Analogy)'</strong>입니다. 널빤지 위에 여러 개의 못(데이터 점)이 박혀 있다고 상상해 보세요. 커다란 고무줄을 팽팽하게 늘려서 모든 못을 바깥쪽에서 감싸도록 놓았을 때, 고무줄이 수축하면서 바깥쪽 못들에 걸쳐 만들어지는 형태가 바로 이 못들의 Convex Hull입니다.</p>
+      <h3>1. Convex Hull (볼록 껍질)의 전산기하학적 정의</h3>
+      <p>수학적으로 2차원 공간 또는 다차원 유클리드 공간 $\mathbb{R}^d$에 존재하는 유한한 점 집합 $S = \{p_1, p_2, \dots, p_n\}$가 주어졌을 때, <strong>Convex Hull $\text{CH}(S)$</strong>는 이 모든 점들을 포함하는 가장 작은 볼록 다각형(Convex Polygon)으로 정의됩니다. 볼록함의 기하학적 의미는 다각형 경계 내부 또는 경계선 상의 어떤 임의의 두 점 $A, B$를 선분 $\overline{AB}$로 연결하더라도 선분의 모든 좌표가 다각형 내부 영역에 완벽히 포함되는 성질을 의미합니다.</p>
       
-      <h4>기하학적 및 수학적 정의</h4>
-      <ul>
-        <li><strong>볼록(Convex)의 의미:</strong> 다각형 내부에 있는 임의의 두 점을 골라 선분으로 연결했을 때, 그 선분이 다각형의 경계선 밖으로 전혀 나가지 않는 형태를 말합니다.</li>
-        <li><strong>최소성(Minimality):</strong> 점 집합 S를 포함하는 볼록 다각형은 무수히 많을 수 있지만, Convex Hull은 그 중에서 '가장 작은(면적이 최소인)' 다각형입니다.</li>
-        <li><strong>정점(Vertex):</strong> Convex Hull의 꼭짓점을 이루는 점들을 '극단점(Extreme Points)'이라고 하며, 이들은 원래 점 집합 S에 속해 있는 데이터들 중 가장 외곽에 위치한 데이터들입니다.</li>
-      </ul>
+      <div class="box box-primary">
+        <span class="box-title">💡 볼록성(Convexity)의 수학적 조건</span>
+        <p class="mb-0">$$\text{CH}(S) = \left\{ \sum_{i=1}^{n} \alpha_i p_i \ \middle|\ \sum_{i=1}^{n} \alpha_i = 1, \ \alpha_i \ge 0 \right\}$$</p>
+        <p class="mb-0 mt-1">즉, 집합 $S$의 모든 볼록 결합(Convex Combination)을 모은 부분 공간이 바로 Convex Hull이 되며, 경계를 구성하는 최외각 극단점(Extreme Points)들만이 다각형의 정점(Vertices)으로 결정됩니다.</p>
+      </div>
+
+      <h3>2. 대표적인 Convex Hull 알고리즘 비교 분석</h3>
+      <p>대용량 스트리밍 설비 로그를 기하학적으로 프로파일링하기 위해서는 시간 및 메모리 복잡도, 그리고 최종 볼록 껍질을 구성하는 정점의 수 $h$에 따른 최적화 수준을 고려해야 합니다.</p>
       
-      <h4>주요 탐색 알고리즘 비교</h4>
-      <ul>
-        <li><strong>Jarvis March (선물 포장 알고리즘, Gift Wrapping):</strong> 가장 왼쪽 점에서 시작해 반시계 방향으로 선물을 포장하듯 다음 점을 찾아나갑니다. 시간 복잡도: \(O(nh)\) (n: 전체 점, h: 껍질 정점 수)</li>
-        <li><strong>Graham Scan (그레이엄 스캔):</strong> 각도 기준으로 전체 정렬(\(O(n \log n)\)) 후 스택을 사용하여 오목점을 제거하며 껍질을 완성합니다.</li>
-        <li><strong>Chan's Algorithm (찬의 알고리즘):</strong> 데이터를 크기 m인 그룹으로 나누어 Graham Scan을 수행한 후, Jarvis March 방식으로 병합하여 \(O(n \log h)\)라는 이론적 최적 복잡도를 달성합니다.</li>
-      </ul>
+      <table class="common-table">
+        <thead>
+          <tr>
+            <th>알고리즘 명칭</th>
+            <th>시간 복잡도</th>
+            <th>공간 복잡도</th>
+            <th>출력 민감성 (Output-Sensitive)</th>
+            <th>기하학적 연산 특성 및 장단점</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="hover:bg-slate-50">
+            <td><strong>Jarvis March (선물 포장)</strong></td>
+            <td>$O(nh)$</td>
+            <td>$O(1)$ 추가공간</td>
+            <td>예 (정점 수 $h$에 정비례)</td>
+            <td>가장 왼쪽 점에서 시작하여 반시계 방향으로 다음 정점을 탐색. $h$가 매우 작을 때는(예: 3~4개) 극대로 빠르나, 모든 점이 원주 상에 존재해 $h \approx n$이 될 경우 $O(n^2)$으로 대폭 성능이 하락함.</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td><strong>Graham Scan (스캔 방식)</strong></td>
+            <td>$O(n \log n)$</td>
+            <td>$O(n)$ 스택공간</td>
+            <td>아니오 (항상 정렬 비용 포함)</td>
+            <td>y좌표가 가장 낮은 극단점을 기준점으로 두고 나머지 모든 점을 극좌표 기준 각도로 정렬한 뒤, 스택 구조와 좌회전/우회전 기하 연산(CCW)을 통해 오목점(Concave Point)을 제거. $h$ 크기에 무관하게 정렬 복잡도가 병목이 됨.</td>
+          </tr>
+          <tr class="hover:bg-slate-50">
+            <td><strong>Chan's Algorithm (찬의 최적화)</strong></td>
+            <td>$O(n \log h)$</td>
+            <td>$O(n)$</td>
+            <td><strong>예 (이론적 최적 달성)</strong></td>
+            <td>Graham Scan의 빠른 서브그룹 계산 능력과 Jarvis March의 외곽 접선 병합 메커니즘을 결합. $h$를 모르는 상태에서 이중 로그 스케일로 그룹 크기 $m$을 기하급수적으로 키우며 탐색하여 $O(n \log h)$의 상한선을 최초로 증명함.</td>
+          </tr>
+        </tbody>
+      </table>
     </section>
     <section class="section"><h2>개발 DFD</h2><div class="diagram"><svg viewBox="0 0 1055 164" aria-label="DFD"><defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path></marker></defs><g class="node"><rect x="40" y="44" width="150" height="76"></rect><text x="115" y="78" text-anchor="middle">Raw Samples</text><text class="tiny" x="115" y="101" text-anchor="middle">Input</text></g><g class="node"><rect x="230" y="44" width="150" height="76"></rect><text x="305" y="78" text-anchor="middle">Group Partition (m)</text><text class="tiny" x="305" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="420" y="44" width="150" height="76"></rect><text x="495" y="78" text-anchor="middle">Graham Scan CH_i</text><text class="tiny" x="495" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="610" y="44" width="150" height="76"></rect><text x="685" y="78" text-anchor="middle">Jarvis Tangent Merge</text><text class="tiny" x="685" y="101" text-anchor="middle">Process</text></g><g class="node"><rect x="800" y="44" width="150" height="76"></rect><text x="875" y="78" text-anchor="middle">Convex Envelope</text><text class="tiny" x="875" y="101" text-anchor="middle">Output</text></g><path class="arrow" d="M190 82 H230"></path><path class="arrow" d="M380 82 H420"></path><path class="arrow" d="M570 82 H610"></path><path class="arrow" d="M760 82 H800"></path></svg></div></section>
     <section class="section"><h2>상세 작동 단계</h2>
+      <p>Chan의 알고리즘은 전체 점의 개수 $n$과 껍질의 최종 정점 개수 $h$의 차이를 이용하며, 사전에 정점 개수 $h$를 알 수 없는 한계를 극복하기 위해 <strong>매개변수 $m$ (그룹의 크기)을 점진적으로 키우는(Iterative) 전략</strong>을 취합니다. 작동 로직은 다음과 같이 크게 4가지 단계로 전개됩니다.</p>
+      
       <ol>
-        <li><strong>그룹 분할 (Partitioning)</strong>
-          <p>전체 점 집합 P를 크기가 m인 r개의 그룹으로 나눕니다.</p>
+        <li><strong>서브그룹 파티셔닝 및 경계값 설정 (Partitioning)</strong>
+          <p>전체 점 집합 $P$를 크기가 정확히 $m$인 $r = \lceil n/m \rceil$개의 독립적인 서브그룹 $P_1, P_2, \dots, P_r$로 등분합니다. 각 서브그룹 내부에서는 데이터의 부분 집합만을 다루며 독립적으로 연산을 수행할 수 있어 병렬화 처리에 매우 용이한 구조를 지닙니다.</p>
+        </li>
+        
+        <li><strong>서브그룹별 로컬 Convex Hull 생성 (Local Graham Scan)</strong>
+          <p>각각의 독립된 서브그룹 $P_i$ ($|P_i| \le m$)에 대해 개별적으로 Graham Scan 알고리즘을 적용하여 로컬 볼록 껍질 $CH_i$를 도출합니다.</p>
           <ul>
-            <li>그룹의 수: \(r = \lceil n/m \rceil\)</li>
-            <li>수식: \(P = \{P_1, P_2, ..., P_r\}\) 이며, 각 \(|P_i| \le m\) 입니다.</li>
+            <li><strong>시간 복잡도:</strong> 한 그룹당 $O(m \log m)$이 소요되므로, 전체 $r$개 그룹의 계산 총합은 $O(r \cdot m \log m) = O( \frac{n}{m} \cdot m \log m ) = O(n \log m)$입니다.</li>
+            <li><strong>기하 판별식 (CCW - Counter Clockwise):</strong> 연속된 세 점 $A(x_1, y_1), B(x_2, y_2), C(x_3, y_3)$에 대해 외적(Cross Product) 부호를 확인하여 반시계 방향 회전(우회전 배제)을 판별합니다.
+              <div class="math-box">$$CCW(A, B, C) = (x_2 - x_1)(y_3 - y_1) - (y_2 - y_1)(x_3 - x_1)$$</div>
+              $CCW(A, B, C) > 0$ 이면 좌회전(정상 껍질 유지), $\le 0$ 이면 우회전 또는 일직선이므로 중간점 $B$를 스택에서 배제(Eviction)합니다.
+            </li>
           </ul>
         </li>
-        <li><strong>개별 Convex Hull 생성 (Graham Scan)</strong>
-          <p>각 그룹 P_i에 대해 Graham Scan 알고리즘을 적용하여 각각의 작은 볼록 껍질 CH_i를 구합니다. 이 과정의 시간 복잡도는 그룹당 O(m log m)이 소요되므로 전체적으로 \(O(n \log m)\)입니다.</p>
-        </li>
-        <li><strong>Jarvis March를 이용한 병합 (Gift Wrapping)</strong>
-          <p>가장 왼쪽에 있는 점 P_i에서 시작하여, 전체 껍질의 다음 정점 P_{k+1}을 찾습니다. 이때 각 그룹의 껍질(CH_i)과 현재 점(P_k) 사이의 <strong>접선(Tangent)</strong>을 이진 탐색으로 찾습니다.</p>
+        
+        <li><strong>Jarvis March 접선 병합 및 외곽 질의 (Sub-hull Wrapping)</strong>
+          <p>전체 평면에서 $y$좌표가 가장 낮아 무조건 볼록 껍질의 정점임이 보장되는 초기 전역 기준점 $p_0$에서 병합 처리를 개시합니다. 현재 껍질 정점이 $p_k$일 때, 반시계 방향 기준 다음 정점 $p_{k+1}$을 찾기 위해 각 서브그룹 껍질 $CH_i$에서 $p_k$를 지나는 <strong>외곽 접선(Exterior Tangent Line)</strong>을 구합니다.</p>
           <ul>
-            <li>접점 탐색: \(P_k\)에서 각 \(CH_i\)로의 접선을 찾는 시간은 \(O(\log m)\)입니다.</li>
-            <li>다음 정점 결정: r개의 그룹 중에서 가장 외곽에 있는 점을 고르는 과정은 \(O(r \log m)\)입니다.</li>
-            <li>이 과정을 h번 반복하므로 최종 병합 시간은 \(O(h \cdot (n/m) \log m)\)입니다.</li>
+            <li><strong>이진 탐색(Binary Search)의 활용:</strong> 정렬된 정점 구조를 가진 각 로컬 $CH_i$에 대해 $p_k$와의 각도가 최대인 접점을 찾는 과정은 선형 탐색($O(m)$)이 아닌 <strong>이진 탐색 $O(\log m)$</strong>으로 극도로 빠르게 연산할 수 있습니다.</li>
+            <li><strong>전역 최적 정점 선택:</strong> 전체 $r$개의 서브그룹에서 도출된 접점 후보군 중 각도가 최대인 접점을 선택하여 전역 껍질의 다음 정점 $p_{k+1}$로 정의합니다. 이 전역 결합 비용은 $O(r \log m) = O(\frac{n}{m} \log m)$입니다.</li>
+            <li><strong>제한적 루프 탈출 조건:</strong> 이 래핑 루프를 최대 $m$번 반복합니다. 만약 $m$번 이하의 반복 내에 최초 출발 정점인 $p_0$로 귀환하면 전체 볼록 껍질의 완성을 선언하고 종료합니다. 만약 $m$번을 초과해도 $p_0$에 도달하지 못했다면 현재 추정한 그룹 크기 $m$이 최종 정점 개수 $h$보다 작음을 뜻하므로 중단하고 다음 반복으로 이행합니다.</li>
           </ul>
         </li>
-        <li><strong>반복적 파라미터 최적화 (Iterative Strategy)</strong>
-          <p>우리는 h를 미리 알 수 없으므로, m을 \(2^{2^t}\) (t=1,2,...) 순으로 기하급수적으로 키우며 위 과정을 반복합니다.</p>
-          <div class="math-box">
-            \(\sum_{t=1}^{\log\log h} n \cdot \log(2^{2^t}) = \sum_{t=1}^{\log\log h} n \cdot 2^t = O(n \log h)\)
-          </div>
+        
+        <li><strong>이중 로그 스케일 반복 매개변수 최적화 (Double-Logarithmic Search)</strong>
+          <p>알고리즘의 동작 중 $h$값을 모르기 때문에 매개변수 $m$의 크기를 기하급수적으로 키우는 스케줄링을 수행합니다. 매 단계 $t$ ($t = 1, 2, \dots$)에 대해 그룹 크기를 $m_t = 2^{2^t}$로 급격하게 증폭시킵니다.</p>
+          <ul>
+            <li>매개변수 이행 추이: $m_1 = 2^2 = 4 \rightarrow m_2 = 2^4 = 16 \rightarrow m_3 = 2^8 = 256 \rightarrow m_4 = 2^{16} = 65,536 \dots$</li>
+            <li>이 방식은 $m_t$가 최초로 최종 껍질 정점 개수 $h$ 이상이 될 때까지 진행되며, 총 반복 횟수는 최대 $\log \log h$번입니다.</li>
+            <li><strong>이론적 총 시간 복잡도 유도:</strong>
+              <div class="math-box">$$\sum_{t=1}^{\lceil \log\log h \rceil} O\left(n \log(2^{2^t})\right) = \sum_{t=1}^{\lceil \log\log h \rceil} O(n \cdot 2^t) = O(n \cdot 2^{\lceil \log\log h \rceil + 1}) = O(n \log h)$$</div>
+              이처럼 기하급수적 성장 덕분에 이전 반복 단계들의 모든 연산량 합이 마지막 최적화 루프 한 번의 비용보다 작아져, 전산기하학적 하한선인 **$O(n \log h)$**를 완벽하게 달성하게 됩니다.
+            </li>
+          </ul>
         </li>
       </ol>
     </section>
     
     <section class="section"><h2>실시간 설비 OEE 적용 시나리오</h2>
+      <p>Chan의 Convex Hull 알고리즘은 반도체 제조 FAB 공정의 대량의 실시간 데이터 수집 환경에서 다음과 같이 혁신적인 스마트 팩토리 지표 분석에 활용될 수 있습니다.</p>
+      
       <ul>
-        <li><strong>설비 파라미터 경계면(Envelope) 분석:</strong> OEE 성능 효율 계산 시, 단순히 평균값만 분석하는 대신 Chan's Algorithm을 사용하여 <strong>'정상 가동 범위(Normal Operating Zone)'</strong>의 다차원 기하학적 경계를 확정할 수 있습니다. 경계 밖의 데이터는 이상 센서 드리프트 등으로 판별하여 가동 손실 원인 추적에 사용합니다.</li>
-        <li><strong>분산 데이터 요약:</strong> 여러 대의 설비(r개)에서 각각 계산된 부분 Convex Hull(CH_i) 정보만 중앙 서버로 보내면, 서버는 전체 원시 데이터를 전송받을 필요 없이 접선 계산만으로 라인 전체의 공정 경계를 즉시 합성할 수 있습니다.</li>
+        <li><strong>반도체 플라즈마 식각 설비의 FDC (실시간 정상 작동 경계면 산출)</strong>
+          <p>에칭(Etching) 공정 중 수집되는 <strong>Chamber 내부 압력(Pressure)</strong>과 **Source RF 파워(Power)**는 상호 연관되어 설비 내부 환경의 건전성을 대변합니다. SEMI E134 (Interface A) 고속 데이터 수집 계획(DCP)을 통해 50ms 주기로 수집되는 정상 가동 데이터에서 Chan's Algorithm을 사용하여 2D 기하 경계면(Operating Envelope)을 산출합니다.</p>
+          <p>이후 유입되는 새로운 원시 데이터 스트림 $z = (P_z, W_z)$에 대해 경계선 면적 내부 포함 여부를 판단(Wedge-based Binary Search 또는 Ray Casting 기법)하여, 영역 이탈 감지 시 실시간으로 GEM Alarm (SEMI E30)을 트리거해 불량 웨이퍼(Wafer Scrap) 발생을 원천 차단합니다.</p>
+        </li>
+        
+        <li><strong>다변량 설비 OEE 성능 병목 상관관계 기하적 요약</strong>
+          <p>장비의 **온도 분포(Temperature)**와 **정상 웨이퍼 이송 속도(Robot Arm Speed)**를 다차원으로 결합하여 설비 성능이 최상으로 발휘되는 핵심 영역을 도출합니다. 데이터가 실시간으로 입력됨에 따라 오래된 경계를 버리고 최신 데이터로 동적 갱신(Sliding Window Convex Hull)하여 설비 부품의 노화에 따른 최적 가동 영역의 이동 추이(Centroid Drift)를 머신러닝 피처로 주입할 수 있습니다.</p>
+        </li>
+        
+        <li><strong>분산 에지(Edge-Gateway) 컴퓨터 부하 분산 및 네트워크 전송 제약 극복</strong>
+          <p>FAB 내 수천 대의 Chamber에서 100Hz 급으로 쏟아지는 원시 데이터를 DB 서버로 전량 전송할 경우 네트워크 대역폭 폭증과 대규모 IO 지연을 야기합니다. Chan의 1단계 파티셔닝 개념을 대입하여, 각 설비 단의 Edge Gateway PC가 자체 1차 로컬 Graham Scan을 수행하여 극단점(Extreme Vertices) 수십 개만을 추출합니다.</p>
+          <p>중앙 MES 분석 서버는 원시 데이터 대신 각 에지 단에서 보내온 가볍게 압축된 서브 정점(Sub-hull Vertices) 데이터만 전송받아 2단계 접선 병합(Wrapping) 연산만을 수행해 전체 FAB의 공정 기하 경계를 0.1ms 이내로 즉각 합성(Synthesize)해냅니다.</p>
+        </li>
       </ul>
     </section>
     
