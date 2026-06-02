@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECS/GEM Guide Overview</title>
+    <link rel="stylesheet" href="../semi-page.css">
+    <style>
+        .hero { border-bottom-color: #4cc4bd; }
+        .legend { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+        .legend span { border:1px solid var(--line); border-radius:999px; background:#fff; padding:5px 10px; font-size:12px; font-weight:700; }
+        .flow-board { display:grid; grid-template-columns:1fr; gap:14px; }
+        .lane { border:1px solid var(--line); border-radius:12px; background:#fff; overflow:hidden; }
+        .lane-title { padding:12px 14px; color:#fff; font-weight:800; }
+        .lane-body { padding:14px; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; align-items:stretch; }
+        .tile { border:1px solid var(--line); border-radius:10px; padding:12px; min-height:112px; background:#f8fafc; }
+        .tile strong { display:block; margin-bottom:6px; color:#17202a; font-size:15px; }
+        .tile p { margin:0; color:var(--muted); font-size:13px; }
+        .e4 { background:#334155; }
+        .e37 { background:#2864a8; }
+        .e5 { background:#137a7f; }
+        .e30 { background:#517d2f; }
+        .stack { display:grid; gap:10px; max-width:760px; margin:0 auto; }
+        .stack-row { display:grid; grid-template-columns:150px minmax(0,1fr); border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; }
+        .stack-label { display:flex; align-items:center; justify-content:center; color:#fff; font-weight:900; padding:16px; }
+        .stack-copy { padding:16px; }
+        .stack-copy strong { display:block; margin-bottom:4px; color:#182233; }
+        .stack-copy span { color:var(--muted); font-size:13px; }
+        .read-order { counter-reset: step; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+        .step-card { position:relative; border:1px solid var(--line); border-radius:12px; background:#fff; padding:16px; min-height:150px; }
+        .step-card::before { counter-increment: step; content: counter(step); display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; background:#101826; color:#fff; font-weight:900; margin-bottom:12px; }
+        .step-card h3 { margin:0 0 6px; font-size:16px; color:#182233; }
+        .step-card p { margin:0; color:var(--muted); font-size:13px; }
+        .relation-svg { min-width: 0; }
+        .relation-svg text { font-family: Arial, "Malgun Gothic", sans-serif; }
+        .callout-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+        .callout { border:1px solid var(--line); border-left:5px solid var(--accent); border-radius:12px; background:#fff; padding:16px; }
+        .callout strong { display:block; margin-bottom:6px; color:#182233; }
+        .callout p { margin:0; color:var(--muted); font-size:14px; }
+        .link-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+        .link-grid a { border:1px solid var(--line); border-radius:10px; background:#fff; padding:14px; color:var(--ink); text-decoration:none; }
+        .link-grid a:hover { border-color:var(--accent); background:#f0fbfa; }
+        .link-grid strong { display:block; color:#1d3557; }
+        @media(max-width:900px) {
+            .lane-body, .read-order, .link-grid { grid-template-columns:1fr 1fr; }
+            .callout-grid { grid-template-columns:1fr; }
+        }
+        @media(max-width:640px) {
+            .lane-body, .read-order, .link-grid { grid-template-columns:1fr; }
+            .stack-row { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <section class="hero">
+            <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / SECS/GEM Guide Overview</div>
+            <h1>SECS/GEM Guide Overview</h1>
+            <p>SEMI E4, E5, E30, E37을 따로 외우기보다 “전송 방식 - 메시지 문법 - 장비 업무 모델”의 관계로 먼저 이해하는 입문 지도입니다.</p>
+            <div class="chips">
+                <span class="chip">E4: SECS-I</span>
+                <span class="chip">E37: HSMS</span>
+                <span class="chip">E5: SECS-II</span>
+                <span class="chip">E30: GEM</span>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>1. 한 장으로 보는 관계</h2>
+            <div class="diagram">
+                <svg class="relation-svg" viewBox="0 0 1120 430" role="img" aria-label="SECS GEM relationship diagram">
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#2864a8"></path>
+                        </marker>
+                    </defs>
+
+                    <rect x="40" y="42" width="220" height="84" rx="14" fill="#fff" stroke="#d7dde8"></rect>
+                    <text x="150" y="77" text-anchor="middle" font-size="20" font-weight="800" fill="#17202a">Host / EAP / MES</text>
+                    <text x="150" y="104" text-anchor="middle" font-size="13" fill="#64748b">요청, 명령, 데이터 수집</text>
+
+                    <rect x="860" y="42" width="220" height="84" rx="14" fill="#fff" stroke="#d7dde8"></rect>
+                    <text x="970" y="77" text-anchor="middle" font-size="20" font-weight="800" fill="#17202a">Equipment</text>
+                    <text x="970" y="104" text-anchor="middle" font-size="13" fill="#64748b">상태, 이벤트, 알람, 레시피</text>
+
+                    <rect x="340" y="32" width="440" height="104" rx="18" fill="#e8f5e9" stroke="#517d2f"></rect>
+                    <text x="560" y="68" text-anchor="middle" font-size="24" font-weight="900" fill="#2f4f1f">E30 GEM</text>
+                    <text x="560" y="100" text-anchor="middle" font-size="14" fill="#476638">장비가 제공해야 할 공통 업무 모델</text>
+                    <text x="560" y="121" text-anchor="middle" font-size="12" fill="#64748b">Online/Offline, Event, Alarm, Variable, Remote Command</text>
+
+                    <rect x="340" y="178" width="440" height="92" rx="18" fill="#e9f7f6" stroke="#137a7f"></rect>
+                    <text x="560" y="215" text-anchor="middle" font-size="24" font-weight="900" fill="#0e5d62">E5 SECS-II</text>
+                    <text x="560" y="247" text-anchor="middle" font-size="14" fill="#47666b">Stream / Function / Data Item 메시지 문법</text>
+
+                    <rect x="280" y="322" width="250" height="76" rx="16" fill="#f8fafc" stroke="#334155"></rect>
+                    <text x="405" y="354" text-anchor="middle" font-size="21" font-weight="900" fill="#334155">E4 SECS-I</text>
+                    <text x="405" y="381" text-anchor="middle" font-size="13" fill="#64748b">RS-232 직렬 전송</text>
+
+                    <rect x="590" y="322" width="250" height="76" rx="16" fill="#eef6ff" stroke="#2864a8"></rect>
+                    <text x="715" y="354" text-anchor="middle" font-size="21" font-weight="900" fill="#2864a8">E37 HSMS</text>
+                    <text x="715" y="381" text-anchor="middle" font-size="13" fill="#64748b">TCP/IP 네트워크 전송</text>
+
+                    <path class="arrow" d="M260 84 H340"></path>
+                    <path class="arrow" d="M780 84 H860"></path>
+                    <path class="arrow" d="M560 136 V178"></path>
+                    <path class="arrow" d="M510 270 C470 292 435 300 405 322"></path>
+                    <path class="arrow" d="M610 270 C650 292 685 300 715 322"></path>
+
+                    <text x="560" y="160" text-anchor="middle" font-size="13" font-weight="800" fill="#2864a8">업무 의미가 메시지로 표현됨</text>
+                    <text x="560" y="306" text-anchor="middle" font-size="13" font-weight="800" fill="#2864a8">같은 E5 메시지를 둘 중 하나의 방식으로 운반</text>
+                </svg>
+            </div>
+            <div class="legend">
+                <span>E30은 업무 규칙</span>
+                <span>E5는 메시지 언어</span>
+                <span>E4/E37은 운반 방식</span>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>2. 통신을 계층으로 쌓아 보기</h2>
+            <div class="stack">
+                <div class="stack-row">
+                    <div class="stack-label e30">E30</div>
+                    <div class="stack-copy"><strong>무슨 일을 할 것인가?</strong><span>장비 상태 전환, 이벤트 보고, 알람, 변수 조회, 원격 명령 같은 자동화 업무를 정의합니다.</span></div>
+                </div>
+                <div class="stack-row">
+                    <div class="stack-label e5">E5</div>
+                    <div class="stack-copy"><strong>그 일을 어떤 메시지로 말할 것인가?</strong><span>S1F1, S1F13, S2F41처럼 Stream/Function과 데이터 타입으로 대화 문법을 만듭니다.</span></div>
+                </div>
+                <div class="stack-row">
+                    <div class="stack-label e4">E4</div>
+                    <div class="stack-copy"><strong>오래된 직렬선 위로 어떻게 보낼 것인가?</strong><span>RS-232 기반 SECS-I 프레임, ENQ/EOT/ACK/NAK, 타이머와 재전송을 다룹니다.</span></div>
+                </div>
+                <div class="stack-row">
+                    <div class="stack-label e37">E37</div>
+                    <div class="stack-copy"><strong>TCP/IP 네트워크 위로 어떻게 보낼 것인가?</strong><span>HSMS 세션, Select/Separate, Linktest, System Bytes를 통해 같은 E5 메시지를 네트워크로 전달합니다.</span></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>3. 같은 메시지, 다른 운반 수단</h2>
+            <div class="flow-board">
+                <div class="lane">
+                    <div class="lane-title e5">공통 메시지: E5 SECS-II</div>
+                    <div class="lane-body">
+                        <div class="tile"><strong>S1F13</strong><p>Host가 장비와 통신을 열기 위해 Establish Communication을 요청합니다.</p></div>
+                        <div class="tile"><strong>S1F14</strong><p>장비가 통신 수립 가능 여부와 결과를 응답합니다.</p></div>
+                        <div class="tile"><strong>S6F11</strong><p>장비가 이벤트가 발생했음을 Host로 보고합니다.</p></div>
+                        <div class="tile"><strong>S2F41</strong><p>Host가 장비에 Remote Command를 전달합니다.</p></div>
+                    </div>
+                </div>
+                <div class="lane">
+                    <div class="lane-title e4">운반 A: E4 SECS-I</div>
+                    <div class="lane-body">
+                        <div class="tile"><strong>직렬 포트</strong><p>RS-232C 설정, baud rate, parity, stop bit가 중요합니다.</p></div>
+                        <div class="tile"><strong>Handshake</strong><p>ENQ/EOT/ACK/NAK로 한 번에 한 블록씩 안전하게 넘깁니다.</p></div>
+                        <div class="tile"><strong>Block</strong><p>SECS-II 메시지를 작은 블록으로 나누고 checksum을 붙입니다.</p></div>
+                        <div class="tile"><strong>Legacy</strong><p>구형 장비와 긴 수명 주기의 Fab에서 여전히 만날 수 있습니다.</p></div>
+                    </div>
+                </div>
+                <div class="lane">
+                    <div class="lane-title e37">운반 B: E37 HSMS</div>
+                    <div class="lane-body">
+                        <div class="tile"><strong>TCP/IP</strong><p>이더넷 네트워크와 소켓 연결 위에서 동작합니다.</p></div>
+                        <div class="tile"><strong>Select</strong><p>통신 가능 세션을 선택하고 Selected 상태를 유지합니다.</p></div>
+                        <div class="tile"><strong>System Bytes</strong><p>요청과 응답을 짝지어 transaction을 추적합니다.</p></div>
+                        <div class="tile"><strong>Modern</strong><p>속도, 거리, 운영 편의성 때문에 현재 장비에서 더 일반적입니다.</p></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>4. E4/E5/E30/E37 역할 비교</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>표준</th>
+                        <th>한 줄 역할</th>
+                        <th>주요 질문</th>
+                        <th>예시 키워드</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>SEMI E4</strong><br><span class="muted">SECS-I</span></td>
+                        <td>직렬선에서 SECS 메시지를 안전하게 주고받는 방법</td>
+                        <td>바이트를 어떻게 블록으로 나누고 재전송할까?</td>
+                        <td>RS-232, ENQ/EOT, ACK/NAK, checksum, T1~T4</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SEMI E37</strong><br><span class="muted">HSMS</span></td>
+                        <td>TCP/IP에서 SECS 메시지를 세션 기반으로 운반하는 방법</td>
+                        <td>소켓 연결 후 어떤 상태와 제어 메시지가 필요할까?</td>
+                        <td>Select, Separate, Linktest, T5~T8, System Bytes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SEMI E5</strong><br><span class="muted">SECS-II</span></td>
+                        <td>장비와 Host가 이해하는 메시지 문법</td>
+                        <td>어떤 Stream/Function과 데이터 타입으로 말할까?</td>
+                        <td>SxFy, W-bit, List, Binary, ASCII, U4</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SEMI E30</strong><br><span class="muted">GEM</span></td>
+                        <td>장비 자동화가 제공해야 하는 공통 기능 모델</td>
+                        <td>장비 상태, 이벤트, 알람, 명령은 어떤 규칙으로 운영할까?</td>
+                        <td>Communication, Control State, Event Report, Alarm, Remote Command</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>5. 추천 학습 순서</h2>
+            <div class="read-order">
+                <div class="step-card">
+                    <h3>E5 먼저 보기</h3>
+                    <p>무엇을 주고받는지 알아야 E4와 E37의 차이가 단순해집니다. SxFy와 데이터 타입부터 잡습니다.</p>
+                </div>
+                <div class="step-card">
+                    <h3>E4와 E37 비교</h3>
+                    <p>둘 다 E5 메시지를 운반하지만, E4는 직렬선, E37은 TCP/IP입니다. “운반 수단” 관점으로 비교합니다.</p>
+                </div>
+                <div class="step-card">
+                    <h3>E30으로 업무 연결</h3>
+                    <p>메시지가 실제로 어떤 장비 업무를 만드는지 봅니다. 통신이 자동화 기능으로 바뀌는 지점입니다.</p>
+                </div>
+                <div class="step-card">
+                    <h3>현장 로그로 확인</h3>
+                    <p>S1F13/S1F14, S6F11, S2F41 같은 로그를 보며 계층별로 문제 위치를 나눠 봅니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>6. 헷갈리기 쉬운 포인트</h2>
+            <div class="callout-grid">
+                <div class="callout">
+                    <strong>E4와 E37은 경쟁 표준이라기보다 전송 선택지입니다.</strong>
+                    <p>둘 중 하나를 선택해 E5 메시지를 보냅니다. 어떤 것을 쓰는지는 장비 세대, 네트워크 환경, 벤더 구현에 따라 달라집니다.</p>
+                </div>
+                <div class="callout">
+                    <strong>E30은 메시지 포맷이 아니라 장비 행동 모델입니다.</strong>
+                    <p>E30을 이해하려면 “SxFy 번호 암기”보다 Online 상태, 이벤트 보고, 알람 처리 같은 운영 시나리오를 먼저 보는 편이 좋습니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>바로가기</h2>
+            <div class="link-grid">
+                <a href="E4.html"><strong>SEMI E4</strong><span class="muted">SECS-I 직렬 전송</span></a>
+                <a href="E5.html"><strong>SEMI E5</strong><span class="muted">SECS-II 메시지 문법</span></a>
+                <a href="E37.html"><strong>SEMI E37</strong><span class="muted">HSMS TCP/IP 전송</span></a>
+                <a href="E30.html"><strong>SEMI E30</strong><span class="muted">GEM 장비 모델</span></a>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

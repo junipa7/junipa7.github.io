@@ -337,11 +337,84 @@ body.dark-mode .topbar {
     font-weight: 700;
 }
 
+.preview-tabs {
+    display: flex;
+    gap: 6px;
+    min-height: 45px;
+    overflow-x: auto;
+    padding: 8px 14px 0;
+    background: rgba(255, 255, 255, 0.56);
+    border-bottom: 1px solid var(--line);
+}
+
+body.dark-mode .preview-tabs {
+    background: rgba(23, 32, 51, 0.56);
+}
+
+.preview-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 240px;
+    min-width: 0;
+    height: 36px;
+    border: 1px solid var(--line);
+    border-bottom-color: transparent;
+    border-radius: 10px 10px 0 0;
+    background: var(--panel-soft);
+    color: var(--muted);
+    padding: 0 8px 0 12px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.preview-tab.active {
+    background: var(--panel);
+    color: var(--accent);
+    box-shadow: 0 -1px 0 var(--panel) inset;
+}
+
+.preview-tab-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.preview-tab-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.preview-tab-close:hover {
+    background: var(--accent-soft);
+}
+
 .content-area {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
     padding: 26px;
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.active {
+    display: block;
 }
 
 .content-frame {
@@ -625,6 +698,11 @@ pre code {
 
     .content-area {
         padding: 16px;
+    }
+
+    .preview-tabs {
+        padding-left: 10px;
+        padding-right: 10px;
     }
 
     .content-frame {

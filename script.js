@@ -12,6 +12,7 @@ const semiStandards = {
         {
             title: "SECS/GEM 기본",
             children: [
+                iframeItem("SECS/GEM Guide Overview", "SEMI_Interactive_Guide/standards/SECS_GEM_Guide_Overview.html"),
                 standardItem("SEMI E4 - SECS-I", "E4"),
                 standardItem("SEMI E5 - SECS-II", "E5"),
                 standardItem("SEMI E37 - HSMS", "E37"),
@@ -21,6 +22,7 @@ const semiStandards = {
         {
             title: "GEM300 생산 실행",
             children: [
+                iframeItem("GEM300 Production Overview", "SEMI_Interactive_Guide/standards/GEM300_Production_Overview.html"),
                 standardItem("GEM300", "GEM300"),
                 standardItem("SEMI E39 - Object Services", "E39"),
                 standardItem("SEMI E40 - Processing Job", "E40"),
@@ -32,6 +34,7 @@ const semiStandards = {
         {
             title: "EDA / Interface A",
             children: [
+                iframeItem("EDA / Interface A Overview", "SEMI_Interactive_Guide/standards/EDA_Interface_A_Overview.html"),
                 standardItem("SEMI E120 - Common Equipment Model", "E120"),
                 standardItem("SEMI E125 - Equipment Data Acquisition", "E125"),
                 standardItem("SEMI E132 - Client Authentication", "E132"),
@@ -45,6 +48,7 @@ const semiStandards = {
         {
             title: "Data Dictionary / Productivity / Security",
             children: [
+                iframeItem("Data Dictionary / Productivity / Security Overview", "SEMI_Interactive_Guide/standards/Data_Productivity_Security_Overview.html"),
                 standardItem("SEMI E10 - RAM", "E10"),
                 standardItem("SEMI E116 - Performance Tracking", "E116"),
                 standardItem("SEMI E172 - SECS Equipment Data Dictionary", "E172"),
@@ -301,6 +305,10 @@ const editorContent = document.getElementById("editor-content");
 const currentTab = document.getElementById("current-tab");
 const themeToggle = document.getElementById("theme-toggle");
 const collapseAll = document.getElementById("collapse-all");
+const previewTabs = document.getElementById("preview-tabs");
+const openTabs = [];
+let activeTabKey = "";
+let tabSequence = 0;
 
 function escapeHtml(text) {
     return String(text)
@@ -369,12 +377,156 @@ function renderMenu() {
     });
 }
 
-async function loadContent(path, mode = "auto") {
+function tabKey(path, mode = "auto") {
+    return `${mode || "auto"}::${path}`;
+}
+
+function resizeContentIframe(iframe) {
+    try {
+        iframe.style.height = `${iframe.contentWindow.document.documentElement.scrollHeight + 30}px`;
+        iframe.contentWindow.document.body.classList.toggle("dark-mode", document.body.classList.contains("dark-mode"));
+        attachIframeLinkHandler(iframe);
+    } catch (error) {
+        iframe.style.height = "80vh";
+    }
+}
+
+function relativePathFromUrl(url) {
+    const parsed = new URL(url, window.location.href);
+    if (parsed.origin !== window.location.origin) return "";
+    return decodeURIComponent(parsed.pathname.replace(/^\/+/, "")) + parsed.search + parsed.hash;
+}
+
+function titleFromLink(link, path) {
+    return link.querySelector("strong")?.textContent?.trim() || link.textContent.trim() || path.split("/").pop();
+}
+
+function attachIframeLinkHandler(iframe) {
+    const doc = iframe.contentWindow?.document;
+    if (!doc || doc.body.dataset.parentTabsAttached === "true") return;
+    doc.body.dataset.parentTabsAttached = "true";
+
+    doc.addEventListener("click", event => {
+        const link = event.target.closest?.("a[href]");
+        if (!link) return;
+
+        const href = link.getAttribute("href");
+        if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return;
+
+        const path = relativePathFromUrl(link.href);
+        if (!path) return;
+
+        event.preventDefault();
+        openPreviewPath(titleFromLink(link, path), path, "iframe");
+    });
+}
+
+function renderPreviewTabs() {
+    previewTabs.innerHTML = "";
+    openTabs.forEach(tab => {
+        const button = document.createElement("div");
+        button.className = `preview-tab${tab.key === activeTabKey ? " active" : ""}`;
+        button.setAttribute("role", "tab");
+        button.setAttribute("aria-selected", String(tab.key === activeTabKey));
+        button.tabIndex = 0;
+        button.title = tab.title;
+
+        const title = document.createElement("span");
+        title.className = "preview-tab-title";
+        title.textContent = tab.title;
+
+        const close = document.createElement("button");
+        close.className = "preview-tab-close";
+        close.type = "button";
+        close.setAttribute("aria-label", `${tab.title} 닫기`);
+        close.textContent = "x";
+
+        button.addEventListener("click", () => focusPreviewTab(tab.key));
+        button.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                focusPreviewTab(tab.key);
+            }
+        });
+        close.addEventListener("click", event => {
+            event.stopPropagation();
+            closePreviewTab(tab.key);
+        });
+
+        button.append(title, close);
+        previewTabs.appendChild(button);
+    });
+}
+
+function focusPreviewTab(key) {
+    const tab = openTabs.find(item => item.key === key);
+    if (!tab) return;
+
+    activeTabKey = key;
+    currentTab.textContent = tab.title;
+    document.querySelectorAll(".file-item.active").forEach(item => item.classList.remove("active"));
+    if (tab.button?.isConnected) tab.button.classList.add("active");
+
+    openTabs.forEach(item => item.panel.classList.toggle("active", item.key === key));
+    renderPreviewTabs();
+}
+
+function closePreviewTab(key) {
+    const index = openTabs.findIndex(tab => tab.key === key);
+    if (index < 0) return;
+
+    const [closed] = openTabs.splice(index, 1);
+    closed.panel.remove();
+
+    if (activeTabKey === key) {
+        const nextTab = openTabs[index] || openTabs[index - 1];
+        if (nextTab) {
+            focusPreviewTab(nextTab.key);
+        } else {
+            activeTabKey = "";
+            currentTab.textContent = "Preview";
+            document.querySelectorAll(".file-item.active").forEach(item => item.classList.remove("active"));
+            renderPreviewTabs();
+        }
+        return;
+    }
+
+    renderPreviewTabs();
+}
+
+function openPreviewTab(button) {
+    const path = button.dataset.path;
+    const mode = button.dataset.mode || "auto";
+    openPreviewPath(button.textContent, path, mode, button);
+}
+
+function openPreviewPath(title, path, mode = "auto", button = null) {
+    const key = tabKey(path, mode);
+    let tab = openTabs.find(item => item.key === key);
+
+    if (!tab) {
+        const panel = document.createElement("div");
+        panel.className = "tab-panel";
+        panel.id = `preview-panel-${++tabSequence}`;
+        editorContent.appendChild(panel);
+
+        tab = { key, title, path, mode, button, panel };
+        openTabs.push(tab);
+        loadContent(path, mode, panel);
+    } else {
+        tab.title = title;
+        tab.button = button;
+    }
+
+    focusPreviewTab(key);
+}
+
+async function loadContent(path, mode = "auto", target = editorContent) {
     try {
         editorContent.scrollTop = 0;
 
         if (mode === "iframe") {
-            editorContent.innerHTML = `<iframe class="content-frame" src="${path}" title="${escapeHtml(path)}" scrolling="no" onload="this.style.height=this.contentWindow.document.documentElement.scrollHeight + 30 + 'px'; if(document.body.classList.contains('dark-mode')){this.contentWindow.document.body.classList.add('dark-mode');}"></iframe>`;
+            target.innerHTML = `<iframe class="content-frame" src="${path}" title="${escapeHtml(path)}" scrolling="no" onload="resizeContentIframe(this)"></iframe>`;
             return;
         }
 
@@ -384,14 +536,14 @@ async function loadContent(path, mode = "auto") {
         const text = await response.text();
         const ext = extensionOf(path);
         if (ext === "html" || ext === "htm") {
-            editorContent.innerHTML = text;
-            if (window.MathJax) {
-                MathJax.typesetPromise([editorContent]).catch(err => console.log(`MathJax typeset failed: ${err.message}`));
+            target.innerHTML = text;
+            if (window.MathJax && typeof MathJax.typesetPromise === "function") {
+                MathJax.typesetPromise([target]).catch(err => console.log(`MathJax typeset failed: ${err.message}`));
             }
             return;
         }
 
-        editorContent.innerHTML = `
+        target.innerHTML = `
             <div class="box box-primary">
                 <span class="box-title">${escapeHtml(path)}</span>
                 <p>텍스트 파일로 표시 중입니다.</p>
@@ -402,7 +554,7 @@ async function loadContent(path, mode = "auto") {
             </div>`;
     } catch (error) {
         console.error("콘텐츠 로드 오류:", error);
-        editorContent.innerHTML = `
+        target.innerHTML = `
             <div class="box box-danger">
                 <h3>콘텐츠를 불러올 수 없습니다.</h3>
                 <p><b>대상:</b> ${escapeHtml(path)}</p>
@@ -413,9 +565,6 @@ async function loadContent(path, mode = "auto") {
 }
 
 function activateItem(button) {
-    document.querySelectorAll(".file-item.active").forEach(item => item.classList.remove("active"));
-    button.classList.add("active");
-
     let parent = button.parentElement;
     while (parent) {
         if (parent.classList?.contains("collapsed")) {
@@ -426,8 +575,7 @@ function activateItem(button) {
         parent = parent.parentElement;
     }
 
-    currentTab.textContent = button.textContent;
-    loadContent(button.dataset.path, button.dataset.mode || "auto");
+    openPreviewTab(button);
 }
 
 function setAllCollapsed(collapsed) {
@@ -444,10 +592,7 @@ if (themeToggle) {
         const isDark = document.body.classList.toggle("dark-mode");
         themeToggle.textContent = isDark ? "Light" : "Dark";
         
-        const iframe = editorContent.querySelector("iframe");
-        if (iframe && iframe.contentWindow) {
-            iframe.contentWindow.document.body.classList.toggle("dark-mode", isDark);
-        }
+        editorContent.querySelectorAll("iframe").forEach(iframe => resizeContentIframe(iframe));
     });
 }
 

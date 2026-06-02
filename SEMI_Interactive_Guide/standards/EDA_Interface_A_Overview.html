@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDA / Interface A Overview</title>
+    <link rel="stylesheet" href="../semi-page.css">
+    <style>
+        .hero { border-bottom-color:#8b5cf6; }
+        .pipeline,.callout-grid,.link-grid { display:grid; gap:12px; }
+        .pipeline { grid-template-columns:repeat(6,minmax(0,1fr)); }
+        .callout-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        .link-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+        .pipe,.callout,.link-grid a { border:1px solid var(--line); border-radius:12px; background:#fff; padding:14px; color:var(--ink); text-decoration:none; }
+        .pipe { min-height:136px; }
+        .pipe strong,.callout strong,.link-grid strong { display:block; color:#17202a; margin-bottom:6px; }
+        .pipe span { display:inline-block; border-radius:999px; background:#eef3f8; padding:4px 8px; font-size:12px; font-weight:800; color:#2864a8; margin-bottom:8px; }
+        .pipe p,.callout p,.link-grid span { margin:0; color:var(--muted); font-size:13px; }
+        .layers { display:grid; gap:10px; max-width:860px; margin:0 auto; }
+        .layer { display:grid; grid-template-columns:180px minmax(0,1fr); border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; }
+        .layer-name { color:#fff; font-weight:900; padding:16px; display:flex; align-items:center; justify-content:center; text-align:center; }
+        .layer-body { padding:16px; }
+        .layer-body strong { display:block; color:#182233; margin-bottom:5px; }
+        .layer-body span { color:var(--muted); font-size:13px; }
+        .purple { background:#6d5bd0; } .blue { background:#2864a8; } .teal { background:#137a7f; } .green { background:#517d2f; } .orange { background:#b85c18; }
+        @media(max-width:1000px){.pipeline,.callout-grid,.link-grid{grid-template-columns:1fr 1fr}}
+        @media(max-width:640px){.pipeline,.callout-grid,.link-grid{grid-template-columns:1fr}.layer{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="hero">
+            <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / EDA Interface A Overview</div>
+            <h1>EDA / Interface A Overview</h1>
+            <p>EDA는 SECS/GEM 이벤트 보고보다 더 구조화된 고속 데이터 수집 체계입니다. 장비 모델을 발견하고, 수집 계획을 만들고, 품질과 메타데이터를 함께 관리합니다.</p>
+            <div class="chips"><span class="chip">E120 Model</span><span class="chip">E125 Services</span><span class="chip">E132 Auth</span><span class="chip">E134 DCM</span><span class="chip">E151/E160 Quality</span><span class="chip">E164 Metadata</span></div>
+        </section>
+
+        <section class="section">
+            <h2>1. EDA 데이터 수집 파이프라인</h2>
+            <div class="pipeline">
+                <div class="pipe"><span>E132</span><strong>접속 권한</strong><p>Client 인증과 권한을 확인해 장비 데이터 접근 범위를 제한합니다.</p></div>
+                <div class="pipe"><span>E120</span><strong>장비 모델</strong><p>Module, Chamber, Sensor, Parameter 구조를 공통 모델로 표현합니다.</p></div>
+                <div class="pipe"><span>E125</span><strong>서비스 호출</strong><p>Client가 장비 모델과 데이터 서비스를 조회하고 구독합니다.</p></div>
+                <div class="pipe"><span>E134</span><strong>수집 계획</strong><p>Trace, Event, Exception 같은 Data Collection Plan을 설정합니다.</p></div>
+                <div class="pipe"><span>E151/E160</span><strong>데이터 품질</strong><p>값이 믿을 만한지, 누락/지연/비정상 상태인지 함께 전달합니다.</p></div>
+                <div class="pipe"><span>E164</span><strong>공통 메타데이터</strong><p>데이터 의미, 단위, 출처를 일관되게 해석하게 돕습니다.</p></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>2. 계층으로 이해하기</h2>
+            <div class="layers">
+                <div class="layer"><div class="layer-name purple">Access</div><div class="layer-body"><strong>E132</strong><span>장비 데이터에 접근할 수 있는 Client인지 인증하고 권한 범위를 결정합니다.</span></div></div>
+                <div class="layer"><div class="layer-name blue">Model</div><div class="layer-body"><strong>E120 + E164</strong><span>장비 구조와 메타데이터를 시스템이 해석 가능한 형태로 제공합니다.</span></div></div>
+                <div class="layer"><div class="layer-name teal">Service</div><div class="layer-body"><strong>E125</strong><span>모델 조회, 데이터 구독, 이벤트 수신 같은 EDA 서비스의 기본 통신 방식을 제공합니다.</span></div></div>
+                <div class="layer"><div class="layer-name green">Collection</div><div class="layer-body"><strong>E134</strong><span>어떤 데이터를 어떤 조건과 주기로 수집할지 계획하고 관리합니다.</span></div></div>
+                <div class="layer"><div class="layer-name orange">Quality</div><div class="layer-body"><strong>E151 + E160</strong><span>데이터 값뿐 아니라 품질 상태를 함께 전달해 FDC/APC/EES가 신뢰도를 판단하게 합니다.</span></div></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>3. SECS/GEM과 무엇이 다른가?</h2>
+            <table>
+                <thead><tr><th>관점</th><th>SECS/GEM</th><th>EDA / Interface A</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>주 용도</strong></td><td>장비 제어, 이벤트 보고, 알람, 원격 명령</td><td>고속/대용량/구조화 데이터 수집</td></tr>
+                    <tr><td><strong>데이터 구조</strong></td><td>SxFy 메시지와 장비별 변수 매핑</td><td>공통 장비 모델과 메타데이터 기반 탐색</td></tr>
+                    <tr><td><strong>수집 방식</strong></td><td>Event Report, Trace, Variable Query 중심</td><td>Data Collection Plan과 서비스 구독 중심</td></tr>
+                    <tr><td><strong>활용 시스템</strong></td><td>EAP, MES, 설비 제어</td><td>FDC, APC, EES, Advanced Analytics</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>4. 먼저 잡아야 할 관점</h2>
+            <div class="callout-grid">
+                <div class="callout"><strong>모델을 알아야 수집도 안정됩니다.</strong><p>E120/E164가 장비 데이터의 주소록과 의미 사전 역할을 합니다.</p></div>
+                <div class="callout"><strong>수집 계획은 운영 계약입니다.</strong><p>E134는 어떤 데이터를 어떤 품질과 조건으로 받을지 정하는 운영 약속입니다.</p></div>
+                <div class="callout"><strong>품질 정보는 값만큼 중요합니다.</strong><p>FDC/APC는 값 자체보다 그 값이 유효한지, 늦었는지, 대체값인지 함께 판단해야 합니다.</p></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>바로가기</h2>
+            <div class="link-grid">
+                <a href="E120.html"><strong>E120</strong><span class="muted">Common Equipment Model</span></a>
+                <a href="E125.html"><strong>E125</strong><span class="muted">EDA Services</span></a>
+                <a href="E132.html"><strong>E132</strong><span class="muted">Authentication</span></a>
+                <a href="E134.html"><strong>E134</strong><span class="muted">Data Collection</span></a>
+                <a href="E151.html"><strong>E151</strong><span class="muted">Data Quality Guide</span></a>
+                <a href="E160.html"><strong>E160</strong><span class="muted">Data Quality Communication</span></a>
+                <a href="E164.html"><strong>E164</strong><span class="muted">Common Metadata</span></a>
+                <a href="E133.html"><strong>E133</strong><span class="muted">APC Interface</span></a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

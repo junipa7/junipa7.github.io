@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEM300 Production Overview</title>
+    <link rel="stylesheet" href="../semi-page.css">
+    <style>
+        .hero { border-bottom-color:#e7b84a; }
+        .map,.matrix,.link-grid { display:grid; gap:12px; }
+        .map { grid-template-columns:repeat(5,minmax(0,1fr)); }
+        .matrix { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        .link-grid { grid-template-columns:repeat(6,minmax(0,1fr)); }
+        .node-card,.matrix-card,.link-grid a { border:1px solid var(--line); border-radius:12px; background:#fff; padding:14px; color:var(--ink); text-decoration:none; }
+        .node-card { min-height:132px; position:relative; }
+        .node-card::after { content:""; position:absolute; top:50%; right:-13px; width:14px; height:2px; background:#2864a8; }
+        .node-card:last-child::after { display:none; }
+        .node-card strong,.matrix-card strong,.link-grid strong { display:block; color:#17202a; margin-bottom:6px; }
+        .node-card span,.matrix-card p,.link-grid span { color:var(--muted); font-size:13px; }
+        .band { display:inline-block; border-radius:999px; color:#fff; padding:5px 9px; font-size:12px; font-weight:800; margin-bottom:10px; }
+        .green { background:#517d2f; } .blue { background:#2864a8; } .teal { background:#137a7f; } .orange { background:#b85c18; } .slate { background:#334155; }
+        .swimlane { border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; }
+        .swimlane-row { display:grid; grid-template-columns:170px minmax(0,1fr); border-bottom:1px solid var(--line); }
+        .swimlane-row:last-child { border-bottom:0; }
+        .swimlane-head { color:#fff; font-weight:900; padding:14px; display:flex; align-items:center; }
+        .swimlane-body { padding:14px; display:flex; flex-wrap:wrap; gap:8px; }
+        .pill { border:1px solid var(--line); border-radius:999px; background:#f8fafc; padding:7px 11px; font-size:13px; font-weight:700; }
+        @media(max-width:980px){.map,.matrix,.link-grid{grid-template-columns:1fr 1fr}.node-card::after{display:none}}
+        @media(max-width:640px){.map,.matrix,.link-grid{grid-template-columns:1fr}.swimlane-row{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="hero">
+            <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / GEM300 Production Overview</div>
+            <h1>GEM300 Production Overview</h1>
+            <p>GEM300은 하나의 표준이 아니라, 300mm Fab에서 Carrier, Wafer, Process Job, Control Job을 하나의 실행 흐름으로 묶는 표준 조합입니다.</p>
+            <div class="chips"><span class="chip">E30 기반</span><span class="chip">E39 객체 언어</span><span class="chip">E87 Carrier</span><span class="chip">E90 Substrate</span><span class="chip">E40 PJob</span><span class="chip">E94 CJob</span></div>
+        </section>
+
+        <section class="section">
+            <h2>1. 생산 실행을 하나의 흐름으로 보기</h2>
+            <div class="map">
+                <div class="node-card"><span class="band green">E87</span><strong>Carrier</strong><span>FOUP 도착, 검증, Slot map 확인, Carrier 상태 관리</span></div>
+                <div class="node-card"><span class="band blue">E90</span><strong>Substrate</strong><span>Wafer ID, 위치, 이동, 처리 이력 추적</span></div>
+                <div class="node-card"><span class="band teal">E40</span><strong>Process Job</strong><span>어떤 wafer를 어떤 recipe로 처리할지 정의</span></div>
+                <div class="node-card"><span class="band orange">E94</span><strong>Control Job</strong><span>Carrier와 Process Job을 묶어 실행 단위 구성</span></div>
+                <div class="node-card"><span class="band slate">MES</span><strong>Result</strong><span>완료 보고, genealogy, KPI, 품질 분석으로 연결</span></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>2. GEM300 표준의 역할 분담</h2>
+            <table>
+                <thead><tr><th>표준</th><th>담당 객체</th><th>핵심 질문</th><th>현장 예시</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>E30 GEM</strong></td><td>공통 장비 모델</td><td>장비가 Host와 어떤 기본 기능으로 대화할까?</td><td>Online, Event, Alarm, Remote Command</td></tr>
+                    <tr><td><strong>E39 Object Services</strong></td><td>공통 객체 표현</td><td>Carrier, Job, Wafer 같은 객체를 어떻게 식별하고 조회할까?</td><td>Object ID, Attribute, Collection</td></tr>
+                    <tr><td><strong>E87 Carrier Management</strong></td><td>Carrier / Load Port</td><td>FOUP이 어디에 있고 사용할 수 있는 상태인가?</td><td>Carrier ID, Slot map, Load/Unload</td></tr>
+                    <tr><td><strong>E90 Substrate Tracking</strong></td><td>Wafer / Substrate</td><td>각 wafer가 어느 slot, chamber, 공정 단계에 있는가?</td><td>Location, State, Tracking Event</td></tr>
+                    <tr><td><strong>E40 Processing Management</strong></td><td>Process Job</td><td>어떤 wafer를 어떤 recipe로 처리할 것인가?</td><td>PJob Create, Recipe, Material List</td></tr>
+                    <tr><td><strong>E94 Control Job</strong></td><td>Control Job</td><td>Carrier와 Process Job을 어떻게 묶어 실행할 것인가?</td><td>CJob Create, Start, Pause, Complete</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>3. 실행 시나리오 Swimlane</h2>
+            <div class="swimlane">
+                <div class="swimlane-row"><div class="swimlane-head green">Material</div><div class="swimlane-body"><span class="pill">Carrier Arrive</span><span class="pill">Carrier ID Read</span><span class="pill">Slot Map Verify</span></div></div>
+                <div class="swimlane-row"><div class="swimlane-head blue">Tracking</div><div class="swimlane-body"><span class="pill">Wafer Located</span><span class="pill">Substrate State Change</span><span class="pill">Chamber Move</span></div></div>
+                <div class="swimlane-row"><div class="swimlane-head teal">Job</div><div class="swimlane-body"><span class="pill">PJob Create</span><span class="pill">Recipe Assign</span><span class="pill">Material Bind</span></div></div>
+                <div class="swimlane-row"><div class="swimlane-head orange">Execution</div><div class="swimlane-body"><span class="pill">CJob Create</span><span class="pill">Start Command</span><span class="pill">Processing</span><span class="pill">Complete Report</span></div></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>4. 먼저 잡아야 할 관점</h2>
+            <div class="matrix">
+                <div class="matrix-card"><strong>Carrier는 물류 단위</strong><p>FOUP과 Load Port 상태가 안정되어야 이후 wafer 추적과 Job 실행이 흔들리지 않습니다.</p></div>
+                <div class="matrix-card"><strong>Process Job은 공정 의도</strong><p>어떤 재료를 어떤 recipe로 처리할지 정의합니다. 실행 자체는 Control Job과 함께 봐야 합니다.</p></div>
+                <div class="matrix-card"><strong>Control Job은 실행 묶음</strong><p>Carrier, wafer, Process Job을 실제 장비 실행 흐름으로 오케스트레이션합니다.</p></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>바로가기</h2>
+            <div class="link-grid">
+                <a href="GEM300.html"><strong>GEM300</strong><span class="muted">표준 묶음 개요</span></a>
+                <a href="E39.html"><strong>E39</strong><span class="muted">Object Services</span></a>
+                <a href="E87.html"><strong>E87</strong><span class="muted">Carrier</span></a>
+                <a href="E90.html"><strong>E90</strong><span class="muted">Substrate</span></a>
+                <a href="E40.html"><strong>E40</strong><span class="muted">Process Job</span></a>
+                <a href="E94.html"><strong>E94</strong><span class="muted">Control Job</span></a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Dictionary / Productivity / Security Overview</title>
+    <link rel="stylesheet" href="../semi-page.css">
+    <style>
+        .hero { border-bottom-color:#ef4444; }
+        .triad,.flow,.risk-grid,.link-grid { display:grid; gap:12px; }
+        .triad { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        .flow { grid-template-columns:repeat(5,minmax(0,1fr)); }
+        .risk-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .link-grid { grid-template-columns:repeat(5,minmax(0,1fr)); }
+        .triad-card,.flow-card,.risk,.link-grid a { border:1px solid var(--line); border-radius:12px; background:#fff; padding:14px; color:var(--ink); text-decoration:none; }
+        .triad-card h3 { margin:0 0 10px; color:#182233; font-size:20px; }
+        .triad-card p,.flow-card span,.risk p,.link-grid span { margin:0; color:var(--muted); font-size:13px; }
+        .flow-card { min-height:132px; }
+        .flow-card strong,.risk strong,.link-grid strong { display:block; color:#17202a; margin-bottom:6px; }
+        .risk { border-left:5px solid #b4233c; }
+        .tag { display:inline-flex; border-radius:999px; background:#eef3f8; color:#2864a8; padding:5px 9px; font-size:12px; font-weight:800; margin:3px; }
+        @media(max-width:980px){.triad,.flow,.link-grid{grid-template-columns:1fr 1fr}}
+        @media(max-width:640px){.triad,.flow,.risk-grid,.link-grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="hero">
+            <div class="crumbs"><a href="../SEMI_Data_Flow_Main.html">SEMI Guide</a> / Data Productivity Security Overview</div>
+            <h1>Data Dictionary / Productivity / Security Overview</h1>
+            <p>장비 데이터는 수집만으로 끝나지 않습니다. 변수 의미를 표준화하고, 생산성 지표로 해석하며, 보안과 품질을 함께 관리해야 운영 데이터가 믿을 수 있는 자산이 됩니다.</p>
+            <div class="chips"><span class="chip">E172/E173 Dictionary</span><span class="chip">E10 RAM</span><span class="chip">E116 Performance</span><span class="chip">E151/E160 Quality</span><span class="chip">E187 Security</span></div>
+        </section>
+
+        <section class="section">
+            <h2>1. 세 축으로 보기</h2>
+            <div class="triad">
+                <div class="triad-card"><h3>Data Dictionary</h3><p>장비 변수, 이벤트, 알람, SECS-II 메시지 구조를 시스템이 읽을 수 있게 정리합니다.</p><span class="tag">E172</span><span class="tag">E173</span><span class="tag">E164</span></div>
+                <div class="triad-card"><h3>Productivity</h3><p>상태, 시간, 이벤트 데이터를 RAM/OEE/성능 지표로 바꾸어 병목과 손실을 분석합니다.</p><span class="tag">E10</span><span class="tag">E116</span><span class="tag">KPI</span></div>
+                <div class="triad-card"><h3>Security & Quality</h3><p>데이터가 정확하고 안전하게 전달되는지 관리합니다. 품질 플래그와 장비 보안 기준이 함께 필요합니다.</p><span class="tag">E151</span><span class="tag">E160</span><span class="tag">E187</span></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>2. 운영 데이터가 KPI가 되는 흐름</h2>
+            <div class="flow">
+                <div class="flow-card"><strong>1. Define</strong><span>E172/E173으로 변수와 메시지 의미를 정의합니다.</span></div>
+                <div class="flow-card"><strong>2. Collect</strong><span>SECS/GEM 또는 EDA로 이벤트, 상태, trace 데이터를 수집합니다.</span></div>
+                <div class="flow-card"><strong>3. Qualify</strong><span>E151/E160 관점으로 누락, 지연, 대체값, 신뢰도를 표시합니다.</span></div>
+                <div class="flow-card"><strong>4. Measure</strong><span>E10/E116으로 가동, 성능, 신뢰성, 설비 손실을 계산합니다.</span></div>
+                <div class="flow-card"><strong>5. Protect</strong><span>E187 기준으로 장비 접속, 계정, 네트워크, 변경 위험을 통제합니다.</span></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>3. 역할 비교</h2>
+            <table>
+                <thead><tr><th>표준</th><th>초점</th><th>무엇을 좋아지게 하나?</th><th>예시 산출물</th></tr></thead>
+                <tbody>
+                    <tr><td><strong>E172</strong></td><td>SECS 장비 데이터 사전</td><td>장비 반입과 변수 매핑 속도</td><td>VID/CEID/ALID dictionary</td></tr>
+                    <tr><td><strong>E173</strong></td><td>SECS-II XML 표현</td><td>메시지 구조의 교환과 검증</td><td>XML message notation</td></tr>
+                    <tr><td><strong>E10</strong></td><td>RAM 상태와 시간 분류</td><td>설비 가동률과 신뢰성 분석</td><td>Uptime, Downtime, MTBF, MTTR</td></tr>
+                    <tr><td><strong>E116</strong></td><td>설비 성능 추적</td><td>생산성 손실과 성능 추세 분석</td><td>Performance event, KPI history</td></tr>
+                    <tr><td><strong>E151/E160</strong></td><td>데이터 품질 이해와 전달</td><td>분석 결과의 신뢰성</td><td>Quality flag, validity, freshness</td></tr>
+                    <tr><td><strong>E187</strong></td><td>Fab 장비 사이버보안</td><td>장비 연결과 운영 변경의 위험 통제</td><td>Account, patch, network control</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="section">
+            <h2>4. 같이 봐야 하는 이유</h2>
+            <div class="risk-grid">
+                <div class="risk"><strong>사전 없는 KPI는 유지보수 비용이 큽니다.</strong><p>변수 의미가 장비마다 다르면 E10/E116 계산 로직이 설비별 예외 처리로 무너집니다.</p></div>
+                <div class="risk"><strong>품질 없는 데이터는 분석을 흔듭니다.</strong><p>누락, 지연, invalid 값을 구분하지 않으면 FDC/APC와 OEE가 잘못된 결론을 낼 수 있습니다.</p></div>
+                <div class="risk"><strong>보안 없는 연결은 운영 리스크입니다.</strong><p>장비 네트워크와 계정 관리가 약하면 데이터 수집 경로가 공격면이 됩니다.</p></div>
+                <div class="risk"><strong>Productivity는 상태 정의에서 시작합니다.</strong><p>가동/비가동/엔지니어링/스탠바이 시간의 정의가 맞아야 KPI가 현장 언어와 맞습니다.</p></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>바로가기</h2>
+            <div class="link-grid">
+                <a href="E172.html"><strong>E172</strong><span class="muted">Data Dictionary</span></a>
+                <a href="E173.html"><strong>E173</strong><span class="muted">XML SECS-II</span></a>
+                <a href="E10.html"><strong>E10</strong><span class="muted">RAM</span></a>
+                <a href="E116.html"><strong>E116</strong><span class="muted">Performance</span></a>
+                <a href="E187.html"><strong>E187</strong><span class="muted">Cybersecurity</span></a>
+                <a href="E151.html"><strong>E151</strong><span class="muted">Data Quality</span></a>
+                <a href="E160.html"><strong>E160</strong><span class="muted">Quality Communication</span></a>
+                <a href="E133.html"><strong>E133</strong><span class="muted">APC Interface</span></a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
