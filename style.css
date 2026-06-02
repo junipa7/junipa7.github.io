@@ -406,6 +406,7 @@ body.dark-mode .preview-tabs {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 26px;
 }
 
@@ -418,7 +419,9 @@ body.dark-mode .preview-tabs {
 }
 
 .content-frame {
+    display: block;
     width: 100%;
+    max-width: 100%;
     min-height: calc(100vh - 96px);
     border: 1px solid var(--line);
     border-radius: 14px;
@@ -700,9 +703,26 @@ pre code {
         padding: 16px;
     }
 
+    .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+        padding: 14px 16px;
+    }
+
+    .topbar-meta {
+        flex-wrap: wrap;
+    }
+
     .preview-tabs {
+        flex-wrap: wrap;
+        overflow-x: hidden;
         padding-left: 10px;
         padding-right: 10px;
+    }
+
+    .preview-tab {
+        max-width: 100%;
     }
 
     .content-frame {

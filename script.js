@@ -272,8 +272,8 @@ const menuConfig = [
         title: "Developer / Infra",
         items: [
             htmlItem("개발 경험", "contents/developer.html"),
-            htmlItem("Git Guide", "contents/git_guide.html"),
-            htmlItem("WSL Network Guide", "contents/wsl_network_guide.html")
+            iframeItem("Git Guide", "contents/git_guide.html"),
+            iframeItem("WSL Network Guide", "contents/wsl_network_guide.html")
         ]
     },
     {
@@ -282,9 +282,9 @@ const menuConfig = [
             {
                 title: "운영 문서",
                 children: [
-                    htmlItem("Android Nextcloud", "contents/nextcloud/androidnextcloud.html"),
-                    htmlItem("SSL 인증서 / HTTPS", "contents/nextcloud/cert.html"),
-                    htmlItem("Nextcloud HDD 연결", "contents/nextcloud/storage-guide.html")
+                    iframeItem("Android Nextcloud", "contents/nextcloud/androidnextcloud.html"),
+                    iframeItem("SSL 인증서 / HTTPS", "contents/nextcloud/cert.html"),
+                    iframeItem("Nextcloud HDD 연결", "contents/nextcloud/storage-guide.html")
                 ]
             },
             {
