@@ -729,3 +729,39 @@ pre code {
         min-height: 80vh;
     }
 }
+
+/* UI consistency overrides */
+.theme-btn,
+.mini-btn,
+.section-toggle,
+.submenu-toggle,
+.file-item,
+.preview-tab {
+    transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.theme-btn:hover,
+.mini-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.submenu-toggle.depth-2 {
+    color: var(--muted);
+}
+
+.content-frame {
+    border-radius: 8px;
+}
+
+.box-success {
+    border-left-color: #14804a;
+}
+
+.box-warning {
+    border-left-color: #b7791f;
+}
+
+.box-focus {
+    border-left-color: #6d5bd0;
+}

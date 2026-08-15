@@ -1,241 +1,5 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MES 개발자 양성 교육자료 — MESA 11-Function Model 완전 가이드</title>
-<style>
-  :root {
-    --primary: #1a5276;
-    --secondary: #2e86c1;
-    --accent: #e74c3c;
-    --bg: #f8f9fa;
-    --card-bg: #ffffff;
-    --border: #dee2e6;
-    --text: #2c3e50;
-    --text-light: #566573;
-    --code-bg: #f4f6f7;
-    --warn: #f39c12;
-    --success: #27ae60;
-    --danger: #e74c3c;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
-    line-height: 1.7;
-    color: var(--text);
-    background: var(--bg);
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-  h1 {
-    color: var(--primary);
-    font-size: 2em;
-    text-align: center;
-    margin: 40px 0 10px;
-    padding-bottom: 20px;
-    border-bottom: 3px solid var(--primary);
-  }
-  h2 {
-    color: var(--primary);
-    font-size: 1.6em;
-    margin: 40px 0 15px;
-    padding: 10px 15px;
-    background: linear-gradient(135deg, #eaf2f8, #d4e6f1);
-    border-left: 5px solid var(--primary);
-    border-radius: 4px;
-  }
-  h3 {
-    color: var(--secondary);
-    font-size: 1.3em;
-    margin: 25px 0 10px;
-  }
-  h4 {
-    color: var(--text-light);
-    font-size: 1.1em;
-    margin: 20px 0 8px;
-  }
-  p { margin: 10px 0; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 15px 0;
-    font-size: 0.92em;
-    background: var(--card-bg);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-  }
-  th {
-    background: var(--primary);
-    color: #fff;
-    padding: 10px 12px;
-    text-align: left;
-    font-weight: 600;
-  }
-  td {
-    padding: 8px 12px;
-    border-bottom: 1px solid var(--border);
-  }
-  tr:nth-child(even) { background: #f8f9fa; }
-  tr:hover { background: #eaf2f8; }
-  pre {
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 15px;
-    overflow-x: auto;
-    margin: 15px 0;
-    font-size: 0.88em;
-    line-height: 1.5;
-    font-family: 'Consolas', 'Courier New', monospace;
-  }
-  code {
-    background: var(--code-bg);
-    padding: 2px 6px;
-    border-radius: 3px;
-    font-family: 'Consolas', monospace;
-    font-size: 0.9em;
-  }
-  pre code { background: none; padding: 0; }
-  .toc {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 25px 30px;
-    margin: 20px 0 40px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  }
-  .toc h2 { background: none; border: none; padding: 0; margin: 0 0 15px; }
-  .toc ol { padding-left: 25px; }
-  .toc li { margin: 6px 0; }
-  .toc a { text-decoration: none; color: var(--secondary); }
-  .toc a:hover { text-decoration: underline; }
-  .toc > ol > li { font-weight: 600; margin: 12px 0 6px; }
-  .toc > ol > li > ol > li { font-weight: normal; }
-  .note {
-    background: #fef9e7;
-    border-left: 4px solid var(--warn);
-    padding: 12px 18px;
-    margin: 15px 0;
-    border-radius: 4px;
-  }
-  .key {
-    background: #eafaf1;
-    border-left: 4px solid var(--success);
-    padding: 12px 18px;
-    margin: 15px 0;
-    border-radius: 4px;
-  }
-  .alert {
-    background: #fdedec;
-    border-left: 4px solid var(--danger);
-    padding: 12px 18px;
-    margin: 15px 0;
-    border-radius: 4px;
-  }
-  .func-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    margin: 20px 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-  }
-  .func-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 15px;
-  }
-  .func-number {
-    background: var(--primary);
-    color: #fff;
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3em;
-    font-weight: bold;
-    flex-shrink: 0;
-  }
-  .func-title { font-size: 1.3em; font-weight: bold; color: var(--primary); }
-  .func-subtitle { font-size: 0.95em; color: var(--text-light); }
-  .badge {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 0.8em;
-    font-weight: 600;
-  }
-  .badge-core { background: #d4e6f1; color: var(--primary); }
-  .badge-exec { background: #d5f5e3; color: #1e8449; }
-  .badge-mgmt { background: #fdebd0; color: #b9770e; }
-  .badge-data { background: #fadbd8; color: #922b21; }
-  .badge-analysis { background: #e8daef; color: #6c3483; }
-  .section-break { page-break-before: always; }
-  .footer {
-    text-align: center;
-    padding: 30px 0;
-    margin-top: 40px;
-    border-top: 2px solid var(--border);
-    color: var(--text-light);
-    font-size: 0.9em;
-  }
-  .ascii-art {
-    background: #1e1e1e;
-    color: #d4d4d4;
-    padding: 18px;
-    border-radius: 6px;
-    overflow-x: auto;
-    margin: 15px 0;
-    font-family: 'Consolas', monospace;
-    font-size: 0.82em;
-    line-height: 1.4;
-  }
-  .compare-table th:first-child { width: 18%; }
-  .compare-table td:first-child { font-weight: 600; background: #eaf2f8; }
-  @media (max-width: 768px) {
-    body { padding: 10px; }
-    h1 { font-size: 1.5em; }
-    h2 { font-size: 1.3em; }
-    pre, .ascii-art { font-size: 0.75em; }
-    table { font-size: 0.82em; }
-  }
-</style>
-  <script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({
-      startOnLoad: true,
-      theme: 'base',
-      themeVariables: {
-        primaryColor: '#2e86c1',
-        primaryTextColor: '#fff',
-        primaryBorderColor: '#1a5276',
-        lineColor: '#5d6d7e',
-        secondaryColor: '#ebf5fb',
-        tertiaryColor: '#f8f9fa',
-        fontFamily: 'Segoe UI, sans-serif'
-      },
-      flowchart: { htmlLabels: true, curve: 'basis' },
-      sequence: { actorMargin: 50 },
-      gantt: { fontSize: 12 }
-    });
-  </script>
-  <style>
-    .mermaid { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center; overflow-x: auto; }
-    .mermaid-title { font-weight: 700; color: #1a5276; margin: 8px 0 4px; font-size: 0.95em; }
-    .data-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.88em; }
-    .data-table th { background: #2e86c1; color: #fff; padding: 8px 10px; text-align: left; border: 1px solid #1a5276; }
-    .data-table td { padding: 6px 10px; border: 1px solid #dee2e6; }
-    .data-table tr:nth-child(even) { background: #f8f9fa; }
-    .scenario-box { background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 0.85em; line-height: 1.6; white-space: pre-wrap; margin: 16px 0; overflow-x: auto; }
-  </style>
-</head>
-<body>
-
-<h1>🏭 MES 개발자 양성 교육자료<br><small style="font-size:0.6em; font-weight:normal;">MESA 11-Function Model 완전 가이드</small></h1>
+<article class="mes-document mes-education">
+<h1>🏭 MES 개발자 양성 교육자료<br><span class="text-desc">MESA 11-Function Model 완전 가이드</span></h1>
 
 <div class="note">
   <strong>📌 본 자료의 목적</strong><br>
@@ -741,7 +505,7 @@ graph LR
 <div class="func-title">Labor Management</div>
 <div class="func-subtitle">인력 관리</div>
 </div>
-<span class="badge badge-badge-exec" style="background:#d5f5e3;color:#1e8449;padding:3px 10px;border-radius:12px;font-size:0.8em;font-weight:600;">실행·관리</span>
+<span class="badge badge-badge-exec">실행·관리</span>
 </div>
 
 <h3>1. 개요</h3>
@@ -1087,7 +851,7 @@ graph LR
 <tr><td>냉각수 유량</td><td>4.0 L/min</td><td>±0.5 L/min</td><td>&lt; 3.0 L/min</td><td>&lt; 2.0 L/min</td></tr>
 </tbody>
 </table>
-<p style="font-size:0.85em; color:#5d6d7e; margin-top:4px;">
+<p>
 <b>Target</b> = 목표값 (이상적인 공정 조건) |
 <b>Tol</b> = 허용 범위 (정상 운전 영역) |
 <b>Warn</b> = 경고 임계치 (주의 필요, 보정 권고) |
@@ -1272,9 +1036,9 @@ xychart-beta
 <h3>11. ⑧ Quality ↔ ⑨ Process 연동</h3>
 
 <h4>11-1. 품질-공정 상관 분석</h4>
-<p style="font-weight:700; color:#1a5276; margin:12px 0 4px;">[상황] ⑧ Quality에서 SPC 이상 탐지 → "Op 10 외경 편차 증가 (관리도 이상)"</p>
-<p style="margin:4px 0;">[⑧ → ⑨ 연동] ⑧ → ⑨: "외경 편차 발생, 공정 파라미터 원인 분석 요청"</p>
-<p style="font-weight:700; color:#1a5276; margin:12px 0 4px;">[⑨ 원인 분석] 외경 편차 vs 공정 파라미터 상관 분석</p>
+<p>[상황] ⑧ Quality에서 SPC 이상 탐지 → "Op 10 외경 편차 증가 (관리도 이상)"</p>
+<p>[⑧ → ⑨ 연동] ⑧ → ⑨: "외경 편차 발생, 공정 파라미터 원인 분석 요청"</p>
+<p>[⑨ 원인 분석] 외경 편차 vs 공정 파라미터 상관 분석</p>
 <table class="data-table">
 <thead><tr><th>파라미터</th><th>상관계수</th><th>해석</th></tr></thead>
 <tbody>
@@ -1285,8 +1049,8 @@ xychart-beta
 <tr><td>냉각수 유량</td><td>-0.08</td><td>상관 없음</td></tr>
 </tbody>
 </table>
-<p style="font-weight:700; color:#1a5276; margin:12px 0 4px;">[⑨ 조치 권고]</p>
-<p style="margin:4px 0;">→ "절삭 깊이와 공구 마모가 외경 편차의 주요 원인"<br/>→ "공구 교체 + 절삭 깊이 재설정 권고"<br/>→ ⑨ → 작업자: 조치 권고 메시지<br/>→ ⑨ → ⑧: "공정 원인 분석 완료 — 공구 마모 + 절삭 깊이"</p>
+<p>[⑨ 조치 권고]</p>
+<p>→ "절삭 깊이와 공구 마모가 외경 편차의 주요 원인"<br/>→ "공구 교체 + 절삭 깊이 재설정 권고"<br/>→ ⑨ → 작업자: 조치 권고 메시지<br/>→ ⑨ → ⑧: "공정 원인 분석 완료 — 공구 마모 + 절삭 깊이"</p>
 
 <h4>11-2. ⑧·⑨ 협력 흐름</h4>
 <div class="mermaid">
@@ -1424,7 +1188,7 @@ graph TD
 <thead><tr><th>작업 지도서 (SOP)</th><th>도면 (Drawing)</th><th>기준서 (Spec)</th><th>이력/기록 (Record)</th></tr></thead>
 <tbody>
 <tr><td>· 작업 절차<br/>· 공정 흐름<br/>· 셋업 지시<br/>· 안전 수칙<br/>· 점검 항목</td><td>· 설계 도면<br/>· 치수 도면<br/>· 조립도<br/>· 배선도<br/>· P&amp;ID</td><td>· 검사 기준서<br/>· 품질 규격<br/>· 자재 사양<br/>· 포장 규격<br/>· 시험 기준</td><td>· 검사 성적서<br/>· 작업 완료 기록<br/>· 부적합 보고<br/>· 시정조치 기록</td></tr>
-<tr style="background:#ebf5fb; font-weight:700;"><td>작업 "전" 참조</td><td>작업 "전" 참조</td><td>작업 "중" 판정 기준</td><td>작업 "후" 생성</td></tr>
+<tr><td>작업 "전" 참조</td><td>작업 "전" 참조</td><td>작업 "중" 판정 기준</td><td>작업 "후" 생성</td></tr>
 </tbody>
 </table>
 
@@ -1626,7 +1390,7 @@ graph LR
 <tr><td><strong>공통</strong></td><td>SAFETY-A100 Rev.1 (Released)</td><td>—</td><td>—</td></tr>
 </tbody>
 </table>
-<p style="font-size:0.85em; color:#5d6d7e; margin-top:4px;">※ ⑥ Order Execution이 각 Operation 시작 시 ⑩ Document Control에 위 매트릭스 기반으로 문서 표시 요청</p>
+<p>※ ⑥ Order Execution이 각 Operation 시작 시 ⑩ Document Control에 위 매트릭스 기반으로 문서 표시 요청</p>
 
 <h3>11. 감사 추적 (Audit Trail)</h3>
 
@@ -1947,16 +1711,16 @@ graph TD
 <thead><tr><th>손실 유형</th><th>시간</th><th>비율</th><th>KPI 영향</th></tr></thead>
 <tbody>
 <tr><td>① 설비 고장</td><td>2.0h</td><td>6.3%</td><td>가동률 ↓</td></tr>
-<tr style="background:#fadbd8;"><td><strong>② 셋업/조정</strong></td><td><strong>3.0h</strong></td><td><strong>9.4%</strong></td><td><strong>가동률 ↓ (최대손실)</strong></td></tr>
+<tr><td><strong>② 셋업/조정</strong></td><td><strong>3.0h</strong></td><td><strong>9.4%</strong></td><td><strong>가동률 ↓ (최대손실)</strong></td></tr>
 <tr><td>③ 단축정지</td><td>1.2h</td><td>3.8%</td><td>성능율 ↓</td></tr>
 <tr><td>④ 속도 저하</td><td>1.1h</td><td>3.4%</td><td>성능율 ↓</td></tr>
 <tr><td>⑤ 시작 불량</td><td>0.3h</td><td>0.9%</td><td>양품률 ↓</td></tr>
 <tr><td>⑥ 공정 불량</td><td>0.6h</td><td>1.9%</td><td>양품률 ↓</td></tr>
-<tr style="background:#ebf5fb; font-weight:700;"><td>총 손실</td><td>8.2h</td><td>25.7%</td><td>OEE = 68.9%</td></tr>
-<tr style="background:#eafaf1;"><td>실가동</td><td>23.8h</td><td>74.3%</td><td>(이론 최대 92.5%)</td></tr>
+<tr><td>총 손실</td><td>8.2h</td><td>25.7%</td><td>OEE = 68.9%</td></tr>
+<tr><td>실가동</td><td>23.8h</td><td>74.3%</td><td>(이론 최대 92.5%)</td></tr>
 </tbody>
 </table>
-<p style="font-weight:700; color:#e74c3c; margin-top:8px;">Pareto: ②셋업(37%) &gt; ①고장(24%) &gt; ③단축정지(15%) → 셋업 시간 단축이 최우선 개선 과제</p>
+<p>Pareto: ②셋업(37%) &gt; ①고장(24%) &gt; ③단축정지(15%) → 셋업 시간 단축이 최우선 개선 과제</p>
 
 <div class="note">손실 분석의 핵심은 <strong>"어떤 손실이 가장 큰가?"</strong>를 Pareto로 식별하여, <strong>개선 우선순위</strong>를 정하는 것입니다.</div>
 
@@ -1970,11 +1734,11 @@ graph TD
 <tr><td>WO-12</td><td>A-100</td><td>500</td><td>498</td><td>496</td><td>2</td><td>99.2%</td><td>정상</td></tr>
 <tr><td>WO-08</td><td>B-200</td><td>300</td><td>300</td><td>298</td><td>2</td><td>100.0%</td><td>정상</td></tr>
 <tr><td>WO-15</td><td>A-100</td><td>200</td><td>180</td><td>178</td><td>2</td><td>90.0%</td><td>셋업 지연</td></tr>
-<tr style="background:#fadbd8;"><td>WO-20</td><td>C-300</td><td>100</td><td>0</td><td>0</td><td>0</td><td>0.0%</td><td>설비고장</td></tr>
-<tr style="background:#ebf5fb; font-weight:700;"><td>합계</td><td>—</td><td>1,100</td><td>978</td><td>972</td><td>6</td><td>88.9%</td><td></td></tr>
+<tr><td>WO-20</td><td>C-300</td><td>100</td><td>0</td><td>0</td><td>0</td><td>0.0%</td><td>설비고장</td></tr>
+<tr><td>합계</td><td>—</td><td>1,100</td><td>978</td><td>972</td><td>6</td><td>88.9%</td><td></td></tr>
 </tbody>
 </table>
-<p style="margin-top:8px;"><strong>[분석]</strong><br/>
+<p><strong>[분석]</strong><br/>
 · 전체 달성률: 88.9% (목표 95% → 미달)<br/>
 · 미달 원인: WO-20 설비 고장 (0%), WO-15 셋업 지연 (90%)<br/>
 · 불량률: 0.6% (목표 &lt; 1% → 달성 ✓)<br/>
@@ -2032,44 +1796,44 @@ xychart-beta
 <h3>10. 대시보드 (Dashboard) 모델</h3>
 
 <h4>10-1. 실시간 현장 대시보드</h4>
-<div style="background:#1a1a2e; color:#e0e0e0; padding:20px; border-radius:10px; margin:16px 0; font-family:'Segoe UI',sans-serif;">
-  <h4 style="color:#fff; margin:0 0 12px;">📊 공장 실시간 대시보드 — 08/13 11:37</h4>
-  <div style="display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
-    <div style="flex:1; min-width:150px; background:#16213e; border-radius:8px; padding:12px; text-align:center;">
-      <div style="font-size:0.8em; color:#aaa;">오늘 생산량</div>
-      <div style="font-size:1.8em; font-weight:700; color:#00d4ff;">978개 / 1,100</div>
-      <div style="color:#00d4ff;">88.9%</div>
+<div>
+  <h4>📊 공장 실시간 대시보드 — 08/13 11:37</h4>
+  <div>
+    <div>
+      <div>오늘 생산량</div>
+      <div>978개 / 1,100</div>
+      <div>88.9%</div>
     </div>
-    <div style="flex:1; min-width:150px; background:#16213e; border-radius:8px; padding:12px; text-align:center;">
-      <div style="font-size:0.8em; color:#aaa;">오늘 불량률</div>
-      <div style="font-size:1.8em; font-weight:700; color:#00ff88;">0.6%</div>
-      <div style="color:#00ff88;">(목표 &lt;1%) ✓</div>
+    <div>
+      <div>오늘 불량률</div>
+      <div>0.6%</div>
+      <div>(목표 &lt;1%) ✓</div>
     </div>
-    <div style="flex:1; min-width:150px; background:#16213e; border-radius:8px; padding:12px; text-align:center;">
-      <div style="font-size:0.8em; color:#aaa;">오늘 OEE</div>
-      <div style="font-size:1.8em; font-weight:700; color:#ffcc00;">68.9%</div>
-      <div style="color:#ffcc00;">(목표 85%) ⚠ 주의</div>
+    <div>
+      <div>오늘 OEE</div>
+      <div>68.9%</div>
+      <div>(목표 85%) ⚠ 주의</div>
     </div>
   </div>
-  <div style="background:#16213e; border-radius:8px; padding:12px; margin-bottom:12px;">
+  <div>
     <strong>🔧 설비 상태 (실시간)</strong><br/>
-    <span style="color:#00ff88;">●</span> CNC-07: 가동중 (WO-12, 64%)<br/>
-    <span style="color:#ff4444;">●</span> CNC-08: 정지 (고장 — 11:35~)<br/>
-    <span style="color:#00ff88;">●</span> 조립#3: 가동중 (WO-12, 64%)<br/>
-    <span style="color:#ffcc00;">●</span> CMM-02: 대기
+    <span>●</span> CNC-07: 가동중 (WO-12, 64%)<br/>
+    <span>●</span> CNC-08: 정지 (고장 — 11:35~)<br/>
+    <span>●</span> 조립#3: 가동중 (WO-12, 64%)<br/>
+    <span>●</span> CMM-02: 대기
   </div>
-  <div style="background:#16213e; border-radius:8px; padding:12px; margin-bottom:12px;">
+  <div>
     <strong>📋 Work Order 진행 현황</strong><br/>
     WO-12: ████████░░ 80% (Op 20 조립 중)<br/>
     WO-08: ██████████ 100% ✓<br/>
     WO-15: ████░░░░░░ 40% (셋업 지연)<br/>
     WO-20: ░░░░░░░░░░ 0% (설비 고장) 🔴
   </div>
-  <div style="background:#16213e; border-radius:8px; padding:12px;">
+  <div>
     <strong>🔔 알림</strong><br/>
-    <span style="color:#ff4444;">🔴 11:35 CNC-08 설비 고장 (WO-20 중단)</span><br/>
-    <span style="color:#ffcc00;">⚠ 11:27 CNC-07 스플들 온도 경고 (복귀)</span><br/>
-    <span style="color:#ffcc00;">⚠ 10:30 WO-15 셋업 시간 30min 초과</span>
+    <span>🔴 11:35 CNC-08 설비 고장 (WO-20 중단)</span><br/>
+    <span>⚠ 11:27 CNC-07 스플들 온도 경고 (복귀)</span><br/>
+    <span>⚠ 10:30 WO-15 셋업 시간 30min 초과</span>
   </div>
 </div>
 
@@ -2452,10 +2216,4 @@ graph TD
 </div>
 
 <!-- ==================== 하단 네비게이션 ==================== -->
-<div class="bottom-nav">
-<a href="#top" class="nav-btn">↑ 맨 위로</a>
-<a href="#toc" class="nav-btn">목차로</a>
-</div>
-
-</body>
-</html>
+</article>
