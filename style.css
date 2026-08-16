@@ -765,3 +765,124 @@ pre code {
 .box-focus {
     border-left-color: #6d5bd0;
 }
+
+/* Document & MES Developer styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: var(--panel);
+}
+
+table th,
+table td {
+    border: 1px solid var(--line);
+    padding: 12px;
+    text-align: left;
+}
+
+table th {
+    background: var(--panel-soft);
+    color: var(--ink);
+}
+
+.func-card {
+    margin: 28px 0;
+    padding: 24px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--panel);
+    box-shadow: var(--shadow);
+}
+
+.func-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+}
+
+.func-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 20px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.func-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--ink);
+}
+
+.func-subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 3px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge-core {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+body.dark-mode .badge-core {
+    background: #082f49;
+    color: #38bdf8;
+}
+
+.badge-exec {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+body.dark-mode .badge-exec {
+    background: #052e16;
+    color: #4ade80;
+}
+
+.badge-mgmt {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+body.dark-mode .badge-mgmt {
+    background: #451a03;
+    color: #fbbf24;
+}
+
+.badge-data {
+    background: #f3e8ff;
+    color: #7e22ce;
+}
+
+body.dark-mode .badge-data {
+    background: #3b0764;
+    color: #c084fc;
+}
+
+.section-break {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 2px dashed var(--line);
+}
+

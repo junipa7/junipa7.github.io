@@ -1,7 +1,7 @@
-<article class="mes-document mes-education">
 <h1>🏭 MES 개발자 양성 교육자료<br><span class="text-desc">MESA 11-Function Model 완전 가이드</span></h1>
 
-<div class="note">
+<div class="box box-focus">
+  <span class="box-title">📌 안내 및 참고</span>
   <strong>📌 본 자료의 목적</strong><br>
   본 문서는 MES(Manufacturing Execution System) 개발자를 양성하기 위한 학습용 교육자료입니다.
   MES 관련 국제 표준부터 MESA 11-Function Model의 각 기능별 상세 설명까지,
@@ -11,7 +11,7 @@
 </div>
 
 <!-- 목차 -->
-<div class="toc">
+<div class="highlight-box">
   <h2>📋 목차</h2>
   <ol>
     <li><a href="#ch1">MES 관련 주요 표준 및 대표 웹사이트</a>
@@ -58,7 +58,7 @@
 <p>MES(Manufacturing Execution System)와 직·간접적으로 관련된 국제·국내 표준을 분야별로 정리합니다.</p>
 
 <h3 id="s1-1">1. 핵심 MES 표준</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>표준 번호</th><th>표준명</th><th>주요 내용</th><th>대표 웹사이트</th></tr></thead>
 <tbody>
 <tr><td><strong>ISA-95</strong> (IEC 62264)</td><td>Enterprise-Control System Integration</td><td>기업-제어 시스템 간 통합 모델 (레벨 3~4). MES의 <strong>가장 핵심적인 참조 모델</strong></td><td><a href="https://www.isa.org/isa95" target="_blank">isa.org/isa95</a></td></tr>
@@ -68,7 +68,7 @@
 </table>
 
 <h3 id="s1-2">2. 아키텍처 & 통합 표준</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>표준 번호</th><th>표준명</th><th>주요 내용</th><th>대표 웹사이트</th></tr></thead>
 <tbody>
 <tr><td><strong>IEC 62264</strong></td><td>Enterprise-control system integration</td><td>ISA-95의 IEC 국제표준화 버전 (Part 1~6)</td><td><a href="https://www.iec.ch" target="_blank">iec.ch</a></td></tr>
@@ -79,7 +79,7 @@
 </table>
 
 <h3 id="s1-3">3. 데이터 통신 & 인터페이스 표준</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>표준 번호</th><th>표준명</th><th>주요 내용</th><th>대표 웹사이트</th></tr></thead>
 <tbody>
 <tr><td><strong>IEC 62541</strong> (OPC UA)</td><td>OPC Unified Architecture</td><td>산업 통신 표준. MES-설비 간 데이터 연동의 사실상 표준</td><td><a href="https://opcfoundation.org/about/opc-technologies/opc-ua/" target="_blank">opcfoundation.org</a></td></tr>
@@ -90,7 +90,7 @@
 </table>
 
 <h3 id="s1-4">4. 산업별 특화 MES 표준</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>표준 번호</th><th>표준명</th><th>주요 내용</th><th>대표 웹사이트</th></tr></thead>
 <tbody>
 <tr><td><strong>SEMI E95</strong></td><td>MES for Semiconductor</td><td>반도체 MES(CIM) 표준 모델</td><td><a href="https://www.semi.org/en/standards" target="_blank">semi.org</a></td></tr>
@@ -101,7 +101,7 @@
 </table>
 
 <h3 id="s1-5">5. 한국 국가표준(KS) 및 가이드라인</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>표준 번호</th><th>표준명</th><th>주요 내용</th><th>대표 웹사이트</th></tr></thead>
 <tbody>
 <tr><td><strong>KS X ISO 22400</strong></td><td>제조운영관리 핵심성과지표</td><td>ISO 22400의 한국 국가표준</td><td><a href="https://www.kats.go.kr" target="_blank">kats.go.kr</a></td></tr>
@@ -111,7 +111,7 @@
 </table>
 
 <h3 id="s1-6">6. MES 산업 컨소시엄 & 참조 모델</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>기관/모델</th><th>주요 내용</th><th>대표 웹사이트</th></tr></thead>
 <tbody>
 <tr><td><strong>MESA International</strong></td><td>MES 11기능 모델, MES/MOM 프레임워크 제정</td><td><a href="https://www.mesa.org" target="_blank">mesa.org</a></td></tr>
@@ -122,14 +122,15 @@
 </table>
 
 <h3 id="s1-7">7. MES 구축 시 최우선 참조 표준 요약</h3>
-<pre><code>MES 핵심 구조  →  ISA-95 (IEC 62264)  ← 가장 중요
+<div class="code-wrapper"><button class="copy-btn" type="button">복사</button><pre><code>MES 핵심 구조  →  ISA-95 (IEC 62264)  ← 가장 중요
 MES 기능 정의  →  MESA 11-Function Model
 MES KPI       →  ISO 22400
 데이터 통신    →  OPC UA (IEC 62541) + ISA-95 Companion Spec
 반도체/디스플레이 → SEMI E5/E30/E90/E95
-스마트팩토리   →  RAMI 4.0 (DIN SPEC 91345)</code></pre>
+스마트팩토리   →  RAMI 4.0 (DIN SPEC 91345)</code></pre></div>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   <strong>💡 핵심:</strong> <strong>ISA-95(IEC 62264)</strong>가 MES 영역의 사실상 글로벌 마스터 표준이며,
   대부분의 MES 솔루션과 컨설팅 프레임워크가 이 모델을 기반으로 설계됩니다.
 </div>
@@ -138,7 +139,7 @@ MES KPI       →  ISO 22400
 <h2 id="ch2" class="section-break">제2장: MESA 11-Function Model 개요</h2>
 
 <h3 id="s2-1">2.1 MESA International 소개</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>항목</th><th>내용</th></tr></thead>
 <tbody>
 <tr><td>설립</td><td>1992년</td></tr>
@@ -178,7 +179,7 @@ graph TD
 </div>
 
 <h3 id="s2-3">2.3 기능 분류: 4가지 영역</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>영역</th><th>기능</th><th>핵심 역할</th><th>비유</th></tr></thead>
 <tbody>
 <tr><td><strong>계획·할당</strong></td><td>①②③④</td><td>"무엇을, 언제, 누가 할 것인가?"</td><td>작전 수립</td></tr>
@@ -187,7 +188,8 @@ graph TD
 </tbody>
 </table>
 
-<div class="note">
+<div class="box box-focus">
+  <span class="box-title">📌 안내 및 참고</span>
   <strong>📌 학습 순서 권장사항</strong><br>
   본 교육자료는 ①→⑪ 순서로 각 기능을 설명합니다. 각 기능은 다음 구조로 구성됩니다:<br>
   <strong>개요 → 핵심 구성 요소 → 주요 하위 활동 → 데이터 흐름 → 시나리오 → 타 기능과의 관계 → 요약</strong>
@@ -208,7 +210,7 @@ graph TD
 </div>
 
 <h3>1. 개요</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>항목</th><th>내용</th></tr></thead>
 <tbody>
 <tr><td><strong>기능명</strong></td><td>Operations/Resource Allocation</td></tr>
@@ -219,12 +221,13 @@ graph TD
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   <strong>💡 핵심 구분:</strong> ①은 <strong>정책(Policy)</strong>을 수립하는 기능입니다. "이 작업에는 CNC-07과 작업자 김○○을 배정한다"는 <strong>결정</strong>을 내립니다. 반면 ④ Resource Allocation & Control은 이 결정을 <strong>현장에 실행</strong>하고 자원 상태를 실시간 추적합니다.
 </div>
 
 <h3>2. 관리 대상 자원</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>자원 유형</th><th>예시</th><th>주요 속성</th></tr></thead>
 <tbody>
 <tr><td><strong>설비 (Equipment)</strong></td><td>CNC, 조립기, 검사기, 로봇</td><td>설비 ID, 상태(Busy/Idle/Down), 능력(Capacity), 현재 작업</td></tr>
@@ -235,7 +238,7 @@ graph TD
 </table>
 
 <h3>3. 주요 하위 활동</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>#</th><th>하위 활동</th><th>설명</th><th>입력</th><th>출력</th></tr></thead>
 <tbody>
 <tr><td>①</td><td><strong>자원 가용성 확인</strong></td><td>각 자원의 현재 상태, 능력, 가용 시간 파악</td><td>자원 마스터, 현재 상태</td><td>Resource Availability</td></tr>
@@ -262,7 +265,7 @@ graph LR
 </div>
 
 <h3>5. ① vs ④ 핵심 차이</h3>
-<table class="compare-table">
+<table class="common-table compare-table">
 <thead><tr><th>구분</th><th>① Operations/Resource Allocation</th><th>④ Resource Allocation & Control</th></tr></thead>
 <tbody>
 <tr><td><strong>관점</strong></td><td>정책 (Policy) — "무엇을 할 것인가?"</td><td>실행 (Execution) — "실제로 하고 있는가?"</td></tr>
@@ -274,7 +277,7 @@ graph LR
 </table>
 
 <h3>6. 요약</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>핵심 포인트</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>역할</strong></td><td>생산 자원(설비·인력·자재·도구)을 작업에 <strong>할당하는 정책 수립</strong></td></tr>
@@ -299,7 +302,7 @@ graph LR
 </div>
 
 <h3>1. 개요</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>항목</th><th>내용</th></tr></thead>
 <tbody>
 <tr><td><strong>기능명</strong></td><td>Dispatching & Sequencing</td></tr>
@@ -310,12 +313,13 @@ graph LR
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   <strong>💡 핵심 구분:</strong> <strong>Sequencing</strong> = 순서 결정 (정적), <strong>Dispatching</strong> = 실시간 지시 (동적). ③이 시간/분 단위의 스케줄을 만들면, ②는 그 스케줄을 기반으로 <strong>현재 시점에서 실행 가능한 작업을 실시간으로 지시</strong>합니다.
 </div>
 
 <h3>2. Sequencing vs Dispatching</h3>
-<table class="compare-table">
+<table class="common-table compare-table">
 <thead><tr><th>구분</th><th>Sequencing</th><th>Dispatching</th></tr></thead>
 <tbody>
 <tr><td><strong>의미</strong></td><td>순서 배정 — 작업의 논리적 실행 순서 결정</td><td>실시간 지시 — 현재 시점에서 실행 가능한 작업을 지시</td></tr>
@@ -327,7 +331,7 @@ graph LR
 </table>
 
 <h3>3. 주요 하위 활동</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>#</th><th>하위 활동</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td>①</td><td><strong>작업 큐 관리</strong></td><td>각 설비/작업자별 대기 중인 작업 목록(Queue) 관리</td></tr>
@@ -354,7 +358,7 @@ graph LR
 </div>
 
 <h3>5. ② vs ③ 핵심 차이</h3>
-<table class="compare-table">
+<table class="common-table compare-table">
 <thead><tr><th>구분</th><th>② Dispatching & Sequencing</th><th>③ Detailed Production Scheduling</th></tr></thead>
 <tbody>
 <tr><td><strong>시간 범위</strong></td><td>실시간 (현재~수시간)</td><td>시간/분 단위 (오늘~수일)</td></tr>
@@ -365,7 +369,7 @@ graph LR
 </table>
 
 <h3>6. 요약</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>핵심 포인트</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>역할</strong></td><td>할당된 자원에 대해 <strong>작업 실행 순서를 결정하고 실시간으로 지시</strong></td></tr>
@@ -390,7 +394,7 @@ graph LR
 </div>
 
 <h3>1. 개요</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>항목</th><th>내용</th></tr></thead>
 <tbody>
 <tr><td><strong>기능명</strong></td><td>Detailed Production Scheduling</td></tr>
@@ -401,12 +405,13 @@ graph LR
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   <strong>💡 핵심:</strong> ③은 ERP의 APS(Advanced Planning & Scheduling)와 MES의 ② Dispatching 사이를 연결합니다. ERP는 일/주 단위의 생산 계획을 수립하고, ③은 이를 <strong>시간/분 단위의 상세 스케줄</strong>로 분해합니다.
 </div>
 
 <h3>2. 주요 하위 활동</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>#</th><th>하위 활동</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td>①</td><td><strong>스케줄 생성</strong></td><td>Work Order를 설비·시간별로 배치하여 상세 스케줄 생성</td></tr>
@@ -434,7 +439,7 @@ graph LR
 </div>
 
 <h3>4. 요약</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>핵심 포인트</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>역할</strong></td><td>설비·라인 단위 <strong>시간/분 단위 단기 생산 스케줄 생성·최적화</strong></td></tr>
@@ -458,7 +463,7 @@ graph LR
 </div>
 
 <h3>1. 개요</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>항목</th><th>내용</th></tr></thead>
 <tbody>
 <tr><td><strong>기능명</strong></td><td>Resource Allocation & Control</td></tr>
@@ -469,12 +474,13 @@ graph LR
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   <strong>💡 핵심:</strong> ①이 "배정"이라면, ④는 "추적·제어"입니다. ①이 정책을 수립하면, ④는 그 정책을 현장에 적용하고 자원 상태(Busy/Idle/Down)를 실시간으로 추적합니다.
 </div>
 
 <h3>2. 주요 하위 활동</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>#</th><th>하위 활동</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td>①</td><td><strong>자원 상태 추적</strong></td><td>설비/인력/자재/도구의 실시간 상태 추적 (Busy/Idle/Down/Setup)</td></tr>
@@ -486,7 +492,7 @@ graph LR
 </table>
 
 <h3>3. 요약</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>핵심 포인트</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>역할</strong></td><td>①의 정책을 <strong>현장에 실행</strong>하고 자원 상태를 <strong>실시간 추적·제어</strong></td></tr>
@@ -505,11 +511,11 @@ graph LR
 <div class="func-title">Labor Management</div>
 <div class="func-subtitle">인력 관리</div>
 </div>
-<span class="badge badge-badge-exec">실행·관리</span>
+<span class="badge badge-exec">실행·관리</span>
 </div>
 
 <h3>1. 개요</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>항목</th><th>내용</th></tr></thead>
 <tbody>
 <tr><td><strong>기능명</strong></td><td>Labor Management</td></tr>
@@ -520,12 +526,13 @@ graph LR
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   <strong>💡 핵심:</strong> ①이 모든 자원(설비·인력·자재·도구)을 통합 관리한다면, ⑤는 <strong>인력만 특화하여 관리</strong>합니다. 인력은 설비와 달리 자격(Skill), 숙련도(Proficiency), 근태 상태 등 고유한 속성이 있습니다.
 </div>
 
 <h3>2. 관리 대상 속성</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>속성</th><th>설명</th><th>예시</th></tr></thead>
 <tbody>
 <tr><td><strong>자격 (Skill/Certification)</strong></td><td>작업자가 수행할 수 있는 작업 유형</td><td>CNC 운전 자격, 용접 자격, 검사 자격</td></tr>
@@ -537,7 +544,7 @@ graph LR
 </table>
 
 <h3>3. 주요 하위 활동</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>#</th><th>하위 활동</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td>①</td><td><strong>인력 마스터 관리</strong></td><td>작업자별 자격, 숙련도, 교육 이력 관리</td></tr>
@@ -549,7 +556,7 @@ graph LR
 </table>
 
 <h3>4. 요약</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>핵심 포인트</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>역할</strong></td><td>작업자의 <strong>자격·숙련도·근태·작업 할당</strong> 관리</td></tr>
@@ -573,7 +580,7 @@ graph LR
 </div>
 
 <h3>1. 개요</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>항목</th><th>내용</th></tr></thead>
 <tbody>
 <tr><td><strong>기능명</strong></td><td>Order Execution Management</td></tr>
@@ -584,7 +591,8 @@ graph LR
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   <strong>💡 핵심:</strong> ⑥은 MES의 <strong>실행 중심 기능</strong>입니다. ②가 "지금 이 작업을 시작하라"고 지시하면, ⑥은 그 작업이 <strong>시작→진행→완료</strong>되는 전 과정을 관리합니다. Work Order의 상태(R Created → Released → Started → In Progress → Completed → Closed)를 추적합니다.
 </div>
 
@@ -608,7 +616,7 @@ stateDiagram-v2
 </div>
 
 <h3>3. 주요 하위 활동</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>#</th><th>하위 활동</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td>①</td><td><strong>Work Order 생성</strong></td><td>ERP/③에서 전달된 생산 계획을 Work Order로 생성</td></tr>
@@ -637,7 +645,7 @@ graph LR
 </div>
 
 <h3>5. 요약</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>핵심 포인트</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>역할</strong></td><td>Work Order의 <strong>생성~진행~완료 전 과정 추적·제어</strong></td></tr>
@@ -662,7 +670,7 @@ graph LR
 </div>
 
 <h3>1. 개요</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>항목</th><th>내용</th></tr></thead>
 <tbody>
 <tr><td><strong>기능명</strong></td><td>Data Collection & Acquisition</td></tr>
@@ -673,12 +681,13 @@ graph LR
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   <strong>💡 핵심:</strong> ⑦은 11기능 중 <strong>유일한 "데이터 생산자(Producer)"</strong>입니다. ⑧⑨⑪ 등 다른 기능이 데이터를 <strong>소비</strong>하려면, ⑦이 먼저 데이터를 <strong>수집</strong>해야 합니다. ⑦ 없이는 다른 기능이 동작할 수 없습니다.
 </div>
 
 <h3>2. 데이터 소스 유형</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>소스 유형</th><th>데이터 예시</th><th>수집 방식</th></tr></thead>
 <tbody>
 <tr><td><strong>설비 (Equipment)</strong></td><td>가동 상태, 사이클 타임, 온도, 압력, 진동</td><td>OPC UA, MTConnect, PLC 통신</td></tr>
@@ -690,7 +699,7 @@ graph LR
 </table>
 
 <h3>3. 주요 하위 활동</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>#</th><th>하위 활동</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td>①</td><td><strong>데이터 수집</strong></td><td>다양한 소스에서 실시간 데이터 수집 (폴링, 이벤트, 주기적)</td></tr>
@@ -719,7 +728,7 @@ graph TD
 </div>
 
 <h3>5. 요약</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>핵심 포인트</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>역할</strong></td><td>현장의 모든 데이터 소스에서 <strong>실시간 데이터 수집·저장·전달</strong></td></tr>
@@ -743,7 +752,7 @@ graph TD
 </div>
 
 <h3>1. 개요</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>항목</th><th>내용</th></tr></thead>
 <tbody>
 <tr><td><strong>기능명</strong></td><td>Quality Management</td></tr>
@@ -754,12 +763,13 @@ graph TD
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   <strong>💡 ⑧ vs ⑨ 핵심 차이:</strong> ⑧은 <strong>결과(제품 품질)</strong>을 관리하고, ⑨는 <strong>원인(공정 조건)</strong>을 관리합니다. ⑧이 "시험 채점 후 틀린 문제 분석"이라면, ⑨는 "시험 중 집중력 떨어지면 즉시 알림"입니다.
 </div>
 
 <h3>2. 주요 하위 활동</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>#</th><th>하위 활동</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td>①</td><td><strong>검사 관리</strong></td><td>검사 기준서(⑩)에 따라 검사 수행 — 자동/수동 검사</td></tr>
@@ -771,7 +781,7 @@ graph TD
 </table>
 
 <h3>3. 요약</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>핵심 포인트</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>역할</strong></td><td>검사 결과·불량·SPC·부적합 관리 — <strong>제품 품질(결과) 관리</strong></td></tr>
@@ -794,7 +804,7 @@ graph TD
 </div>
 
 <h3>1. 개요</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>항목</th><th>내용</th></tr></thead>
 <tbody>
 <tr><td><strong>기능명</strong></td><td>Process Management</td></tr>
@@ -805,12 +815,13 @@ graph TD
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   ⑧ Quality Management가 <strong>결과(제품 품질)</strong>를 관리한다면, ⑨ Process Management는 <strong>원인(공정 조건)</strong>을 관리합니다. 품질은 결과이고, 공정은 원인입니다 — 원인을 관리하면 결과는 따라옵니다.
 </div>
 
 <h3>2. ⑧ Quality vs ⑨ Process — 핵심 차이</h3>
-<table class="compare-table">
+<table class="common-table compare-table">
 <thead><tr><th>구분</th><th>⑧ Quality Management</th><th>⑨ Process Management</th></tr></thead>
 <tbody>
 <tr><td><strong>관리 대상</strong></td><td>제품 (Output)</td><td>공정 (Process)</td></tr>
@@ -839,7 +850,7 @@ graph LR
 </div>
 
 <h3>4. 표준 공정 모델 (Standard Process Model)</h3>
-<table class="data-table">
+<table class="common-table data-table">
 <caption><strong>Standard Process (레시피 / Recipe)</strong> — 공정: Op 10 절삭 (CNC-07), 제품: A-100</caption>
 <thead><tr><th>파라미터</th><th>표준값 (Target)</th><th>허용 범위 (Tol)</th><th>경고 임계치 (Warn)</th><th>위험 임계치 (Alarm)</th></tr></thead>
 <tbody>
@@ -878,7 +889,7 @@ stateDiagram-v2
 </div>
 
 <h3>6. 주요 하위 활동</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>#</th><th>하위 활동</th><th>설명</th><th>입력</th><th>출력</th></tr></thead>
 <tbody>
 <tr><td>①</td><td><strong>표준 레시피 관리</strong></td><td>제품/공정별 표준 파라미터(Target, 허용 범위, 임계치)를 정의·저장</td><td>공정 설계서, 레시피</td><td>Standard Recipe</td></tr>
@@ -912,7 +923,8 @@ graph LR
 <h3>8. 실시간 감시 시나리오</h3>
 
 <h4>8-1. 정상 운전 (Normal)</h4>
-<div class="scenario-box">[11:00] WO-12, Op 10 절삭 시작 (CNC-07)
+<div class="box box-success">
+  <span class="box-title">실무 시나리오</span>[11:00] WO-12, Op 10 절삭 시작 (CNC-07)
         ⑨ → 레시피 다운로드: A-100 절삭 레시피
 
 [11:01] ⑦ → ⑨ 실시간 파라미터 수신
@@ -925,7 +937,8 @@ graph LR
 [11:05~11:25] 모든 파라미터 허용 범위 내 유지 → Normal 지속</div>
 
 <h4>8-2. 경고 발생 (Warning) → 자동 보정</h4>
-<div class="scenario-box">[11:27] ⑦ → ⑨ 파라미터 수신
+<div class="box box-success">
+  <span class="box-title">실무 시나리오</span>[11:27] ⑦ → ⑨ 파라미터 수신
         ├── 스플들 온도: 79℃  (경고 임계치 78℃ 초과!) → Warning ⚠
         ├── 스플들 속도: 8,010 RPM → Normal ✓
         └── 기타 파라미터: Normal ✓
@@ -949,7 +962,8 @@ graph LR
         └── ⑨ → ⑪: 보정 이력 전달</div>
 
 <h4>8-3. 위험 발생 (Alarm) → 공정 중단</h4>
-<div class="scenario-box">[11:35] ⑦ → ⑨ 파라미터 수신
+<div class="box box-success">
+  <span class="box-title">실무 시나리오</span>[11:35] ⑦ → ⑨ 파라미터 수신
         ├── 스플들 온도: 86℃ (위험 임계치 85℃ 초과!) → Alarm 🔴
         ├── 진동: 0.52g (위험 임계치 0.50g 초과!) → Alarm 🔴
         └── 스플들 속도: 7,100 RPM (위험 임계치 7,200 미만!) → Alarm 🔴
@@ -977,7 +991,7 @@ graph LR
         └── "CNC-07 Alarm: 온도 86℃, 진동 0.52g, 속도 7,100 RPM, 원인: 공구/베어링 의심"</div>
 
 <h4>8-4. 4가지 시나리오 비교</h4>
-<table class="data-table">
+<table class="common-table data-table">
 <thead><tr><th>시나리오</th><th>파라미터 상태</th><th>⑨ 조치</th><th>결과</th></tr></thead>
 <tbody>
 <tr><td>① 정상</td><td>모두 Normal</td><td>감시만</td><td>계속</td></tr>
@@ -988,7 +1002,7 @@ graph LR
 </table>
 
 <h3>9. 자동 보정 vs 수동 조정</h3>
-<table class="compare-table">
+<table class="common-table compare-table">
 <thead><tr><th>구분</th><th>자동 보정 (Auto-Correction)</th><th>수동 조정 권고 (Manual Advisory)</th></tr></thead>
 <tbody>
 <tr><td><strong>조건</strong></td><td>편차가 경고 영역(Warn) 내, 단일 파라미터, 자동 제어 가능</td><td>자동 보정 불가, 또는 자동 보정 후에도 회복 안 됨</td></tr>
@@ -999,13 +1013,13 @@ graph LR
 </table>
 
 <h4>자동 보정 로직 — PID 제어</h4>
-<pre><code>오차(e) = Target - 현재값
+<div class="code-wrapper"><button class="copy-btn" type="button">복사</button><pre><code>오차(e) = Target - 현재값
 출력(u) = Kp × e + Ki × ∫e dt + Kd × de/dt
 
 예: 스플들 온도 Target 65℃, 현재 79℃
 → 오차 = 65 - 79 = -14℃
 → PID 출력: 냉각수 밸브 개도 +30% 증가
-→ 온도 감소 → 72℃ → 68℃ → 65℃ (목표 도달)</code></pre>
+→ 온도 감소 → 72℃ → 68℃ → 65℃ (목표 도달)</code></pre></div>
 
 <h3>10. 공정 능력 분석 (Process Capability Analysis)</h3>
 
@@ -1021,7 +1035,7 @@ xychart-beta
 </div>
 
 <h4>10-2. 공정 능력 지수 (파라미터 관점)</h4>
-<table>
+<table class="common-table">
 <thead><tr><th>파라미터</th><th>Target</th><th>허용범위</th><th>표준편차(σ)</th><th>Cp</th><th>Cpk</th><th>판정</th></tr></thead>
 <tbody>
 <tr><td>스플들 온도</td><td>65℃</td><td>±10℃</td><td>2.1℃</td><td>1.59</td><td>1.43</td><td>양호</td></tr>
@@ -1031,7 +1045,8 @@ xychart-beta
 </tbody>
 </table>
 
-<div class="note">진동 파라미터의 Cpk가 0.83으로 부족 — 공정 안정성에 가장 큰 영향을 미치는 파라미터입니다. ⑨는 이 분석 결과를 ⑪ Performance Analysis에 전달하여 종합 공정 평가에 활용합니다.</div>
+<div class="box box-focus">
+  <span class="box-title">📌 안내 및 참고</span>진동 파라미터의 Cpk가 0.83으로 부족 — 공정 안정성에 가장 큰 영향을 미치는 파라미터입니다. ⑨는 이 분석 결과를 ⑪ Performance Analysis에 전달하여 종합 공정 평가에 활용합니다.</div>
 
 <h3>11. ⑧ Quality ↔ ⑨ Process 연동</h3>
 
@@ -1039,7 +1054,7 @@ xychart-beta
 <p>[상황] ⑧ Quality에서 SPC 이상 탐지 → "Op 10 외경 편차 증가 (관리도 이상)"</p>
 <p>[⑧ → ⑨ 연동] ⑧ → ⑨: "외경 편차 발생, 공정 파라미터 원인 분석 요청"</p>
 <p>[⑨ 원인 분석] 외경 편차 vs 공정 파라미터 상관 분석</p>
-<table class="data-table">
+<table class="common-table data-table">
 <thead><tr><th>파라미터</th><th>상관계수</th><th>해석</th></tr></thead>
 <tbody>
 <tr><td>절삭 깊이</td><td>+0.82</td><td>강한 양의 상관 → 깊이 증가 시 외경 증가 (원인 의심 ★)</td></tr>
@@ -1068,7 +1083,8 @@ graph TD
     style CORR fill:#f5eef8,stroke:#8e44ad
 </div>
 
-<div class="key">⑧과 ⑨는 <strong>서로 보완</strong>합니다. ⑨가 공정을 실시간 제어하여 불량을 예방하고, ⑧이 불량이 발생했을 때 ⑨의 공정 데이터를 활용하여 원인을 분석합니다.</div>
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>⑧과 ⑨는 <strong>서로 보완</strong>합니다. ⑨가 공정을 실시간 제어하여 불량을 예방하고, ⑧이 불량이 발생했을 때 ⑨의 공정 데이터를 활용하여 원인을 분석합니다.</div>
 
 <h3>12. ⑦·⑧·⑨ 3각 관계 정리</h3>
 <div class="mermaid">
@@ -1085,7 +1101,7 @@ graph TD
     style QM2 fill:#fadbd8,stroke:#e74c3c
 </div>
 
-<table class="compare-table">
+<table class="common-table compare-table">
 <thead><tr><th>구분</th><th>⑦ Data Collection</th><th>⑧ Quality Management</th><th>⑨ Process Management</th></tr></thead>
 <tbody>
 <tr><td><strong>역할</strong></td><td>데이터 수집 (Producer)</td><td>품질 판정 (사후)</td><td>공정 제어 (사전)</td></tr>
@@ -1098,7 +1114,7 @@ graph TD
 </table>
 
 <h3>13. 다른 MESA 기능과의 관계</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>관계</th><th>방향</th><th>데이터</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td>⑦ → ⑨</td><td>실시간 파라미터</td><td>⑦이 수집한 센서 데이터</td><td>⑨의 감시 대상</td></tr>
@@ -1116,7 +1132,7 @@ graph TD
 </table>
 
 <h3>14. 요약</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>핵심 포인트</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>역할</strong></td><td>표준 공정과 실제 공정을 <strong>실시간으로 비교·감시·제어</strong></td></tr>
@@ -1132,7 +1148,8 @@ graph TD
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   <strong>Process Management는 "불량을 만들기 전에 멈추는 기능"</strong>입니다. ⑦ Data Collection이 수집한 실시간 파라미터를 표준 레시피와 끊임없이 비교하면서, 온도가 조금씩 올라가는 추세를 감지하고 냉각수를 늘리거나, 진동이 급증하면 공정을 중단시킵니다. ⑧ Quality Management가 "불량이 나왔다"고 사후 보고한다면, ⑨ Process Management는 "불량이 나올 것 같다"고 사전 경고합니다. ⑨가 있으면 ⑧이 처리해야 할 불량이 줄어듭니다 — 이것이 <strong>사전 예방적 품질 관리</strong>의 핵심이며, MES가 단순한 기록 시스템이 아니라 <strong>실시간 공정 제어 시스템</strong>이 되는 결정적 이유입니다.
 </div>
 </div>
@@ -1149,7 +1166,7 @@ graph TD
 </div>
 
 <h3>1. 개요</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>항목</th><th>내용</th></tr></thead>
 <tbody>
 <tr><td><strong>기능명</strong></td><td>Document Control</td></tr>
@@ -1160,12 +1177,14 @@ graph TD
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   ⑦ Data Collection이 현장의 <strong>데이터</strong>를 수집한다면, ⑩ Document Control은 현장의 <strong>지식(문서)</strong>을 관리합니다. 아무리 설비가 좋고 데이터가 정확해도, <strong>작업자가 구버전 도면으로 작업하면 불량이 발생</strong>합니다.
 </div>
 
 <h3>2. 왜 Document Control이 MES 기능인가?</h3>
-<div class="scenario-box">[사례] 구버전 도면으로 인한 불량 발생
+<div class="box box-success">
+  <span class="box-title">실무 시나리오</span>[사례] 구버전 도면으로 인한 불량 발생
 
 08/10  설계 변경: A-100 외경 10.0mm → 10.2mm (도면 Rev.3)
        → ⑩ Document Control에 새 도면 등록
@@ -1180,10 +1199,11 @@ graph TD
 → 작업자가 구버전 문서로 작업
 → 500개 전량 스크랩</div>
 
-<div class="note">이 사례는 ⑧ Quality Management가 불량을 <strong>검출</strong>하고, ⑨ Process Management가 공정을 <strong>감시</strong>하더라도, ⑩ Document Control이 없으면 <strong>근본 원인(구버전 문서 사용)</strong>을 막을 수 없음을 보여줍니다.</div>
+<div class="box box-focus">
+  <span class="box-title">📌 안내 및 참고</span>이 사례는 ⑧ Quality Management가 불량을 <strong>검출</strong>하고, ⑨ Process Management가 공정을 <strong>감시</strong>하더라도, ⑩ Document Control이 없으면 <strong>근본 원인(구버전 문서 사용)</strong>을 막을 수 없음을 보여줍니다.</div>
 
 <h3>3. 관리 대상 문서 (Document Types)</h3>
-<table class="data-table">
+<table class="common-table data-table">
 <caption><strong>Document Control 관리 대상</strong></caption>
 <thead><tr><th>작업 지도서 (SOP)</th><th>도면 (Drawing)</th><th>기준서 (Spec)</th><th>이력/기록 (Record)</th></tr></thead>
 <tbody>
@@ -1193,7 +1213,7 @@ graph TD
 </table>
 
 <h3>4. 문서 속성 모델 (Document Property Model)</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>속성 카테고리</th><th>속성 예시</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>식별 (Identity)</strong></td><td>Document ID, Title, Type</td><td>문서 고유 식별</td></tr>
@@ -1227,7 +1247,7 @@ stateDiagram-v2
 </div>
 
 <h4>버전 전환 핵심 원칙</h4>
-<table>
+<table class="common-table">
 <thead><tr><th>원칙</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>동시 1버전</strong></td><td>동일 문서는 동일 시점에 <strong>Released 상태가 1개만 존재</strong></td></tr>
@@ -1238,7 +1258,7 @@ stateDiagram-v2
 </table>
 
 <h3>6. 주요 하위 활동</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>#</th><th>하위 활동</th><th>설명</th><th>입력</th><th>출력</th></tr></thead>
 <tbody>
 <tr><td>①</td><td><strong>문서 등록</strong></td><td>신규/개정 문서를 시스템에 등록 (버전, 적용 범위, 권한)</td><td>작성 문서, 승인 이력</td><td>Document Record</td></tr>
@@ -1273,7 +1293,8 @@ graph LR
 <h3>8. 문서-작업 연동 시나리오</h3>
 
 <h4>8-1. 작업 시작 시 문서 자동 표시</h4>
-<div class="scenario-box">[11:00] ⑥ Order Execution → ⑩ Document Control
+<div class="box box-success">
+  <span class="box-title">실무 시나리오</span>[11:00] ⑥ Order Execution → ⑩ Document Control
          "WO-12, Op 10 절삭 작업 시작"
 
 [11:00] ⑩ 문서 매칭
@@ -1298,7 +1319,8 @@ graph LR
          └── "11:00 김○○, WO-12 Op 10, QC-A100-10 Rev.2 참조"</div>
 
 <h4>8-2. 설계 변경 → 버전 전환 시나리오</h4>
-<div class="scenario-box">[08/10 14:00] 설계 변경 발생
+<div class="box box-success">
+  <span class="box-title">실무 시나리오</span>[08/10 14:00] 설계 변경 발생
   변경 내용: A-100 외경 10.0mm → 10.2mm
   변경 사유: 고객 요구사항 변경 (삼성전자)
   변경 문서: DWG-A100-001 (도면), SOP-A100-10 (작업 지도서), QC-A100-10 (검사 기준서)
@@ -1338,7 +1360,8 @@ graph LR
   └── ⑩ → 작업자 패널: Rev.4/Rev.3 문서 표시 (구버전 사용 불가 ✓)</div>
 
 <h4>8-3. 구버전 사용 차단 시나리오</h4>
-<div class="scenario-box">[상황] 작업자가 개인 PC에 저장한 구버전 도면(Rev.3)을 출력하여
+<div class="box box-success">
+  <span class="box-title">실무 시나리오</span>[상황] 작업자가 개인 PC에 저장한 구버전 도면(Rev.3)을 출력하여
        현장에 가져옴
 
 [⑩ 통제]
@@ -1369,7 +1392,7 @@ graph LR
 </div>
 
 <h4>9-2. 승인 권한 매트릭스</h4>
-<table>
+<table class="common-table">
 <thead><tr><th>문서 유형</th><th>작성자</th><th>검토자</th><th>승인자</th><th>배포 권한</th></tr></thead>
 <tbody>
 <tr><td>작업 지도서 (SOP)</td><td>공정 엔지니어</td><td>생산팀장</td><td>품질팀장</td><td>Document Control 관리자</td></tr>
@@ -1380,7 +1403,7 @@ graph LR
 </table>
 
 <h3>10. 문서-공정 매트릭스 (Document-Operation Matrix)</h3>
-<table class="data-table">
+<table class="common-table data-table">
 <caption><strong>WO-12 (A-100) 문서-공정 매트릭스</strong></caption>
 <thead><tr><th>Op #</th><th>작업 지도서</th><th>도면</th><th>검사 기준서</th></tr></thead>
 <tbody>
@@ -1395,7 +1418,7 @@ graph LR
 <h3>11. 감사 추적 (Audit Trail)</h3>
 
 <h4>11-1. 감사 로그 예시</h4>
-<table class="data-table">
+<table class="common-table data-table">
 <caption><strong>감사 추적 로그 (Audit Trail)</strong></caption>
 <thead><tr><th>시간</th><th>사용자</th><th>문서</th><th>버전</th><th>행위</th><th>비고</th></tr></thead>
 <tbody>
@@ -1411,7 +1434,7 @@ graph LR
 </table>
 
 <h4>11-2. 감사 추적의 활용</h4>
-<table>
+<table class="common-table">
 <thead><tr><th>활용</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>품질 사고 조사</strong></td><td>불량 발생 시 작업자가 참조한 문서 버전 확인</td></tr>
@@ -1422,7 +1445,7 @@ graph LR
 </table>
 
 <h3>12. 다른 MESA 기능과의 관계</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>관계</th><th>방향</th><th>데이터</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td>⑥ → ⑩</td><td>작업 시작 신호</td><td>—</td><td>Operation 시작 시 해당 문서를 작업자에게 표시</td></tr>
@@ -1437,7 +1460,7 @@ graph LR
 </table>
 
 <h3>13. ⑩ Document Control vs ⑦ Data Collection</h3>
-<table class="compare-table">
+<table class="common-table compare-table">
 <thead><tr><th>구분</th><th>⑦ Data Collection</th><th>⑩ Document Control</th></tr></thead>
 <tbody>
 <tr><td><strong>관리 대상</strong></td><td>현장 데이터 (센서, 측정값)</td><td>현장 문서 (SOP, 도면, 기준서)</td></tr>
@@ -1448,10 +1471,11 @@ graph LR
 </tbody>
 </table>
 
-<div class="key">⑦이 현장에서 MES로 데이터를 올려보내면, ⑩은 MES에서 현장으로 올바른 지식(문서)을 내려보냅니다. <strong>양방향 흐름</strong>이 MES의 핵심입니다.</div>
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>⑦이 현장에서 MES로 데이터를 올려보내면, ⑩은 MES에서 현장으로 올바른 지식(문서)을 내려보냅니다. <strong>양방향 흐름</strong>이 MES의 핵심입니다.</div>
 
 <h3>14. 요약</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>핵심 포인트</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>역할</strong></td><td>생산 현장 문서의 <strong>버전 관리 + 배포 통제 + 감사 추적</strong></td></tr>
@@ -1467,7 +1491,8 @@ graph LR
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   <strong>Document Control은 "현장의 지식을 통제하는 기능"</strong>입니다. 아무리 설비가 정밀하고, ⑦ Data Collection이 정확한 데이터를 수집하고, ⑧ Quality Management가 불량을 검출하고, ⑨ Process Management가 공정을 제어하더라도, 작업자가 <strong>구버전 도면</strong>으로 작업하면 모든 노력이 무효화됩니다. ⑩ Document Control은 설계 변경이 발생했을 때 신버전을 즉시 현장에 배포하고, 구버전을 즉시 회수하여, 작업자가 <strong>항상 최신 기준으로 작업</strong>하도록 보장합니다. 이것이 있어야 ⑧ Quality Management의 검사 기준이 정확하고, ⑨ Process Management의 레시피가 최신이며, ⑥ Order Execution이 올바른 작업 절차를 따를 수 있습니다. ⑩은 눈에 잘 보이지 않지만, <strong>품질 사고의 가장 흔한 원인(구버전 문서 사용)을 막는 마지막 방어선</strong>입니다.
 </div>
 </div>
@@ -1484,7 +1509,7 @@ graph LR
 </div>
 
 <h3>1. 개요</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>항목</th><th>내용</th></tr></thead>
 <tbody>
 <tr><td><strong>기능명</strong></td><td>Performance Analysis & Reporting</td></tr>
@@ -1495,7 +1520,8 @@ graph LR
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   ⑦ Data Collection이 <strong>데이터를 모으고</strong>, ①~⑩이 그 데이터를 <strong>소비하여 실행</strong>하면, ⑪ Performance Analysis는 모든 실행 결과를 <strong>다시 모아 분석</strong>합니다. MES 11기능의 <strong>종착역이자 새로운 출발점</strong>입니다.
 </div>
 
@@ -1515,7 +1541,8 @@ graph TD
     style OM fill:#eafaf1,stroke:#27ae60
 </div>
 
-<div class="note">⑪은 11기능 중 <strong>유일한 "소비자 전용(Consumer-only)"</strong> 기능입니다. ⑦이 데이터를 <strong>생산</strong>하면, ⑪은 그 데이터를 <strong>분석하여 의미를 부여</strong>합니다. 그리고 분석 결과는 다시 ①~⑤에 <strong>피드백</strong>되어 공장을 개선합니다.</div>
+<div class="box box-focus">
+  <span class="box-title">📌 안내 및 참고</span>⑪은 11기능 중 <strong>유일한 "소비자 전용(Consumer-only)"</strong> 기능입니다. ⑦이 데이터를 <strong>생산</strong>하면, ⑪은 그 데이터를 <strong>분석하여 의미를 부여</strong>합니다. 그리고 분석 결과는 다시 ①~⑤에 <strong>피드백</strong>되어 공장을 개선합니다.</div>
 
 <h3>3. 핵심 구성 요소</h3>
 
@@ -1536,7 +1563,7 @@ graph LR
 </div>
 
 <h4>3-2. 데이터 소비 구조 — ⑪이 받는 데이터</h4>
-<table class="data-table">
+<table class="common-table data-table">
 <caption><strong>⑪ Performance Analysis가 소비하는 데이터 (11개 기능 전체)</strong></caption>
 <thead><tr><th>기능</th><th>소비 데이터</th></tr></thead>
 <tbody>
@@ -1623,7 +1650,7 @@ graph TD
 </div>
 
 <h4>4-4. 주요 KPI 정의</h4>
-<table>
+<table class="common-table">
 <thead><tr><th>KPI</th><th>정의</th><th>공식</th><th>데이터 출처</th><th>세계 수준</th></tr></thead>
 <tbody>
 <tr><td><strong>OEE</strong></td><td>종합설비효율</td><td>가동률 × 성능율 × 양품률</td><td>④⑦⑧</td><td>> 85%</td></tr>
@@ -1642,7 +1669,7 @@ graph TD
 </table>
 
 <h3>5. 주요 하위 활동</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>#</th><th>하위 활동</th><th>설명</th><th>입력</th><th>출력</th></tr></thead>
 <tbody>
 <tr><td>①</td><td><strong>KPI 계산</strong></td><td>①~⑩의 데이터를 집계하여 OEE, 수율, 불량률 등 KPI 산출</td><td>전 기능 데이터</td><td>KPI Values</td></tr>
@@ -1692,7 +1719,7 @@ graph TD
 <h3>7. OEE 6대 손실 분석</h3>
 
 <h4>7-1. 6대 손실 모델 (TPM 6대 손실)</h4>
-<table class="data-table">
+<table class="common-table data-table">
 <caption><strong>OEE 6대 손실 (6 Big Losses)</strong></caption>
 <thead><tr><th>구분</th><th>손실 유형</th><th>영향</th></tr></thead>
 <tbody>
@@ -1706,7 +1733,7 @@ graph TD
 </table>
 
 <h4>7-2. 손실 분석 예시 (CNC-07, 08/10~08/13)</h4>
-<table class="data-table">
+<table class="common-table data-table">
 <caption><strong>CNC-07 손실 분석 (계획가동 32h)</strong></caption>
 <thead><tr><th>손실 유형</th><th>시간</th><th>비율</th><th>KPI 영향</th></tr></thead>
 <tbody>
@@ -1722,12 +1749,13 @@ graph TD
 </table>
 <p>Pareto: ②셋업(37%) &gt; ①고장(24%) &gt; ③단축정지(15%) → 셋업 시간 단축이 최우선 개선 과제</p>
 
-<div class="note">손실 분석의 핵심은 <strong>"어떤 손실이 가장 큰가?"</strong>를 Pareto로 식별하여, <strong>개선 우선순위</strong>를 정하는 것입니다.</div>
+<div class="box box-focus">
+  <span class="box-title">📌 안내 및 참고</span>손실 분석의 핵심은 <strong>"어떤 손실이 가장 큰가?"</strong>를 Pareto로 식별하여, <strong>개선 우선순위</strong>를 정하는 것입니다.</div>
 
 <h3>8. 계획 대비 실적 분석 (Plan vs Actual)</h3>
 
 <h4>8-1. 일일 생산 실적 예시 (08/13)</h4>
-<table class="data-table">
+<table class="common-table data-table">
 <caption><strong>일일 생산 실적 (08/13)</strong></caption>
 <thead><tr><th>WO ID</th><th>제품</th><th>계획</th><th>실적</th><th>양품</th><th>불량</th><th>달성률</th><th>비고</th></tr></thead>
 <tbody>
@@ -1838,7 +1866,7 @@ xychart-beta
 </div>
 
 <h4>10-2. 경영진 월간 보고서 구성</h4>
-<table>
+<table class="common-table">
 <thead><tr><th>섹션</th><th>내용</th><th>KPI</th><th>데이터 출처</th></tr></thead>
 <tbody>
 <tr><td><strong>1. 생산 요약</strong></td><td>월간 생산량, 달성률</td><td>생산량, 달성률</td><td>⑥</td></tr>
@@ -1855,7 +1883,7 @@ xychart-beta
 <h3>11. 이상 알림 (Alert)</h3>
 
 <h4>11-1. KPI 임계치 기반 알림</h4>
-<table>
+<table class="common-table">
 <thead><tr><th>KPI</th><th>정상</th><th>주의</th><th>위험</th><th>알림 대상</th></tr></thead>
 <tbody>
 <tr><td>OEE</td><td>> 80%</td><td>60~80%</td><td>< 60%</td><td>현장 책임자</td></tr>
@@ -1867,7 +1895,8 @@ xychart-beta
 </table>
 
 <h4>11-2. 알림 시나리오</h4>
-<div class="scenario-box">[11:37] ⑪ KPI 계산
+<div class="box box-success">
+  <span class="box-title">실무 시나리오</span>[11:37] ⑪ KPI 계산
          ├── CNC-08 가동률: 62% (위험 임계치 75% 미만) 🔴
          ├── WO-20 진행률: 0% (설비 고장으로 미실행)
          └── 납기 준수율: 85.7% (주의 임계치 85% 초과) ⚠
@@ -1898,7 +1927,8 @@ graph TD
 </div>
 
 <h4>12-2. 피드백 시나리오</h4>
-<div class="scenario-box">[⑪ 분석 결과]
+<div class="box box-success">
+  <span class="box-title">실무 시나리오</span>[⑪ 분석 결과]
 ├── CNC-07 OEE 68.9% — 최대 손실: 셋업 3h (37%)
 ├── 불량 유형 Pareto: 치수 불량 45% (공구 마모가 원인)
 └── 트렌드: OEE 하락 추세 (3일 연속)
@@ -1926,7 +1956,7 @@ graph TD
 → OEE 68.9% → 75%+ 목표</div>
 
 <h3>13. 다른 MESA 기능과의 관계</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>관계</th><th>방향</th><th>데이터</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td>① → ⑪</td><td>→</td><td>자원 가용성, 활용도</td><td>자원 할당 효율 분석</td></tr>
@@ -1951,7 +1981,7 @@ graph TD
 </table>
 
 <h3>14. ⑦ Data Collection vs ⑪ Performance Analysis</h3>
-<table class="compare-table">
+<table class="common-table compare-table">
 <thead><tr><th>구분</th><th>⑦ Data Collection</th><th>⑪ Performance Analysis</th></tr></thead>
 <tbody>
 <tr><td><strong>역할</strong></td><td>데이터 <strong>수집</strong> (Producer)</td><td>데이터 <strong>분석</strong> (Consumer + Producer)</td></tr>
@@ -1964,7 +1994,8 @@ graph TD
 </tbody>
 </table>
 
-<div class="note">⑦이 "CNC-07 가동시간 24.8h, 불량 36개"라는 <strong>데이터</strong>를 제공하면, ⑪이 "OEE 68.9%, 최대 손실은 셋업 3h"라는 <strong>의미</strong>를 도출합니다.</div>
+<div class="box box-focus">
+  <span class="box-title">📌 안내 및 참고</span>⑦이 "CNC-07 가동시간 24.8h, 불량 36개"라는 <strong>데이터</strong>를 제공하면, ⑪이 "OEE 68.9%, 최대 손실은 셋업 3h"라는 <strong>의미</strong>를 도출합니다.</div>
 
 <h3>15. 11기능 전체 흐름 — ⑪의 종착역 역할</h3>
 <div class="mermaid">
@@ -1994,7 +2025,7 @@ graph TD
 </div>
 
 <h3>16. 요약</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>핵심 포인트</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td><strong>역할</strong></td><td>①~⑩의 모든 데이터를 <strong>종합 분석</strong>하여 KPI를 계산·평가·보고</td></tr>
@@ -2013,7 +2044,8 @@ graph TD
 </tbody>
 </table>
 
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   <strong>Performance Analysis & Reporting은 "MES의 두뇌"</strong>입니다. ⑦ Data Collection이 모은 데이터, ⑥ Order Execution이 추적한 실적, ⑧ Quality Management가 기록한 불량, ⑨ Process Management가 감시한 공정 — 이 모든 것을 ⑪이 종합 분석하여 <strong>"공장이 잘 돌아가고 있는가, 어디가 문제인가, 무엇을 개선해야 하는가"</strong>라는 질문에 답합니다. OEE 68.9%라는 숫자 자체가 아니라, "셋업 시간 3h가 최대 손실이므로 SMED를 적용해야 한다"는 <strong>인사이트</strong>가 ⑪의 진짜 가치입니다. 그리고 이 인사이트는 다시 ①~⑤에 피드백되어 다음 계획을 개선합니다 — 이것이 <strong>PDCA 사이클</strong>이며, ⑪은 이 사이클의 <strong>Act(개선)</strong>를 담당합니다. ⑪이 있어야 MES는 단순한 "기록 시스템"이 아니라 <strong>"개선 시스템"</strong>이 될 수 있습니다.
 </div>
 </div>
@@ -2023,7 +2055,7 @@ graph TD
 <h2>제4장. MESA 11-Function Model 전체 관계도</h2>
 
 <h3>1. 11기능 분류 체계</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>분류</th><th>기능</th><th>역할</th></tr></thead>
 <tbody>
 <tr><td rowspan="5"><strong>계획·실행</strong><br>(Planning & Execution)</td><td>① Operations/Resource Allocation</td><td>자원 할당 정책</td></tr>
@@ -2071,7 +2103,7 @@ graph TD
 </div>
 
 <h3>3. 기능 간 핵심 관계 매트릭스</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>From</th><th>To</th><th>데이터/신호</th><th>설명</th></tr></thead>
 <tbody>
 <tr><td>①</td><td>②④⑤</td><td>자원 할당 정책</td><td>자원 가용성과 할당 규칙을 하위 기능에 전달</td></tr>
@@ -2090,11 +2122,12 @@ graph TD
 </table>
 
 <h3>4. ⑦ Data Collection의 특수 역할</h3>
-<div class="key">
+<div class="box box-warning">
+  <span class="box-title">💡 핵심 포인트</span>
   ⑦ Data Collection은 11기능 중 <strong>유일한 데이터 생산자(Producer)</strong>입니다. 나머지 10개 기능은 모두 ⑦이 수집한 데이터를 소비(Consumer)합니다. ⑪ Performance Analysis도 ⑦의 데이터를 소비하지만, ⑪은 분석 결과라는 새로운 형태의 데이터를 생산하여 ①~⑤에 피드백합니다. 따라서 ⑪은 Consumer이자 Producer입니다.
 </div>
 
-<table class="compare-table">
+<table class="common-table compare-table">
 <thead><tr><th>구분</th><th>Producer</th><th>Consumer</th><th>Consumer + Producer</th></tr></thead>
 <tbody>
 <tr><td><strong>기능</strong></td><td>⑦ Data Collection</td><td>①②③④⑤⑥⑧⑨⑩</td><td>⑪ Performance Analysis</td></tr>
@@ -2104,7 +2137,7 @@ graph TD
 </table>
 
 <h3>5. ⑧ Quality vs ⑨ Process — 결과 vs 원인</h3>
-<table class="compare-table">
+<table class="common-table compare-table">
 <thead><tr><th>구분</th><th>⑧ Quality Management</th><th>⑨ Process Management</th></tr></thead>
 <tbody>
 <tr><td><strong>관리 대상</strong></td><td>제품 (Output)</td><td>공정 (Process)</td></tr>
@@ -2131,7 +2164,7 @@ graph TD
     style A fill:#e74c3c,color:#fff
 </div>
 
-<table>
+<table class="common-table">
 <thead><tr><th>PDCA 단계</th><th>MESA 기능</th><th>역할</th></tr></thead>
 <tbody>
 <tr><td><strong>Plan (계획)</strong></td><td>①②③⑩</td><td>자원 할당, 스케줄링, Dispatch, 표준 문서 준비</td></tr>
@@ -2142,7 +2175,7 @@ graph TD
 </table>
 
 <h3>7. ISA-95 레벨과 MESA 11기능 매핑</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>ISA-95 Level</th><th>영역</th><th>MESA 기능</th></tr></thead>
 <tbody>
 <tr><td><strong>Level 4</strong></td><td>Enterprise (ERP)</td><td>— (MES 영역 외)</td></tr>
@@ -2160,7 +2193,7 @@ graph TD
 <h2>부록</h2>
 
 <h3>A. MESA 11-Function Model 용어집</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>용어</th><th>영문</th><th>정의</th></tr></thead>
 <tbody>
 <tr><td>MES</td><td>Manufacturing Execution System</td><td>제조 실행 시스템 — 공장 현장의 실시간 생산 관리 시스템</td></tr>
@@ -2187,7 +2220,7 @@ graph TD
 </table>
 
 <h3>B. 참고 표준 및 웹사이트</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>표준</th><th>내용</th><th>웹사이트</th></tr></thead>
 <tbody>
 <tr><td><strong>ISA-95 (IEC 62264)</strong></td><td>MES 핵심 참조 모델</td><td><a href="https://www.isa.org/isa95" target="_blank">isa.org/isa95</a></td></tr>
@@ -2201,7 +2234,7 @@ graph TD
 </table>
 
 <h3>C. 학습 추천 순서</h3>
-<table>
+<table class="common-table">
 <thead><tr><th>단계</th><th>학습 내용</th><th>해당 장</th></tr></thead>
 <tbody>
 <tr><td><strong>1단계</strong></td><td>MES 표준 체계 이해 (ISA-95, MESA, ISO 22400)</td><td>제1장</td></tr>
@@ -2216,4 +2249,3 @@ graph TD
 </div>
 
 <!-- ==================== 하단 네비게이션 ==================== -->
-</article>

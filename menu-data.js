@@ -256,7 +256,17 @@ const SITE_MENU_CONFIG = [
         items: [
             { title: "개발 경험", path: "contents/developer.html" },
             { title: "Git Guide", path: "contents/git_guide.html", mode: "iframe" },
-            { title: "WSL Network Guide", path: "contents/wsl_network_guide.html", mode: "iframe" }
+            { title: "WSL Network Guide", path: "contents/wsl_network_guide.html", mode: "iframe" },
+            {
+                title: "MES Developer Education",
+                children: [
+                    { title: "MES 개발자 양성 교육", path: "contents/MES_Developer/MES_Developer_Education.html" },
+                    { title: "MES 관련 표준 및 웹사이트", path: "contents/MES_Developer/MES_Website.html" },
+                    { title: "개발 도구 설치 및 학습 가이드", path: "contents/MES_Developer/Tool_install.html", mode: "iframe" },
+                    { title: "스마트 MES 제조실행 및 개발 시스템", path: "contents/MES_Developer/MES_Guide_UI_test.html", mode: "iframe" },
+                    { title: "Excel VBA MES 실전 개발 가이드 & 코드북", path: "contents/MES_Developer/VBA_Education_Guide.html", mode: "iframe" }
+                ]
+            }
         ]
     },
     {

@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스마트 MES 제조실행 및 개발 시스템 (Web MES Platform)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SheetJS for reading XLSM/XLSX files directly in browser -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #0f172a;
+            color: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .badge-status {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden custom-scrollbar">
+
+    <!-- Top Navigation Bar -->
+    <header class="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 z-30 shrink-0">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <i data-lucide="cpu" class="w-6 h-6 text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+                    SMART MES 2026
+                    <span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded border border-blue-500/30">Developer v2.3</span>
+                </h1>
+                <p class="text-xs text-slate-400">제조실행시스템(MES) 웹 컨트롤러 & 엑셀 마이그레이션 도구</p>
+            </div>
+        </div>
+
+        <!-- File Loader & Action Area -->
+        <div class="flex items-center space-x-4">
+            <label class="relative cursor-pointer bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition duration-200 shadow-sm">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i>
+                <span id="uploadLabel">MES20230221.xlsm / 엑셀 불러오기</span>
+                <input type="file" id="excelFileInput" accept=".xlsm, .xlsx, .xls, .csv" class="hidden" onchange="handleExcelUpload(event)">
+            </label>
+
+            <button onclick="exportToExcel()" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 px-3.5 py-2 rounded-lg text-xs font-medium flex items-center gap-1.5 transition">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span>엑셀 내보내기</span>
+            </button>
+
+            <div class="h-6 w-px bg-slate-800"></div>
+
+            <div class="flex items-center space-x-3 text-xs text-slate-400">
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span>MS-SQL 연결됨 (192.168.0.10)</span>
+                </div>
+                <div class="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono" id="currentTime">
+                    16:45:40
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="w-64 bg-slate-900/90 border-r border-slate-800 flex flex-col shrink-0 p-3 justify-between">
+            <nav class="space-y-1">
+                <div class="text-[11px] font-semibold text-slate-500 uppercase px-3 mb-2 tracking-wider">메인 공정 관리</div>
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-white bg-blue-600/20 text-blue-400 border border-blue-500/30 transition">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    <span>종합 관제 대시보드</span>
+                </button>
+                <button onclick="switchTab('workorder')" id="nav-workorder" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
+                    <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                    <span>작업지시 (Work Order)</span>
+                </button>
+                <button onclick="switchTab('tracking')" id="nav-tracking" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
+                    <i data-lucide="scan-barcode" class="w-4 h-4"></i>
+                    <span>Lot 추적 & 공정실적 (WIP)</span>
+                </button>
+                <button onclick="switchTab('equipment')" id="nav-equipment" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
+                    <i data-lucide="activity" class="w-4 h-4"></i>
+                    <span>설비 모니터링 & OEE</span>
+                </button>
+                <button onclick="switchTab('quality')" id="nav-quality" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
+                    <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                    <span>품질 관리 & 불량 분석</span>
+                </button>
+
+                <div class="text-[11px] font-semibold text-slate-500 uppercase px-3 pt-4 mb-2 tracking-wider">개발자 도구 (VBA/SQL)</div>
+                <button onclick="switchTab('excelViewer')" id="nav-excelViewer" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
+                    <i data-lucide="table" class="w-4 h-4"></i>
+                    <span>엑셀 시트 뷰어 (XLSM)</span>
+                </button>
+                <button onclick="switchTab('sqlQuery')" id="nav-sqlQuery" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
+                    <i data-lucide="database" class="w-4 h-4"></i>
+                    <span>MS-SQL 쿼리 시뮬레이터</span>
+                </button>
+                <button onclick="switchTab('vbaScript')" id="nav-vbaScript" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition">
+                    <i data-lucide="code-2" class="w-4 h-4"></i>
+                    <span>VBA 매크로 엔진 / 연동코드</span>
+                </button>
+            </nav>
+
+            <div class="p-3 bg-slate-800/50 rounded-xl border border-slate-800">
+                <div class="flex items-center gap-2 mb-2">
+                    <i data-lucide="help-circle" class="w-4 h-4 text-blue-400"></i>
+                    <span class="text-xs font-semibold text-slate-300">교육 및 개발 가이드</span>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                    상단의 파일 업로드 버튼으로 <span class="text-blue-300">MES20230221.xlsm</span> 파일을 불러오면 시트 데이터가 실시간 파싱되어 자동 반영됩니다.
+                </p>
+            </div>
+        </aside>
+
+        <!-- Dynamic Content Body -->
+        <main class="flex-1 overflow-y-auto p-6 custom-scrollbar bg-slate-950/60 space-y-6">
+
+            <!-- 1. DASHBOARD TAB -->
+            <section id="tab-dashboard" class="space-y-6">
+                <!-- Top Key Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="glass-panel p-4 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-400">금일 목표 생산량</span>
+                            <i data-lucide="target" class="w-4 h-4 text-blue-400"></i>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-2xl font-extrabold text-white" id="stat-target">12,500</span>
+                            <span class="text-xs text-slate-400">EA</span>
+                        </div>
+                        <div class="mt-2 text-xs text-emerald-400 flex items-center gap-1">
+                            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
+                            <span>전일 대비 +8.4%</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-400">현재 누적 실적 (Good)</span>
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-2xl font-extrabold text-emerald-400" id="stat-good">10,840</span>
+                            <span class="text-xs text-slate-400">EA</span>
+                        </div>
+                        <div class="w-full bg-slate-700/50 h-1.5 rounded-full mt-3 overflow-hidden">
+                            <div class="bg-emerald-500 h-full rounded-full" style="width: 86.7%"></div>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-400">공정 불량률 (Defect)</span>
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-2xl font-extrabold text-rose-400" id="stat-defect">1.12</span>
+                            <span class="text-xs text-slate-400">% (123 EA)</span>
+                        </div>
+                        <div class="mt-2 text-xs text-emerald-400 flex items-center gap-1">
+                            <i data-lucide="arrow-down-right" class="w-3.5 h-3.5"></i>
+                            <span>목표 관리기준(1.5%) 충족</span>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-xl">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-medium text-slate-400">설비 종합 효율 (OEE)</span>
+                            <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
+                        </div>
+                        <div class="mt-2 flex items-baseline gap-2">
+                            <span class="text-2xl font-extrabold text-amber-400" id="stat-oee">89.4</span>
+                            <span class="text-xs text-slate-400">%</span>
+                        </div>
+                        <div class="mt-2 text-xs text-slate-400 flex items-center gap-2">
+                            <span>가동률 92%</span> • <span>성능 98%</span> • <span>양품률 99%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 glass-panel p-5 rounded-2xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-white">시간대별 생산 추이 및 가동 현황</h3>
+                                <p class="text-xs text-slate-400">LINE-01 SMT / PCB 조립 공정</p>
+                            </div>
+                            <span class="px-2.5 py-1 text-xs rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">실시간 동기화</span>
+                        </div>
+                        <div class="h-64">
+                            <canvas id="productionChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-sm font-bold text-white">공정별 불량 유형 점유율</h3>
+                                <p class="text-xs text-slate-400">주요 5대 불량 Pareto 분석</p>
+                            </div>
+                        </div>
+                        <div class="h-64 flex items-center justify-center">
+                            <canvas id="defectPieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Work Orders Table -->
+                <div class="glass-panel rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="layers" class="w-5 h-5 text-indigo-400"></i>
+                            <h3 class="text-sm font-bold text-white">진행 중인 생산 지시 및 공정 현황 (Active Run)</h3>
+                        </div>
+                        <button onclick="addNewOrderModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1">
+                            <i data-lucide="plus" class="w-4 h-4"></i> 작업지시 발행
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-800/80 text-slate-400 uppercase text-[11px] font-semibold">
+                                <tr>
+                                    <th class="p-3">지시번호 (WO#)</th>
+                                    <th class="p-3">품목코드 / 품목명</th>
+                                    <th class="p-3">생산라인</th>
+                                    <th class="p-3">지시수량</th>
+                                    <th class="p-3">양품 / 불량</th>
+                                    <th class="p-3">진행률</th>
+                                    <th class="p-3">상태</th>
+                                    <th class="p-3 text-right">관리</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workOrderTableBody" class="divide-y divide-slate-800">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. WORK ORDER TAB -->
+            <section id="tab-workorder" class="space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-white">작업지시 관리 (Work Order Management)</h2>
+                        <p class="text-xs text-slate-400">생산 계획 수립, 작업 지시 확정 및 라인 배정</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="woSearch" placeholder="지시번호/품목 검색..." oninput="filterOrders()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500">
+                        <button onclick="addNewOrderModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1">
+                            <i data-lucide="plus" class="w-4 h-4"></i> 신규 지시 등록
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-5">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="bg-slate-800/80 text-slate-400 uppercase text-[11px] font-semibold">
+                                <tr>
+                                    <th class="p-3">생성일시</th>
+                                    <th class="p-3">지시번호</th>
+                                    <th class="p-3">품번</th>
+                                    <th class="p-3">품명</th>
+                                    <th class="p-3">투입라인</th>
+                                    <th class="p-3">계획수량</th>
+                                    <th class="p-3">실적수량</th>
+                                    <th class="p-3">작업상태</th>
+                                    <th class="p-3 text-right">제어</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fullWorkOrderTableBody" class="divide-y divide-slate-800">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. LOT TRACKING & WIP TAB -->
+            <section id="tab-tracking" class="space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-white">Lot 추적 및 공정 실적 관리 (WIP Track-In / Track-Out)</h2>
+                        <p class="text-xs text-slate-400">바코드 스캔 기반 원자재/반제품/완제품 공정 이동 이력 추적</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Scanner Box -->
+                    <div class="glass-panel p-5 rounded-2xl space-y-4">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">바코드 / Lot 스캔 입력</h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-[11px] text-slate-400 block mb-1">공정 선택 (Current Routing)</label>
+                                <select id="scanProcess" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                                    <option value="PROC-01">PROC-01 SMT 표면실장</option>
+                                    <option value="PROC-02">PROC-02 수삽 및 납땜</option>
+                                    <option value="PROC-03">PROC-03 ICT / 기능검사</option>
+                                    <option value="PROC-04">PROC-04 하우징 조립</option>
+                                    <option value="PROC-05">PROC-05 최종 외관 및 포장</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[11px] text-slate-400 block mb-1">Lot 바코드 (BarCode Scan)</label>
+                                <input type="text" id="scanLotInput" placeholder="LOT20230221-001 입력 후 엔터" onkeydown="if(event.key==='Enter') executeTrackIn()" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white font-mono focus:border-blue-500 focus:outline-none">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 pt-2">
+                                <button onclick="executeTrackIn()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-2 rounded-lg flex items-center justify-center gap-1">
+                                    <i data-lucide="log-in" class="w-4 h-4"></i> Track-In (착공)
+                                </button>
+                                <button onclick="executeTrackOut()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2 rounded-lg flex items-center justify-center gap-1">
+                                    <i data-lucide="log-out" class="w-4 h-4"></i> Track-Out (완공)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lot Genealogy Tree Info -->
+                    <div class="md:col-span-2 glass-panel p-5 rounded-2xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Lot 계보 및 추적 이력 (Genealogy)</h3>
+                            <span class="text-xs text-blue-400 font-mono" id="currentInspectedLot">LOT-20230221-008</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3 p-3 bg-slate-900/60 rounded-xl border border-slate-800 text-xs">
+                            <div><span class="text-slate-500 block">품목명:</span><span class="font-semibold text-white">메인보드 ASSY (MB-7700)</span></div>
+                            <div><span class="text-slate-500 block">투입 수량:</span><span class="font-semibold text-white">500 EA</span></div>
+                            <div><span class="text-slate-500 block">현재 위치:</span><span class="font-semibold text-emerald-400">PROC-03 기능검사</span></div>
+                        </div>
+                        <div class="relative pl-6 space-y-4 border-l-2 border-slate-800 text-xs" id="genealogySteps">
+                            <div class="relative">
+                                <div class="absolute -left-[31px] top-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-slate-950"></div>
+                                <div class="font-semibold text-emerald-400">PROC-01 SMT 공정 [완료]</div>
+                                <div class="text-[11px] text-slate-400">설비: SMT-01 | 작업자: 홍길동 | 2026-08-16 09:15 ~ 10:45 | 양품 500</div>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute -left-[31px] top-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-slate-950"></div>
+                                <div class="font-semibold text-emerald-400">PROC-02 수삽 공정 [완료]</div>
+                                <div class="text-[11px] text-slate-400">설비: MAN-02 | 작업자: 김철수 | 2026-08-16 11:00 ~ 13:20 | 양품 498, 불량 2 (미삽)</div>
+                            </div>
+                            <div class="relative">
+                                <div class="absolute -left-[31px] top-1 w-3.5 h-3.5 bg-blue-500 rounded-full border-2 border-slate-950 animate-pulse"></div>
+                                <div class="font-semibold text-blue-400">PROC-03 ICT 기능검사 [진행중 - Track-In]</div>
+                                <div class="text-[11px] text-slate-400">설비: ICT-01 | 작업자: 이영희 | 2026-08-16 14:10 ~ 현재</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. EQUIPMENT MONITORING & OEE TAB -->
+            <section id="tab-equipment" class="space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-white">설비 실시간 가동 현황 및 OEE 분석</h2>
+                        <p class="text-xs text-slate-400">OPC-UA / PLC 인터페이스 실시간 수집 데이터 및 가동 효율</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="equipmentCardList">
+                    <!-- Cards will be populated dynamically -->
+                </div>
+            </section>
+
+            <!-- 5. QUALITY TAB -->
+            <section id="tab-quality" class="space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-white">품질 관리 및 불량 등록 현황</h2>
+                        <p class="text-xs text-slate-400">공정별 불량 발생 내역 추적 및 통계</p>
+                    </div>
+                    <button onclick="addDefectModal()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1">
+                        <i data-lucide="plus" class="w-4 h-4"></i> 불량 데이터 등록
+                    </button>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-5">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-800/80 text-slate-400 uppercase text-[11px] font-semibold">
+                            <tr>
+                                <th class="p-3">발생시간</th>
+                                <th class="p-3">Lot No.</th>
+                                <th class="p-3">해당공정</th>
+                                <th class="p-3">불량유형</th>
+                                <th class="p-3">불량수량</th>
+                                <th class="p-3">원인설명 / 비고</th>
+                                <th class="p-3">조치구분</th>
+                            </tr>
+                        </thead>
+                        <tbody id="defectTableBody" class="divide-y divide-slate-800">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 6. EXCEL SHEET VIEWER (XLSM) TAB -->
+            <section id="tab-excelViewer" class="space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-white">MES20230221.xlsm 원본 시트 브라우저</h2>
+                        <p class="text-xs text-slate-400">엑셀 통합문서 내 워크시트 데이터 실시간 조회 및 파싱 결과</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs text-slate-400">선택 시트:</span>
+                        <select id="sheetSelector" onchange="renderSelectedSheet()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none">
+                            <option value="WorkOrder">WorkOrder (작업지시)</option>
+                            <option value="LotHistory">LotHistory (공정이력)</option>
+                            <option value="Equipment">Equipment (설비목록)</option>
+                            <option value="BOM_Master">BOM_Master (자재기준정보)</option>
+                            <option value="DefectLog">DefectLog (품질불량로그)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-4 overflow-hidden flex flex-col h-[520px]">
+                    <div class="overflow-auto flex-1 custom-scrollbar">
+                        <table id="rawExcelTable" class="w-full text-left text-xs text-slate-300 border-collapse border border-slate-800">
+                            <!-- Raw Excel Table Generated Dynamically -->
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. MS-SQL QUERY SIMULATOR TAB -->
+            <section id="tab-sqlQuery" class="space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-white">MS-SQL 데이터베이스 쿼리 & 프로시저 시뮬레이터</h2>
+                        <p class="text-xs text-slate-400">VBA ADODB 연동 쿼리 및 T-SQL 재귀/실적 저장 프로시저 테스트 환경</p>
+                    </div>
+                    <button onclick="runSqlQuery()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-lg shadow-blue-500/20">
+                        <i data-lucide="play" class="w-4 h-4"></i> 쿼리 실행 (Execute F5)
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div class="glass-panel p-4 rounded-xl space-y-2 flex flex-col">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300">T-SQL Query Editor</span>
+                            <select id="queryPreset" onchange="applyQueryPreset()" class="bg-slate-900 text-[11px] text-blue-400 border border-slate-700 rounded px-2 py-1">
+                                <option value="select_wip">1. 현재 공정 재공(WIP) 현황 조회</option>
+                                <option value="sp_track_out">2. Track-Out 실적 등록 프로시저 (EXEC)</option>
+                                <option value="bom_recursive">3. 다단계 BOM 재귀 쿼리 (WITH CTE)</option>
+                                <option value="calc_oee">4. 일자별 라인 OEE 지표 집계 쿼리</option>
+                            </select>
+                        </div>
+                        <textarea id="sqlInput" class="w-full flex-1 min-h-[220px] bg-slate-950 font-mono text-xs text-emerald-400 p-3 rounded-lg border border-slate-800 focus:outline-none focus:border-blue-500 custom-scrollbar" spellcheck="false">
+SELECT 
+    W.WORK_ORDER_NO,
+    W.ITEM_CODE,
+    W.ITEM_NAME,
+    COUNT(L.LOT_NO) AS TOTAL_LOT_COUNT,
+    SUM(L.QTY) AS WIP_QTY,
+    L.PROCESS_CODE,
+    P.PROCESS_NAME
+FROM TB_WORK_ORDER W
+JOIN TB_LOT_TRACKING L ON W.WORK_ORDER_NO = L.WORK_ORDER_NO
+JOIN TB_PROCESS_MST P ON L.PROCESS_CODE = P.PROCESS_CODE
+WHERE L.STATUS = 'IN_PROCESS'
+GROUP BY W.WORK_ORDER_NO, W.ITEM_CODE, W.ITEM_NAME, L.PROCESS_CODE, P.PROCESS_NAME
+ORDER BY W.WORK_ORDER_NO ASC;
+                        </textarea>
+                    </div>
+
+                    <div class="glass-panel p-4 rounded-xl space-y-2 flex flex-col">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-slate-300">실행 결과 (Query Output)</span>
+                            <span id="queryStats" class="text-[11px] text-slate-400">결과: 5개 행 반환됨 (0.012초)</span>
+                        </div>
+                        <div id="queryResultContainer" class="flex-1 min-h-[220px] bg-slate-950 p-2 rounded-lg border border-slate-800 overflow-auto custom-scrollbar font-mono text-xs">
+                            <!-- Result table will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 8. VBA CODE & ENGINE TAB -->
+            <section id="tab-vbaScript" class="space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-bold text-white">Excel VBA 원본 코드 & ADO 연동 모듈 (MES20230221)</h2>
+                        <p class="text-xs text-slate-400">VBE 환경에서 MS-SQL 및 시트 자동화를 처리하는 실제 VBA 소스코드 모음</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="md:col-span-1 glass-panel p-3 rounded-xl space-y-1">
+                        <div class="text-[11px] font-semibold text-slate-400 px-2 py-1">VBA Modules</div>
+                        <button onclick="loadVbaCode('mod_DbConnect')" class="w-full text-left px-3 py-2 rounded-lg text-xs font-mono text-blue-400 bg-slate-800/80 hover:bg-slate-800 transition">mod_01_DbConnect.bas</button>
+                        <button onclick="loadVbaCode('mod_LotProcess')" class="w-full text-left px-3 py-2 rounded-lg text-xs font-mono text-slate-300 hover:bg-slate-800 transition">mod_02_LotProcess.bas</button>
+                        <button onclick="loadVbaCode('mod_BarcodeScan')" class="w-full text-left px-3 py-2 rounded-lg text-xs font-mono text-slate-300 hover:bg-slate-800 transition">mod_03_BarcodeScan.bas</button>
+                        <button onclick="loadVbaCode('frm_MES_Main')" class="w-full text-left px-3 py-2 rounded-lg text-xs font-mono text-slate-300 hover:bg-slate-800 transition">frm_MES_Main.frm</button>
+                    </div>
+
+                    <div class="md:col-span-3 glass-panel p-4 rounded-xl flex flex-col">
+                        <div class="flex items-center justify-between mb-2 pb-2 border-b border-slate-800">
+                            <span id="vbaModuleTitle" class="text-xs font-bold text-white font-mono">mod_01_DbConnect.bas</span>
+                            <button onclick="copyVbaCode()" class="text-xs text-slate-400 hover:text-white flex items-center gap-1">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> 코드 복사
+                            </button>
+                        </div>
+                        <pre id="vbaCodeContent" class="flex-1 bg-slate-950 p-4 rounded-lg font-mono text-xs text-blue-300 overflow-auto custom-scrollbar leading-relaxed">
+' ========================================================
+' [MES20230221] MS-SQL ADODB 연결 및 트랜잭션 관리 모듈
+' ========================================================
+Public DB_Conn As ADODB.Connection
+Public DB_Rs As ADODB.Recordset
+
+Public Function ConnectDB() As Boolean
+    On Error GoTo ErrHandler
+    Set DB_Conn = New ADODB.Connection
+    
+    Dim strConn As String
+    strConn = "Provider=SQLOLEDB;Data Source=192.168.0.10,1433;" & _
+              "Initial Catalog=SMART_MES_DB;" & _
+              "User ID=mes_admin;Password=mes_secure_pwd;"
+              
+    DB_Conn.Open strConn
+    ConnectDB = True
+    Exit Function
+    
+ErrHandler:
+    MsgBox "DB 접속 실패: " & Err.Description, vbCritical, "MES 연결 오류"
+    ConnectDB = False
+End Function
+
+Public Sub DisconnectDB()
+    If Not DB_Rs Is Nothing Then
+        If DB_Rs.State = adStateOpen Then DB_Rs.Close
+        Set DB_Rs = Nothing
+    End If
+    If Not DB_Conn Is Nothing Then
+        If DB_Conn.State = adStateOpen Then DB_Conn.Close
+        Set DB_Conn = Nothing
+    End If
+End Sub
+                        </pre>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal: Add New Work Order -->
+    <div id="modalOrder" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">신규 작업지시 (Work Order) 생성</h3>
+                <button onclick="closeOrderModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="text-slate-400 block mb-1">지시번호 (WO#)</label>
+                    <input type="text" id="newWoNo" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-mono" readonly>
+                </div>
+                <div>
+                    <label class="text-slate-400 block mb-1">생산 품목 선택</label>
+                    <select id="newWoItem" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white">
+                        <option value="ITM-MB7700|메인보드 ASSY (MB-7700)">[ITM-MB7700] 메인보드 ASSY (MB-7700)</option>
+                        <option value="ITM-PWR500|전원공급 컨트롤보드 (PWR-500)">[ITM-PWR500] 전원공급 컨트롤보드 (PWR-500)</option>
+                        <option value="ITM-DISP10|10.1인치 터치 디스플레이 모듈">[ITM-DISP10] 10.1인치 터치 디스플레이 모듈</option>
+                        <option value="ITM-SEN900|스마트 IoT 센서 노드 (SEN-900)">[ITM-SEN900] 스마트 IoT 센서 노드 (SEN-900)</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-slate-400 block mb-1">배정 라인</label>
+                        <select id="newWoLine" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white">
+                            <option value="LINE-01 SMT">LINE-01 SMT</option>
+                            <option value="LINE-02 SMT">LINE-02 SMT</option>
+                            <option value="LINE-03 조립">LINE-03 조립</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-slate-400 block mb-1">지시 수량 (EA)</label>
+                        <input type="number" id="newWoQty" value="1000" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <button onclick="closeOrderModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-lg text-xs font-semibold hover:bg-slate-700">취소</button>
+                <button onclick="submitNewOrder()" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-500">발행 완료</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 border border-slate-700 text-white text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 transform translate-y-20 opacity-0 transition duration-300 z-50">
+        <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400" id="toastIcon"></i>
+        <span id="toastMsg">작업이 완료되었습니다.</span>
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        // Sample in-memory Database representing MES20230221.xlsm
+        const mesData = {
+            workOrders: [
+                { id: "WO-20230221-001", itemCode: "ITM-MB7700", itemName: "메인보드 ASSY (MB-7700)", line: "LINE-01 SMT", targetQty: 3000, goodQty: 2950, defectQty: 50, status: "완료", date: "2023-02-21 08:30" },
+                { id: "WO-20230221-002", itemCode: "ITM-PWR500", itemName: "전원공급 컨트롤보드 (PWR-500)", line: "LINE-02 SMT", targetQty: 2500, goodQty: 2470, defectQty: 30, status: "완료", date: "2023-02-21 09:00" },
+                { id: "WO-20230221-003", itemCode: "ITM-DISP10", itemName: "10.1인치 터치 디스플레이 모듈", line: "LINE-03 조립", targetQty: 1800, goodQty: 1520, defectQty: 15, status: "진행중", date: "2023-02-21 11:15" },
+                { id: "WO-20230221-004", itemCode: "ITM-SEN900", itemName: "스마트 IoT 센서 노드 (SEN-900)", line: "LINE-01 SMT", targetQty: 4000, goodQty: 3200, defectQty: 22, status: "진행중", date: "2023-02-21 13:00" },
+                { id: "WO-20230221-005", itemCode: "ITM-MB7700", itemName: "메인보드 ASSY (MB-7700)", line: "LINE-02 SMT", targetQty: 1200, goodQty: 700, defectQty: 6, status: "진행중", date: "2023-02-21 15:40" }
+            ],
+            lotHistory: [
+                { lotNo: "LOT-20230221-001", woNo: "WO-20230221-001", proc: "PROC-05 포장", qty: 500, status: "COMPLETED", worker: "김철수", timestamp: "2023-02-21 14:20" },
+                { lotNo: "LOT-20230221-002", woNo: "WO-20230221-001", proc: "PROC-05 포장", qty: 500, status: "COMPLETED", worker: "이영희", timestamp: "2023-02-21 14:50" },
+                { lotNo: "LOT-20230221-008", woNo: "WO-20230221-003", proc: "PROC-03 ICT검사", qty: 500, status: "RUNNING", worker: "홍길동", timestamp: "2023-02-21 16:10" }
+            ],
+            equipment: [
+                { id: "EQ-SMT-01", name: "고속 칩마운터 A호기", line: "LINE-01", status: "RUNNING", oee: 93.5, temp: 42.1, rpm: 1250 },
+                { id: "EQ-SMT-02", name: "고속 칩마운터 B호기", line: "LINE-02", status: "RUNNING", oee: 88.2, temp: 44.3, rpm: 1200 },
+                { id: "EQ-RF-01", name: "리플로우 솔더링 01호", line: "LINE-01", status: "RUNNING", oee: 95.0, temp: 245.0, rpm: 0 },
+                { id: "EQ-AOI-01", name: "3D AOI 광학검사기", line: "LINE-01", status: "WARNING", oee: 79.4, temp: 36.5, rpm: 0 },
+                { id: "EQ-ICT-01", name: "인서킷 테스터 (ICT)", line: "LINE-03", status: "RUNNING", oee: 91.0, temp: 31.2, rpm: 0 },
+                { id: "EQ-PKG-01", name: "자동 라벨/포장기", line: "LINE-03", status: "STOPPED", oee: 0.0, temp: 22.0, rpm: 0 }
+            ],
+            defects: [
+                { time: "15:20", lot: "LOT-20230221-008", proc: "PROC-02 수삽", type: "부품 미삽 (Missing Part)", qty: 2, desc: "R102 저항 누락", action: "재작업(Rework)" },
+                { time: "14:40", lot: "LOT-20230221-007", proc: "PROC-01 SMT", type: "솔더 브릿지 (Bridge)", qty: 3, desc: "IC U3 핀 쇼트", action: "수정 납땜" },
+                { time: "13:10", lot: "LOT-20230221-004", proc: "PROC-03 ICT", type: "전원 쇼트 (Power Short)", qty: 1, desc: "C50 커패시터 파손", action: "폐기(Scrap)" }
+            ],
+            bomMaster: [
+                { parentItem: "ITM-MB7700", childItem: "RAW-PCB-01", childName: "메인 PCB 베어보드 (4Layer)", qty: 1, unit: "EA" },
+                { parentItem: "ITM-MB7700", childItem: "RAW-MCU-32", childName: "ARM Cortex-M4 MCU IC", qty: 1, unit: "EA" },
+                { parentItem: "ITM-MB7700", childItem: "RAW-CAP-104", childName: "MLCC 100nF 0603", qty: 32, unit: "EA" },
+                { parentItem: "ITM-MB7700", childItem: "RAW-RES-10K", childName: "Chip Resistor 10K 0603", qty: 18, unit: "EA" },
+                { parentItem: "ITM-PWR500", childItem: "RAW-TR-12V", childName: "전원 트랜스포머 12V 5A", qty: 1, unit: "EA" }
+            ]
+        };
+
+        // Initialize UI on load
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initCharts();
+            renderTables();
+            renderEquipmentCards();
+            renderSelectedSheet();
+            runSqlQuery();
+
+            // Real-time Clock
+            setInterval(() => {
+                const now = new Date();
+                document.getElementById('currentTime').textContent = now.toLocaleTimeString('ko-KR', { hour12: false });
+            }, 1000);
+        });
+
+        // Tab Switching
+        function switchTab(tabId) {
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            const target = document.getElementById('tab-' + tabId);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.className = "nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 transition";
+            });
+            const activeBtn = document.getElementById('nav-' + tabId);
+            if (activeBtn) {
+                activeBtn.className = "nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-medium text-white bg-blue-600/20 text-blue-400 border border-blue-500/30 transition";
+            }
+            lucide.createIcons();
+        }
+
+        // Render Tables
+        function renderTables() {
+            // Dashboard Active Work Order Table
+            const woBody = document.getElementById('workOrderTableBody');
+            const fullWoBody = document.getElementById('fullWorkOrderTableBody');
+            let woHtml = '';
+            let fullWoHtml = '';
+
+            mesData.workOrders.forEach(wo => {
+                const total = wo.goodQty + wo.defectQty;
+                const pct = Math.round((wo.goodQty / wo.targetQty) * 100);
+                const statusBadge = wo.status === '완료' 
+                    ? '<span class="badge-status bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">완료</span>'
+                    : '<span class="badge-status bg-blue-500/20 text-blue-400 border border-blue-500/30">진행중</span>';
+
+                woHtml += `
+                    <tr class="hover:bg-slate-800/50 transition">
+                        <td class="p-3 font-mono font-bold text-white">${wo.id}</td>
+                        <td class="p-3">
+                            <div class="text-white font-medium">${wo.itemName}</div>
+                            <div class="text-[11px] text-slate-500 font-mono">${wo.itemCode}</div>
+                        </td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">${wo.line}</span></td>
+                        <td class="p-3 font-semibold text-white">${wo.targetQty.toLocaleString()}</td>
+                        <td class="p-3">
+                            <span class="text-emerald-400 font-medium">${wo.goodQty.toLocaleString()}</span> / 
+                            <span class="text-rose-400">${wo.defectQty.toLocaleString()}</span>
+                        </td>
+                        <td class="p-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-16 bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-blue-500 h-full rounded-full" style="width: ${Math.min(pct, 100)}%"></div>
+                                </div>
+                                <span class="font-mono text-[11px]">${pct}%</span>
+                            </div>
+                        </td>
+                        <td class="p-3">${statusBadge}</td>
+                        <td class="p-3 text-right">
+                            <button onclick="quickScan('${wo.id}')" class="text-blue-400 hover:text-blue-300 font-medium">스캔착공</button>
+                        </td>
+                    </tr>
+                `;
+
+                fullWoHtml += `
+                    <tr class="hover:bg-slate-800/50 transition">
+                        <td class="p-3 text-slate-400">${wo.date}</td>
+                        <td class="p-3 font-mono font-bold text-white">${wo.id}</td>
+                        <td class="p-3 font-mono text-slate-300">${wo.itemCode}</td>
+                        <td class="p-3 text-white font-medium">${wo.itemName}</td>
+                        <td class="p-3">${wo.line}</td>
+                        <td class="p-3 font-semibold text-white">${wo.targetQty.toLocaleString()}</td>
+                        <td class="p-3 text-emerald-400 font-semibold">${wo.goodQty.toLocaleString()}</td>
+                        <td class="p-3">${statusBadge}</td>
+                        <td class="p-3 text-right space-x-2">
+                            <button onclick="deleteOrder('${wo.id}')" class="text-rose-400 hover:text-rose-300">삭제</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            woBody.innerHTML = woHtml;
+            fullWoBody.innerHTML = fullWoHtml;
+
+            // Defect Table
+            const defectBody = document.getElementById('defectTableBody');
+            let defectHtml = '';
+            mesData.defects.forEach(d => {
+                defectHtml += `
+                    <tr class="hover:bg-slate-800/50 transition">
+                        <td class="p-3 text-slate-400">${d.time}</td>
+                        <td class="p-3 font-mono text-blue-400">${d.lot}</td>
+                        <td class="p-3 text-slate-300">${d.proc}</td>
+                        <td class="p-3 font-semibold text-rose-400">${d.type}</td>
+                        <td class="p-3 font-bold text-white">${d.qty} EA</td>
+                        <td class="p-3 text-slate-400">${d.desc}</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-800 text-amber-300 text-[11px]">${d.action}</span></td>
+                    </tr>
+                `;
+            });
+            defectBody.innerHTML = defectHtml;
+        }
+
+        // Render Equipment Cards
+        function renderEquipmentCards() {
+            const container = document.getElementById('equipmentCardList');
+            let html = '';
+            mesData.equipment.forEach(eq => {
+                let statusColor = eq.status === 'RUNNING' ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' :
+                                  eq.status === 'WARNING' ? 'text-amber-400 bg-amber-500/10 border-amber-500/30' : 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+                let statusDot = eq.status === 'RUNNING' ? 'bg-emerald-500' : eq.status === 'WARNING' ? 'bg-amber-500' : 'bg-rose-500';
+
+                html += `
+                    <div class="glass-panel p-4 rounded-xl space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-mono text-slate-400">${eq.id}</span>
+                                <h4 class="text-sm font-bold text-white">${eq.name}</h4>
+                            </div>
+                            <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold border flex items-center gap-1.5 ${statusColor}">
+                                <span class="w-1.5 h-1.5 rounded-full ${statusDot}"></span>
+                                ${eq.status}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 p-2.5 bg-slate-900/80 rounded-lg text-center text-xs">
+                            <div>
+                                <span class="text-[10px] text-slate-500 block">설비 OEE</span>
+                                <span class="font-bold ${eq.oee > 90 ? 'text-emerald-400' : 'text-amber-400'}">${eq.oee}%</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-500 block">동작 온도</span>
+                                <span class="font-bold text-white">${eq.temp}°C</span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-500 block">Speed (RPM)</span>
+                                <span class="font-bold text-blue-400">${eq.rpm}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-[11px] text-slate-400 pt-1">
+                            <span>소속: ${eq.line}</span>
+                            <button class="text-blue-400 hover:text-blue-300 font-medium">상세 파라미터</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // Initialize Charts
+        let prodChartInstance, defectChartInstance;
+        function initCharts() {
+            const ctx1 = document.getElementById('productionChart').getContext('2d');
+            prodChartInstance = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'],
+                    datasets: [
+                        {
+                            label: '계획 목표 (Target)',
+                            data: [1200, 2500, 4000, 4000, 6000, 8000, 10000, 12500],
+                            borderColor: '#64748b',
+                            borderDash: [5, 5],
+                            borderWidth: 2,
+                            tension: 0.3,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '실제 양품 실적 (Actual)',
+                            data: [1150, 2480, 3920, 3920, 5840, 7750, 9600, 10840],
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                            fill: true,
+                            borderWidth: 3,
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointBackgroundColor: '#3b82f6'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#94a3b8', font: { family: 'Pretendard', size: 11 } } }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#64748b' } }
+                    }
+                }
+            });
+
+            const ctx2 = document.getElementById('defectPieChart').getContext('2d');
+            defectChartInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['솔더 브릿지', '부품 미삽', '극성 역삽', '냉납/미납', '기타 스크래치'],
+                    datasets: [{
+                        data: [42, 28, 15, 10, 5],
+                        backgroundColor: ['#ef4444', '#f97316', '#f59e0b', '#3b82f6', '#64748b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 }, boxWidth: 10 } }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // Excel / XLSM File Upload & Parsing Handler
+        function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById('uploadLabel').textContent = file.name;
+            showToast(`"${file.name}" 파일을 파싱 중입니다...`);
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Update sheet selector dropdown
+                    const selector = document.getElementById('sheetSelector');
+                    selector.innerHTML = '';
+                    workbook.SheetNames.forEach(sheetName => {
+                        const opt = document.createElement('option');
+                        opt.value = sheetName;
+                        opt.textContent = sheetName;
+                        selector.appendChild(opt);
+                    });
+
+                    // Store workbook in memory
+                    window.currentWorkbook = workbook;
+                    renderSelectedSheet();
+                    showToast(`성공: ${workbook.SheetNames.length}개 워크시트 로드 완료`);
+                    switchTab('excelViewer');
+                } catch (err) {
+                    console.error(err);
+                    showToast('엑셀 파일 파싱 오류 발생: ' + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Render Raw Sheet
+        function renderSelectedSheet() {
+            const table = document.getElementById('rawExcelTable');
+            const selector = document.getElementById('sheetSelector');
+            const sheetName = selector.value;
+
+            let rows = [];
+            if (window.currentWorkbook && window.currentWorkbook.Sheets[sheetName]) {
+                const sheet = window.currentWorkbook.Sheets[sheetName];
+                rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            } else {
+                // Default fallback mock data based on sheetName
+                if (sheetName === 'WorkOrder') {
+                    rows = [
+                        ['지시번호', '품목코드', '품목명', '라인', '계획수량', '양품수량', '불량수량', '상태'],
+                        ...mesData.workOrders.map(w => [w.id, w.itemCode, w.itemName, w.line, w.targetQty, w.goodQty, w.defectQty, w.status])
+                    ];
+                } else if (sheetName === 'BOM_Master') {
+                    rows = [
+                        ['모품목코드', '자품목코드', '자품목명', '소요량', '단위'],
+                        ...mesData.bomMaster.map(b => [b.parentItem, b.childItem, b.childName, b.qty, b.unit])
+                    ];
+                } else {
+                    rows = [
+                        ['LOT_NO', 'WORK_ORDER_NO', 'PROCESS_CODE', 'QTY', 'STATUS', 'WORKER', 'TIME'],
+                        ...mesData.lotHistory.map(l => [l.lotNo, l.woNo, l.proc, l.qty, l.status, l.worker, l.timestamp])
+                    ];
+                }
+            }
+
+            if (rows.length === 0) {
+                table.innerHTML = `<tr><td class="p-4 text-center text-slate-500">데이터가 없습니다.</td></tr>`;
+                return;
+            }
+
+            let html = '<thead class="bg-slate-800 text-slate-300 font-semibold sticky top-0"><tr>';
+            rows[0].forEach(col => {
+                html += `<th class="p-2.5 border border-slate-700 whitespace-nowrap bg-slate-800">${col || ''}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            for (let i = 1; i < rows.length; i++) {
+                html += '<tr class="hover:bg-slate-800/40">';
+                rows[i].forEach(val => {
+                    html += `<td class="p-2 border border-slate-800/80 whitespace-nowrap">${val !== undefined ? val : ''}</td>`;
+                });
+                html += '</tr>';
+            }
+            html += '</tbody>';
+            table.innerHTML = html;
+        }
+
+        // Export data to Excel
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            const wsOrders = XLSX.utils.json_to_sheet(mesData.workOrders);
+            const wsLots = XLSX.utils.json_to_sheet(mesData.lotHistory);
+            const wsBOM = XLSX.utils.json_to_sheet(mesData.bomMaster);
+            const wsDefects = XLSX.utils.json_to_sheet(mesData.defects);
+
+            XLSX.utils.book_append_sheet(wb, wsOrders, "WorkOrders");
+            XLSX.utils.book_append_sheet(wb, wsLots, "LotTracking");
+            XLSX.utils.book_append_sheet(wb, wsBOM, "BOM_Master");
+            XLSX.utils.book_append_sheet(wb, wsDefects, "Defects");
+
+            XLSX.writeFile(wb, "MES20230221_Exported.xlsx");
+            showToast("MES 데이터가 엑셀로 내보내졌습니다.");
+        }
+
+        // Track-In / Out Simulation
+        function executeTrackIn() {
+            const lot = document.getElementById('scanLotInput').value.trim() || 'LOT-20230221-009';
+            const proc = document.getElementById('scanProcess').value;
+            showToast(`[Track-In 성공] ${lot} -> ${proc} 착공 등록 완료`);
+            document.getElementById('currentInspectedLot').textContent = lot;
+        }
+
+        function executeTrackOut() {
+            const lot = document.getElementById('scanLotInput').value.trim() || 'LOT-20230221-009';
+            const proc = document.getElementById('scanProcess').value;
+            showToast(`[Track-Out 성공] ${lot} -> ${proc} 완공 처리 (양품 500 EA 실적 반영)`);
+        }
+
+        // Modal Operations
+        function addNewOrderModal() {
+            const randomId = 'WO-20230221-' + String(Math.floor(Math.random() * 900) + 100);
+            document.getElementById('newWoNo').value = randomId;
+            document.getElementById('modalOrder').classList.remove('hidden');
+        }
+
+        function closeOrderModal() {
+            document.getElementById('modalOrder').classList.add('hidden');
+        }
+
+        function submitNewOrder() {
+            const id = document.getElementById('newWoNo').value;
+            const [itemCode, itemName] = document.getElementById('newWoItem').value.split('|');
+            const line = document.getElementById('newWoLine').value;
+            const qty = parseInt(document.getElementById('newWoQty').value, 10) || 1000;
+
+            mesData.workOrders.unshift({
+                id: id,
+                itemCode: itemCode,
+                itemName: itemName,
+                line: line,
+                targetQty: qty,
+                goodQty: 0,
+                defectQty: 0,
+                status: "진행중",
+                date: new Date().toISOString().replace('T', ' ').substring(0, 16)
+            });
+
+            renderTables();
+            closeOrderModal();
+            showToast(`작업지시 ${id} 발행 완료!`);
+        }
+
+        function deleteOrder(id) {
+            mesData.workOrders = mesData.workOrders.filter(w => w.id !== id);
+            renderTables();
+            showToast(`작업지시 ${id} 삭제됨`);
+        }
+
+        // SQL Presets and Execution Simulator
+        const sqlPresets = {
+            select_wip: `SELECT 
+    W.WORK_ORDER_NO,
+    W.ITEM_CODE,
+    W.ITEM_NAME,
+    COUNT(L.LOT_NO) AS TOTAL_LOT_COUNT,
+    SUM(L.QTY) AS WIP_QTY,
+    L.PROCESS_CODE,
+    P.PROCESS_NAME
+FROM TB_WORK_ORDER W
+JOIN TB_LOT_TRACKING L ON W.WORK_ORDER_NO = L.WORK_ORDER_NO
+JOIN TB_PROCESS_MST P ON L.PROCESS_CODE = P.PROCESS_CODE
+WHERE L.STATUS = 'IN_PROCESS'
+GROUP BY W.WORK_ORDER_NO, W.ITEM_CODE, W.ITEM_NAME, L.PROCESS_CODE, P.PROCESS_NAME
+ORDER BY W.WORK_ORDER_NO ASC;`,
+            
+            sp_track_out: `EXEC dbo.usp_MES_TrackOut
+    @p_LOT_NO = 'LOT-20230221-008',
+    @p_PROCESS_CODE = 'PROC-03',
+    @p_EQUIPMENT_ID = 'EQ-ICT-01',
+    @p_GOOD_QTY = 498,
+    @p_DEFECT_QTY = 2,
+    @p_WORKER_ID = 'USR_DEV01';`,
+
+            bom_recursive: `WITH CTE_BOM AS (
+    -- Anchor Member: 최상위 제품
+    SELECT 
+        PARENT_ITEM, CHILD_ITEM, CHILD_NAME, QTY, 1 AS BOM_LEVEL,
+        CAST(CHILD_ITEM AS VARCHAR(255)) AS PATH_TREE
+    FROM TB_BOM_MASTER
+    WHERE PARENT_ITEM = 'ITM-MB7700'
+    UNION ALL
+    -- Recursive Member: 하위 전개 자재
+    SELECT 
+        B.PARENT_ITEM, B.CHILD_ITEM, B.CHILD_NAME, B.QTY, C.BOM_LEVEL + 1,
+        CAST(C.PATH_TREE + ' -> ' + B.CHILD_ITEM AS VARCHAR(255))
+    FROM TB_BOM_MASTER B
+    INNER JOIN CTE_BOM C ON B.PARENT_ITEM = C.CHILD_ITEM
+)
+SELECT * FROM CTE_BOM ORDER BY BOM_LEVEL, CHILD_ITEM;`,
+
+            calc_oee: `SELECT 
+    EQUIPMENT_ID,
+    LINE_ID,
+    ROUND(AVAILABILITY * 100, 2) AS AVAILABILITY_PCT,
+    ROUND(PERFORMANCE * 100, 2) AS PERFORMANCE_PCT,
+    ROUND(QUALITY * 100, 2) AS QUALITY_PCT,
+    ROUND((AVAILABILITY * PERFORMANCE * QUALITY) * 100, 2) AS OEE_PCT
+FROM TB_EQUIPMENT_DAILY_OEE
+WHERE WORK_DATE = '2023-02-21';`
+        };
+
+        function applyQueryPreset() {
+            const key = document.getElementById('queryPreset').value;
+            document.getElementById('sqlInput').value = sqlPresets[key];
+        }
+
+        function runSqlQuery() {
+            const container = document.getElementById('queryResultContainer');
+            const key = document.getElementById('queryPreset').value;
+
+            let cols = [], dataRows = [];
+            if (key === 'select_wip') {
+                cols = ['WORK_ORDER_NO', 'ITEM_CODE', 'ITEM_NAME', 'LOT_COUNT', 'WIP_QTY', 'PROCESS_NAME'];
+                dataRows = [
+                    ['WO-20230221-003', 'ITM-DISP10', '10.1인치 터치 디스플레이', 3, 1500, 'PROC-03 ICT 기능검사'],
+                    ['WO-20230221-004', 'ITM-SEN900', '스마트 IoT 센서 노드', 8, 4000, 'PROC-01 SMT 표면실장'],
+                    ['WO-20230221-005', 'ITM-MB7700', '메인보드 ASSY (MB-7700)', 2, 1000, 'PROC-02 수삽 공정']
+                ];
+            } else if (key === 'sp_track_out') {
+                cols = ['RETURN_CODE', 'MESSAGE', 'PROCESSED_AT', 'NEXT_PROCESS'];
+                dataRows = [
+                    ['SUCCESS_00', 'Track-Out 완료 및 다음공정 이동 승인됨', '2026-08-16 16:45:10', 'PROC-04 하우징 조립']
+                ];
+            } else if (key === 'bom_recursive') {
+                cols = ['PARENT_ITEM', 'CHILD_ITEM', 'CHILD_NAME', 'QTY', 'LEVEL', 'PATH_TREE'];
+                dataRows = [
+                    ['ITM-MB7700', 'RAW-PCB-01', '메인 PCB 베어보드', 1, 1, 'RAW-PCB-01'],
+                    ['ITM-MB7700', 'RAW-MCU-32', 'ARM Cortex-M4 MCU', 1, 1, 'RAW-MCU-32'],
+                    ['ITM-MB7700', 'RAW-CAP-104', 'MLCC 100nF 0603', 32, 1, 'RAW-CAP-104'],
+                    ['ITM-MB7700', 'RAW-RES-10K', 'Chip Resistor 10K', 18, 1, 'RAW-RES-10K']
+                ];
+            } else {
+                cols = ['EQUIPMENT_ID', 'LINE_ID', 'AVAILABILITY_PCT', 'PERFORMANCE_PCT', 'QUALITY_PCT', 'OEE_PCT'];
+                dataRows = [
+                    ['EQ-SMT-01', 'LINE-01', '94.20%', '98.50%', '99.40%', '92.23%'],
+                    ['EQ-SMT-02', 'LINE-02', '91.00%', '97.20%', '98.80%', '87.39%'],
+                    ['EQ-RF-01',  'LINE-01', '96.50%', '99.00%', '99.80%', '95.34%']
+                ];
+            }
+
+            let html = '<table class="w-full text-left text-[11px] border-collapse border border-slate-800">';
+            html += '<thead class="bg-slate-900 text-slate-300 font-semibold"><tr>';
+            cols.forEach(c => html += `<th class="p-2 border border-slate-800">${c}</th>`);
+            html += '</tr></thead><tbody>';
+            dataRows.forEach(r => {
+                html += '<tr class="hover:bg-slate-900/60">';
+                r.forEach(v => html += `<td class="p-2 border border-slate-900/80 text-emerald-400 font-mono">${v}</td>`);
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+
+            container.innerHTML = html;
+            document.getElementById('queryStats').textContent = `결과: ${dataRows.length}개 행 반환됨 (0.008초)`;
+            showToast("MS-SQL 쿼리 실행 성공");
+        }
+
+        // VBA Viewer Code Loading
+        const vbaCodes = {
+            mod_DbConnect: `' ========================================================
+' [MES20230221] MS-SQL ADODB 연결 및 트랜잭션 관리 모듈
+' ========================================================
+Public DB_Conn As ADODB.Connection
+Public DB_Rs As ADODB.Recordset
+
+Public Function ConnectDB() As Boolean
+    On Error GoTo ErrHandler
+    Set DB_Conn = New ADODB.Connection
+    
+    Dim strConn As String
+    strConn = "Provider=SQLOLEDB;Data Source=192.168.0.10,1433;" & _
+              "Initial Catalog=SMART_MES_DB;" & _
+              "User ID=mes_admin;Password=mes_secure_pwd;"
+              
+    DB_Conn.Open strConn
+    ConnectDB = True
+    Exit Function
+    
+ErrHandler:
+    MsgBox "DB 접속 실패: " & Err.Description, vbCritical, "MES 연결 오류"
+    ConnectDB = False
+End Function
+
+Public Sub DisconnectDB()
+    If Not DB_Rs Is Nothing Then
+        If DB_Rs.State = adStateOpen Then DB_Rs.Close
+        Set DB_Rs = Nothing
+    End If
+    If Not DB_Conn Is Nothing Then
+        If DB_Conn.State = adStateOpen Then DB_Conn.Close
+        Set DB_Conn = Nothing
+    End If
+End Sub`,
+            mod_LotProcess: `' ========================================================
+' [MES20230221] Lot Track-In / Track-Out 공정 제어 매크로
+' ========================================================
+Public Sub ExecuteTrackOut(ByVal strLotNo As String, ByVal intGoodQty As Long, ByVal intDefectQty As Long)
+    If Not ConnectDB() Then Exit Sub
+    
+    Dim cmd As New ADODB.Command
+    Set cmd.ActiveConnection = DB_Conn
+    cmd.CommandType = adCmdStoredProc
+    cmd.CommandText = "usp_MES_TrackOut"
+    
+    cmd.Parameters.Append cmd.CreateParameter("@p_LOT_NO", adVarChar, adParamInput, 50, strLotNo)
+    cmd.Parameters.Append cmd.CreateParameter("@p_GOOD_QTY", adInteger, adParamInput, , intGoodQty)
+    cmd.Parameters.Append cmd.CreateParameter("@p_DEFECT_QTY", adInteger, adParamInput, , intDefectQty)
+    
+    cmd.Execute
+    MsgBox "Lot " & strLotNo & " 실적 등록 완료!", vbInformation, "공정 완료"
+    DisconnectDB
+End Sub`,
+            mod_BarcodeScan: `' ========================================================
+' [MES20230221] 시리얼 바코드 스캔 이벤트 가로채기 모듈
+' ========================================================
+Private Sub txtBarcode_KeyDown(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
+    If KeyCode = vbKeyReturn Then
+        Dim scannedLot As String
+        scannedLot = Trim(txtBarcode.Text)
+        
+        If Len(scannedLot) > 0 Then
+            Call ProcessBarcodeScan(scannedLot)
+            txtBarcode.Text = ""
+        End If
+    End If
+End Sub`,
+            frm_MES_Main: `' ========================================================
+' [MES20230221] UserForm 메인 UI 제어 코드
+' ========================================================
+Private Sub UserForm_Initialize()
+    Me.Caption = "스마트 MES 생산실적 관제 시스템"
+    Call RefreshWorkOrderGrid
+    Call LoadEquipmentStatus
+End Sub`
+        };
+
+        function loadVbaCode(moduleKey) {
+            document.getElementById('vbaModuleTitle').textContent = moduleKey + (moduleKey.startsWith('mod') ? '.bas' : '.frm');
+            document.getElementById('vbaCodeContent').textContent = vbaCodes[moduleKey] || '// 코드가 없습니다.';
+        }
+
+        function copyVbaCode() {
+            const code = document.getElementById('vbaCodeContent').textContent;
+            navigator.clipboard.writeText(code);
+            showToast("VBA 코드가 클립보드에 복사되었습니다.");
+        }
+
+        // Toast Helper
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

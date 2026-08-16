@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개발 도구 및 학습 가이드 (Excel VBA & MS-SQL)</title>
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --accent-green: #059669;
+            --code-bg: #f1f5f9;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 36px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 26px;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            font-size: 20px;
+            color: var(--secondary-color);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        h3 {
+            font-size: 16px;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            color: #0f172a;
+        }
+
+        .site-card {
+            background-color: #fafbfc;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--secondary-color);
+            border-radius: 4px;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+        }
+
+        .site-card strong {
+            font-size: 15px;
+            color: #0f172a;
+        }
+
+        .site-card a {
+            color: var(--secondary-color);
+            text-decoration: none;
+        }
+
+        .site-card a:hover {
+            text-decoration: underline;
+        }
+
+        .site-card ul {
+            margin-top: 6px;
+            margin-left: 20px;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .step-list {
+            list-style: none;
+            counter-reset: step-counter;
+            margin-top: 12px;
+        }
+
+        .step-item {
+            position: relative;
+            padding-left: 42px;
+            margin-bottom: 20px;
+        }
+
+        .step-item::before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 28px;
+            height: 28px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .step-title {
+            font-weight: 600;
+            font-size: 15px;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .step-desc {
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .step-desc ul {
+            margin-top: 6px;
+            margin-left: 18px;
+        }
+
+        code {
+            background: var(--code-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 13px;
+            color: #d97706;
+        }
+
+        .callout {
+            background-color: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 6px;
+            padding: 14px;
+            margin-top: 16px;
+            font-size: 14px;
+            color: #065f46;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>개발 도구 설치 및 학습 가이드</h1>
+        <div class="subtitle">Excel VBA, MS-SQL 학습 리소스 및 MS-SQL Express / SSMS 설치 가이드</div>
+    </header>
+
+    <!-- 1. Excel VBA -->
+    <section class="section">
+        <h2>1. Excel VBA 텍스트·명령어 학습 사이트</h2>
+        
+        <div class="site-card">
+            <strong><a href="https://learn.microsoft.com/ko-kr/office/vba/api/overview/excel" target="_blank">Microsoft Learn - Excel VBA 참조 문서</a></strong>
+            <ul>
+                <li><strong>특징:</strong> MS 공식 레퍼런스 문서.</li>
+                <li><strong>내용:</strong> <code>Range</code>, <code>Worksheet</code> 등 개체별 메서드, 속성, 함수에 대한 표준 명세와 구문(Syntax) 제공.</li>
+            </ul>
+        </div>
+
+        <div class="site-card">
+            <strong><a href="https://excelmacromastery.com/" target="_blank">Excel Macro Mastery (영문)</a></strong>
+            <ul>
+                <li><strong>특징:</strong> 문법의 작동 원리와 실무 패턴을 깊이 있게 다루는 해외 최고 수준의 텍스트 가이드.</li>
+                <li><strong>내용:</strong> 배열, Dictionary, 반복문, 예외 처리 등 핵심 주제별 상세 해설.</li>
+            </ul>
+        </div>
+
+        <div class="site-card">
+            <strong><a href="https://www.oppadu.com/" target="_blank">오빠두엑셀 - 기초 강좌 및 코드 족보</a></strong>
+            <ul>
+                <li><strong>특징:</strong> 국내 대표 엑셀 커뮤니티의 텍스트 강좌.</li>
+                <li><strong>내용:</strong> 초보자용 문법 정리 및 실무에 바로 복사해 쓸 수 있는 코드 템플릿 제공.</li>
+            </ul>
+        </div>
+
+        <div class="site-card">
+            <strong><a href="https://www.iexceller.com/" target="_blank">아이엑셀러 (iExceller)</a></strong>
+            <ul>
+                <li><strong>특징:</strong> 국내 VBA 입문 텍스트 강좌.</li>
+                <li><strong>내용:</strong> 개체 모델의 기초부터 순차적으로 읽으며 학습하기에 적합.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- 2. MS-SQL -->
+    <section class="section">
+        <h2>2. MS-SQL (T-SQL) 텍스트·명령어 학습 사이트</h2>
+
+        <div class="site-card">
+            <strong><a href="https://www.sqlservertutorial.net/" target="_blank">SQL Server Tutorial (영문)</a></strong>
+            <ul>
+                <li><strong>특징:</strong> MS SQL Server 전용 튜토리얼 사이트.</li>
+                <li><strong>내용:</strong> <code>SELECT</code>, <code>JOIN</code>, CTE부터 Stored Procedure, Trigger, Index까지 카테고리별 텍스트 설명과 실행 쿼리 제공.</li>
+            </ul>
+        </div>
+
+        <div class="site-card">
+            <strong><a href="https://www.w3schools.com/sql/" target="_blank">W3Schools - SQL Tutorial (영문)</a></strong>
+            <ul>
+                <li><strong>특징:</strong> 직관적인 1페이지 요약 및 브라우저 내 쿼리 실습 지원.</li>
+                <li><strong>내용:</strong> 기본 쿼리 문법의 빠른 검색 및 'Try it Yourself'를 통한 즉시 테스트 가능.</li>
+            </ul>
+        </div>
+
+        <div class="site-card">
+            <strong><a href="https://learn.microsoft.com/ko-kr/sql/t-sql/language-reference" target="_blank">Microsoft Learn - T-SQL 언어 참조</a></strong>
+            <ul>
+                <li><strong>특징:</strong> MS 공식 T-SQL 언어 레퍼런스.</li>
+                <li><strong>내용:</strong> 모든 T-SQL 키워드, 함수, 인자(Arguments), 반환 타입에 대한 사전식 정의.</li>
+            </ul>
+        </div>
+
+        <div class="site-card">
+            <strong><a href="http://www.gurubee.net/" target="_blank">구루비 (GooRooBee) - SQL 강좌</a></strong>
+            <ul>
+                <li><strong>특징:</strong> 국내 데이터베이스 기술 커뮤니티.</li>
+                <li><strong>내용:</strong> 한국어로 된 쿼리 작성법, 조인 원리, 실행 계획 및 성능 튜닝 강좌.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- 3. MS SQL & SSMS Installation -->
+    <section class="section">
+        <h2>3. Windows 개인 노트북 MS-SQL 환경 구축 절차</h2>
+
+        <ol class="step-list">
+            <li class="step-item">
+                <div class="step-title">SQL Server Express (DB 엔진) 설치</div>
+                <div class="step-desc">
+                    MS 공식 사이트에서 무료 버전인 <strong>SQL Server Express</strong> 인스톨러를 다운로드하여 실행한 뒤, <code>기본(Basic)</code> 설치를 선택하여 완료합니다.
+                </div>
+            </li>
+
+            <li class="step-item">
+                <div class="step-title">SSMS (SQL Server Management Studio) 다운로드</div>
+                <div class="step-desc">
+                    DB 관리 및 쿼리 작성을 위한 도구인 <strong>SSMS</strong> 최신 설치 파일(<code>SSMS-Setup-*.exe</code>)을 MS 공식 페이지에서 다운로드합니다.
+                </div>
+            </li>
+
+            <li class="step-item">
+                <div class="step-title">SSMS 설치 및 재부팅</div>
+                <div class="step-desc">
+                    설치 파일을 실행하여 <code>설치(Install)</code>를 진행하고, 설치가 완료되면 시스템 안내에 따라 컴퓨터를 재부팅합니다.
+                </div>
+            </li>
+
+            <li class="step-item">
+                <div class="step-title">SSMS 실행 및 로컬 서버 연결</div>
+                <div class="step-desc">
+                    SSMS를 실행하고 아래 정보로 연결합니다:
+                    <ul>
+                        <li><strong>서버 유형(Server type):</strong> <code>Database Engine</code></li>
+                        <li><strong>서버 이름(Server name):</strong> <code>localhost</code> 또는 <code>.\SQLEXPRESS</code></li>
+                        <li><strong>인증(Authentication):</strong> <code>Windows Authentication</code> (Windows 인증)</li>
+                    </ul>
+                </div>
+            </li>
+        </ol>
+
+        <div class="callout">
+            <strong>💡 참고:</strong> 연결 후 SSMS 상단의 <strong>[새 쿼리(New Query)]</strong> 버튼을 클릭하여 SQL 스크립트를 작성하고 실행(F5)할 수 있습니다.
+        </div>
+    </section>
+
+    <!-- 4. Excel to SQL Insert Script -->
+    <section class="section">
+        <h2>4. 엑셀 데이터를 MS-SQL Insert 쿼리로 변환하는 스크립트</h2>
+        
+        <div class="step-desc" style="margin-bottom: 16px;">
+            <code>DATA_20230221.xls</code> 파일을 읽어 각 시트별 데이터 타입을 자동 판별하고, 따옴표 및 NULL 처리 등을 반영하여 <code>.sql</code> 파일로 일괄 생성하는 Python 코드입니다.
+        </div>
+        
+        <h3>사전 준비 (라이브러리 설치)</h3>
+        <div class="callout" style="margin-top: 8px; margin-bottom: 16px;">
+            터미널(CMD/PowerShell)에서 아래 명령어를 실행하세요.<br>
+            <code>pip install pandas xlrd openpyxl</code>
+        </div>
+
+        <h3>Python 스크립트 코드</h3>
+        <pre style="background: var(--code-bg); padding: 16px; border-radius: 6px; overflow-x: auto; font-family: Consolas, Monaco, monospace; font-size: 13px; color: #333; line-height: 1.5;">
+import os
+import pandas as pd
+import numpy as np
+
+# 파일 경로 설정
+excel_path = r"C:\Users\junipa7\Documents\myhomepage\contents\MES_Developer\DATA_20230221.xls"
+output_sql_path = r"C:\Users\junipa7\Documents\myhomepage\contents\MES_Developer\DATA_20230221_insert.sql"
+
+def format_sql_val(val):
+    if pd.isna(val) or val is None or str(val).strip() in ('', 'NaT', 'nan', 'None'):
+        return "NULL"
+    if isinstance(val, (int, np.integer)):
+        return str(val)
+    if isinstance(val, (float, np.floating)):
+        return str(int(val)) if val.is_integer() else str(val)
+    if isinstance(val, bool):
+        return "1" if val else "0"
+    if isinstance(val, (pd.Timestamp, str)):
+        val_str = str(val).replace("'", "''")
+        return f"'{val_str}'"
+    
+    val_str = str(val).replace("'", "''")
+    return f"'{val_str}'"
+
+def generate_insert_sql(excel_file, output_file):
+    excel_data = pd.ExcelFile(excel_file)
+    
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write("-- MS-SQL Insert Statements Generated from Excel\n")
+        f.write(f"-- Source: {excel_file}\n\n")
+        
+        for sheet_name in excel_data.sheet_names:
+            df = pd.read_excel(excel_file, sheet_name=sheet_name)
+            
+            if df.empty:
+                continue
+                
+            table_name = sheet_name.strip()
+            columns = [f"[{col.strip()}]" for col in df.columns]
+            col_list_str = ", ".join(columns)
+            
+            f.write(f"-- Table: {table_name}\n")
+            
+            for _, row in df.iterrows():
+                formatted_values = [format_sql_val(val) for val in row]
+                val_list_str = ", ".join(formatted_values)
+                sql = f"INSERT INTO [{table_name}] ({col_list_str}) VALUES ({val_list_str});\n"
+                f.write(sql)
+            
+            f.write("\n")
+            
+    print(f"SQL 파일 생성이 완료되었습니다: {output_file}")
+
+if __name__ == "__main__":
+    generate_insert_sql(excel_path, output_sql_path)
+</pre>
+
+        <ul style="margin-top: 16px; margin-left: 20px; font-size: 14px; color: #334155;">
+            <li><strong>데이터 타입 판별:</strong> 숫자(Int/Float)는 따옴표 없이 처리, 문자열 및 날짜는 <code>'값'</code>으로 감싸며 내부 작은따옴표는 <code>''</code>로 이스케이프 처리합니다.</li>
+            <li><strong>NULL 처리:</strong> 빈 셀(NaN, 빈 문자열)은 <code>NULL</code>로 변환합니다.</li>
+            <li><strong>예약어 방지:</strong> 시트명 및 컬럼명에 대괄호(<code>[컬럼명]</code>)를 적용하여 MS-SQL 예약어 충돌을 방지합니다.</li>
+        </ul>
+    </section>
+
+</div>
+
+</body>
+</html>

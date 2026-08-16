@@ -1,229 +1,228 @@
-<article class="mes-document mes-standards">
-<div class="container">
+<h1>🏭 MES 관련 표준 및 대표 웹사이트 정리</h1>
+<p>Manufacturing Execution System(제조 실행 시스템) 관련 국제·국내 표준과 대표 웹사이트 정리입니다.</p>
 
-  <header>
-    <h1>🏭 MES 관련 표준 및 대표 웹사이트 정리</h1>
-    <p>Manufacturing Execution System 관련 국제·국내 표준과 대표 웹사이트</p>
-  </header>
+<div class="box box-focus">
+    <span class="box-title">📌 MES 구축 시 최우선 참조 표준 요약</span>
+    <p><strong>ISA-95 (IEC 62264)</strong>가 MES 영역의 사실상 글로벌 마스터 표준이며, 대부분의 MES 솔루션과 컨설팅 프레임워크가 이 모델을 기반으로 설계됩니다.</p>
+</div>
 
-  <!-- 1. 핵심 MES 표준 -->
-  <section>
-    <h2><span class="num">1</span> 핵심 MES 표준</h2>
-    <table>
-      <thead>
-        <tr><th>표준 번호</th><th>표준명</th><th>주요 내용</th><th>대표 웹사이트</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="std">ISA-95<br>(IEC 62264)</td>
-          <td>Enterprise-Control System Integration</td>
-          <td>기업-제어 시스템 간 통합 모델 (레벨 3~4). <strong>MES의 가장 핵심적인 참조 모델</strong></td>
-          <td><a href="https://www.isa.org/isa95" target="_blank">isa.org/isa95</a></td>
-        </tr>
-        <tr>
-          <td class="std">ISA-88<br>(IEC 61512)</td>
-          <td>Batch Control</td>
-          <td>배치 제어 표준. ISA-95와 함께 MES 구조화의 기반</td>
-          <td><a href="https://www.isa.org/standards/isa88" target="_blank">isa.org/isa88</a></td>
-        </tr>
-        <tr>
-          <td class="std">ISO 22400</td>
-          <td>Manufacturing Operations Management — KPIs</td>
-          <td>제조 운영 관리를 위한 핵심성과지표(KPI) 정의</td>
-          <td><a href="https://www.iso.org/standard/64927.html" target="_blank">iso.org/iso-22400</a></td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- 2. 아키텍처 & 통합 표준 -->
-  <section>
-    <h2><span class="num">2</span> 아키텍처 &amp; 통합 표준</h2>
-    <table>
-      <thead>
-        <tr><th>표준 번호</th><th>표준명</th><th>주요 내용</th><th>대표 웹사이트</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="std">IEC 62264</td>
-          <td>Enterprise-control system integration</td>
-          <td>ISA-95의 IEC 국제표준화 버전 (Part 1~6)</td>
-          <td><a href="https://www.iec.ch" target="_blank">iec.ch</a></td>
-        </tr>
-        <tr>
-          <td class="std">ISO 15704</td>
-          <td>Enterprise Integration — Framework</td>
-          <td>기업 통합 참조 아키텍처 (GERAM 기반)</td>
-          <td><a href="https://www.iso.org/standard/72687.html" target="_blank">iso.org</a></td>
-        </tr>
-        <tr>
-          <td class="std">IEC 62890</td>
-          <td>Life-cycle management for products and systems</td>
-          <td>제품/시스템의 수명주기 관리</td>
-          <td><a href="https://www.iec.ch" target="_blank">iec.ch</a></td>
-        </tr>
-        <tr>
-          <td class="std">DIN SPEC 91345</td>
-          <td>Reference Architecture Model Industrie 4.0 (RAMI 4.0)</td>
-          <td>독일 인더스트리 4.0 참조 아키텍처. MES 레이어 포함</td>
-          <td><a href="https://www.plattform-i40.de" target="_blank">plattform-i40.de</a></td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- 3. 데이터 통신 & 인터페이스 표준 -->
-  <section>
-    <h2><span class="num">3</span> 데이터 통신 &amp; 인터페이스 표준</h2>
-    <table>
-      <thead>
-        <tr><th>표준 번호</th><th>표준명</th><th>주요 내용</th><th>대표 웹사이트</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="std">IEC 62541<br>(OPC UA)</td>
-          <td>OPC Unified Architecture</td>
-          <td>산업 통신 표준. MES-설비 간 데이터 연동의 사실상 표준</td>
-          <td><a href="https://opcfoundation.org/about/opc-technologies/opc-ua/" target="_blank">opcfoundation.org</a></td>
-        </tr>
-        <tr>
-          <td class="std">MTConnect</td>
-          <td>Manufacturing Data Standard</td>
-          <td>CNC/기계 데이터 수집 표준. MES 실시간 데이터 수집에 활용</td>
-          <td><a href="https://www.mtconnect.org" target="_blank">mtconnect.org</a></td>
-        </tr>
-        <tr>
-          <td class="std">ISA-95 Companion Spec (OPC UA)</td>
-          <td>ISA-95 Information Model over OPC UA</td>
-          <td>ISA-95 모델을 OPC UA로 구현한 스펙</td>
-          <td><a href="https://opcfoundation.org/markets-collaboration/isa-95/" target="_blank">opcfoundation.org</a></td>
-        </tr>
-        <tr>
-          <td class="std">SEMI E5 / E30 / E90</td>
-          <td>SEMI Equipment Communications</td>
-          <td>반도체/디스플레이 설비 통신 표준. 해당 산업 MES 필수</td>
-          <td><a href="https://www.semi.org/en/standards" target="_blank">semi.org</a></td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- 4. 산업별 특화 MES 표준 -->
-  <section>
-    <h2><span class="num">4</span> 산업별 특화 MES 표준</h2>
-    <table>
-      <thead>
-        <tr><th>표준 번호</th><th>표준명</th><th>주요 내용</th><th>대표 웹사이트</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="std">SEMI E95</td>
-          <td>MES for Semiconductor</td>
-          <td>반도체 MES(CIM) 표준 모델</td>
-          <td><a href="https://www.semi.org/en/standards" target="_blank">semi.org</a></td>
-        </tr>
-        <tr>
-          <td class="std">ISA-95 Part 3</td>
-          <td>Activity Models of MOM</td>
-          <td>제조운영관리(MOM) 활동 모델. 산업별 MES 기능 정의</td>
-          <td><a href="https://www.isa.org/standards" target="_blank">isa.org</a></td>
-        </tr>
-        <tr>
-          <td class="std">VDI/VDE 3682</td>
-          <td>Formalized Process Description</td>
-          <td>공정 모델링. 독일 스마트팩토리 MES 참조</td>
-          <td><a href="https://www.vdi.eu/guidelines/vdi_3682/" target="_blank">vdi.eu</a></td>
-        </tr>
-        <tr>
-          <td class="std">ISO 18629 (PSL)</td>
-          <td>Process Specification Language</td>
-          <td>공정 명세 언어. MES 공정 로직 표현</td>
-          <td><a href="https://www.iso.org/standard/37156.html" target="_blank">iso.org</a></td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- 5. 한국 국가표준(KS) 및 가이드라인 -->
-  <section>
-    <h2><span class="num">5</span> 한국 국가표준(KS) 및 가이드라인</h2>
-    <table>
-      <thead>
-        <tr><th>표준 번호</th><th>표준명</th><th>주요 내용</th><th>대표 웹사이트</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="std">KS X ISO 22400</td>
-          <td>제조운영관리 핵심성과지표</td>
-          <td>ISO 22400의 한국 국가표준</td>
-          <td><a href="https://www.kats.go.kr" target="_blank">kats.go.kr</a></td>
-        </tr>
-        <tr>
-          <td class="std">KS X IEC 62264</td>
-          <td>기업-제어시스템 통합</td>
-          <td>IEC 62264의 한국 국가표준</td>
-          <td><a href="https://www.kats.go.kr" target="_blank">kats.go.kr</a></td>
-        </tr>
-        <tr>
-          <td class="std">스마트제조 표준화 로드맵</td>
-          <td>스마트제조 표준 체계</td>
-          <td>MES 레이어 표준화 방향 포함</td>
-          <td><a href="https://www.smartmanufacturing.kr" target="_blank">smartmanufacturing.kr</a></td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- 6. MES 산업 컨소시엄 & 참조 모델 -->
-  <section>
-    <h2><span class="num">6</span> MES 산업 컨소시엄 &amp; 참조 모델</h2>
-    <table>
-      <thead>
-        <tr><th>기관 / 모델</th><th>주요 내용</th><th>대표 웹사이트</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td class="std">MESA International</td>
-          <td>MES 11기능 모델, MES/MOM 프레임워크 제정</td>
-          <td><a href="https://www.mesa.org" target="_blank">mesa.org</a></td>
-        </tr>
-        <tr>
-          <td class="std">ISA</td>
-          <td>International Society of Automation. ISA-95/88 제정 기관</td>
-          <td><a href="https://www.isa.org" target="_blank">isa.org</a></td>
-        </tr>
-        <tr>
-          <td class="std">OPC Foundation</td>
-          <td>OPC UA 표준 제정 및 ISA-95 연동 스펙 관리</td>
-          <td><a href="https://opcfoundation.org" target="_blank">opcfoundation.org</a></td>
-        </tr>
-        <tr>
-          <td class="std">NIST Smart Manufacturing</td>
-          <td>미국 스마트제조 표준 및 MES 참조 아키텍처 연구</td>
-          <td><a href="https://www.nist.gov/programs-projects/smart-manufacturing-systems" target="_blank">nist.gov</a></td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- 요약 -->
-  <section class="summary">
-    <h2>📌 MES 구축 시 최우선 참조 표준</h2>
-    <pre>MES 핵심 구조   →  ISA-95 (IEC 62264)     ← 가장 중요
+<div class="code-wrapper">
+    <button class="copy-btn" type="button">복사</button>
+    <pre><code>MES 핵심 구조   →  ISA-95 (IEC 62264)     ← 가장 중요
 MES 기능 정의   →  MESA 11-Function Model
 MES KPI        →  ISO 22400
 데이터 통신     →  OPC UA (IEC 62541) + ISA-95 Companion Spec
 반도체/디스플레이 →  SEMI E5 / E30 / E90 / E95
-스마트팩토리    →  RAMI 4.0 (DIN SPEC 91345)</pre>
-    <div class="note">
-      <strong>ISA-95 (IEC 62264)</strong>가 MES 영역의 사실상 글로벌 마스터 표준이며,
-      대부분의 MES 솔루션과 컨설팅 프레임워크가 이 모델을 기반으로 설계됩니다.
-    </div>
-  </section>
-
-  <footer>
-    <p>📅 생성일: 2026-08-13 (목요일) &nbsp;|&nbsp; MES 관련 표준 및 대표 웹사이트 정리</p>
-  </footer>
-
+스마트팩토리    →  RAMI 4.0 (DIN SPEC 91345)</code></pre>
 </div>
-</article>
+
+<h2>1. 핵심 MES 표준</h2>
+<table class="common-table">
+    <thead>
+        <tr>
+            <th>표준 번호</th>
+            <th>표준명</th>
+            <th>주요 내용</th>
+            <th>대표 웹사이트</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>ISA-95</strong><br><span class="text-desc">(IEC 62264)</span></td>
+            <td>Enterprise-Control System Integration</td>
+            <td>기업-제어 시스템 간 통합 모델 (레벨 3~4). <strong>MES의 가장 핵심적인 참조 모델</strong></td>
+            <td><a href="https://www.isa.org/isa95" target="_blank" rel="noopener">isa.org/isa95</a></td>
+        </tr>
+        <tr>
+            <td><strong>ISA-88</strong><br><span class="text-desc">(IEC 61512)</span></td>
+            <td>Batch Control</td>
+            <td>배치 제어 표준. ISA-95와 함께 MES 구조화의 기반</td>
+            <td><a href="https://www.isa.org/standards/isa88" target="_blank" rel="noopener">isa.org/isa88</a></td>
+        </tr>
+        <tr>
+            <td><strong>ISO 22400</strong></td>
+            <td>Manufacturing Operations Management — KPIs</td>
+            <td>제조 운영 관리를 위한 핵심성과지표(KPI) 정의</td>
+            <td><a href="https://www.iso.org/standard/64927.html" target="_blank" rel="noopener">iso.org/iso-22400</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>2. 아키텍처 &amp; 통합 표준</h2>
+<table class="common-table">
+    <thead>
+        <tr>
+            <th>표준 번호</th>
+            <th>표준명</th>
+            <th>주요 내용</th>
+            <th>대표 웹사이트</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>IEC 62264</strong></td>
+            <td>Enterprise-control system integration</td>
+            <td>ISA-95의 IEC 국제표준화 버전 (Part 1~6)</td>
+            <td><a href="https://www.iec.ch" target="_blank" rel="noopener">iec.ch</a></td>
+        </tr>
+        <tr>
+            <td><strong>ISO 15704</strong></td>
+            <td>Enterprise Integration — Framework</td>
+            <td>기업 통합 참조 아키텍처 (GERAM 기반)</td>
+            <td><a href="https://www.iso.org/standard/72687.html" target="_blank" rel="noopener">iso.org</a></td>
+        </tr>
+        <tr>
+            <td><strong>IEC 62890</strong></td>
+            <td>Life-cycle management for products and systems</td>
+            <td>제품/시스템의 수명주기 관리</td>
+            <td><a href="https://www.iec.ch" target="_blank" rel="noopener">iec.ch</a></td>
+        </tr>
+        <tr>
+            <td><strong>DIN SPEC 91345</strong></td>
+            <td>Reference Architecture Model Industrie 4.0 (RAMI 4.0)</td>
+            <td>독일 인더스트리 4.0 참조 아키텍처. MES 레이어 포함</td>
+            <td><a href="https://www.plattform-i40.de" target="_blank" rel="noopener">plattform-i40.de</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>3. 데이터 통신 &amp; 인터페이스 표준</h2>
+<table class="common-table">
+    <thead>
+        <tr>
+            <th>표준 번호</th>
+            <th>표준명</th>
+            <th>주요 내용</th>
+            <th>대표 웹사이트</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>IEC 62541</strong><br><span class="text-desc">(OPC UA)</span></td>
+            <td>OPC Unified Architecture</td>
+            <td>산업 통신 표준. MES-설비 간 데이터 연동의 사실상 표준</td>
+            <td><a href="https://opcfoundation.org/about/opc-technologies/opc-ua/" target="_blank" rel="noopener">opcfoundation.org</a></td>
+        </tr>
+        <tr>
+            <td><strong>MTConnect</strong></td>
+            <td>Manufacturing Data Standard</td>
+            <td>CNC/기계 데이터 수집 표준. MES 실시간 데이터 수집에 활용</td>
+            <td><a href="https://www.mtconnect.org" target="_blank" rel="noopener">mtconnect.org</a></td>
+        </tr>
+        <tr>
+            <td><strong>ISA-95 Companion Spec</strong></td>
+            <td>ISA-95 Information Model over OPC UA</td>
+            <td>ISA-95 모델을 OPC UA로 구현한 스펙</td>
+            <td><a href="https://opcfoundation.org/markets-collaboration/isa-95/" target="_blank" rel="noopener">opcfoundation.org</a></td>
+        </tr>
+        <tr>
+            <td><strong>SEMI E5 / E30 / E90</strong></td>
+            <td>SEMI Equipment Communications</td>
+            <td>반도체/디스플레이 설비 통신 표준. 해당 산업 MES 필수</td>
+            <td><a href="https://www.semi.org/en/standards" target="_blank" rel="noopener">semi.org</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>4. 산업별 특화 MES 표준</h2>
+<table class="common-table">
+    <thead>
+        <tr>
+            <th>표준 번호</th>
+            <th>표준명</th>
+            <th>주요 내용</th>
+            <th>대표 웹사이트</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>SEMI E95</strong></td>
+            <td>MES for Semiconductor</td>
+            <td>반도체 MES(CIM) 표준 모델</td>
+            <td><a href="https://www.semi.org/en/standards" target="_blank" rel="noopener">semi.org</a></td>
+        </tr>
+        <tr>
+            <td><strong>ISA-95 Part 3</strong></td>
+            <td>Activity Models of MOM</td>
+            <td>제조운영관리(MOM) 활동 모델. 산업별 MES 기능 정의</td>
+            <td><a href="https://www.isa.org/standards" target="_blank" rel="noopener">isa.org</a></td>
+        </tr>
+        <tr>
+            <td><strong>VDI/VDE 3682</strong></td>
+            <td>Formalized Process Description</td>
+            <td>공정 모델링. 독일 스마트팩토리 MES 참조</td>
+            <td><a href="https://www.vdi.eu/guidelines/vdi_3682/" target="_blank" rel="noopener">vdi.eu</a></td>
+        </tr>
+        <tr>
+            <td><strong>ISO 18629 (PSL)</strong></td>
+            <td>Process Specification Language</td>
+            <td>공정 명세 언어. MES 공정 로직 표현</td>
+            <td><a href="https://www.iso.org/standard/37156.html" target="_blank" rel="noopener">iso.org</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>5. 한국 국가표준(KS) 및 가이드라인</h2>
+<table class="common-table">
+    <thead>
+        <tr>
+            <th>표준 번호</th>
+            <th>표준명</th>
+            <th>주요 내용</th>
+            <th>대표 웹사이트</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>KS X ISO 22400</strong></td>
+            <td>제조운영관리 핵심성과지표</td>
+            <td>ISO 22400의 한국 국가표준</td>
+            <td><a href="https://www.kats.go.kr" target="_blank" rel="noopener">kats.go.kr</a></td>
+        </tr>
+        <tr>
+            <td><strong>KS X IEC 62264</strong></td>
+            <td>기업-제어시스템 통합</td>
+            <td>IEC 62264의 한국 국가표준</td>
+            <td><a href="https://www.kats.go.kr" target="_blank" rel="noopener">kats.go.kr</a></td>
+        </tr>
+        <tr>
+            <td><strong>스마트제조 표준화 로드맵</strong></td>
+            <td>스마트제조 표준 체계</td>
+            <td>MES 레이어 표준화 방향 포함</td>
+            <td><a href="https://www.smartmanufacturing.kr" target="_blank" rel="noopener">smartmanufacturing.kr</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>6. MES 산업 컨소시엄 &amp; 참조 모델</h2>
+<table class="common-table">
+    <thead>
+        <tr>
+            <th>기관 / 모델</th>
+            <th>주요 내용</th>
+            <th>대표 웹사이트</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>MESA International</strong></td>
+            <td>MES 11기능 모델, MES/MOM 프레임워크 제정</td>
+            <td><a href="https://www.mesa.org" target="_blank" rel="noopener">mesa.org</a></td>
+        </tr>
+        <tr>
+            <td><strong>ISA</strong></td>
+            <td>International Society of Automation. ISA-95/88 제정 기관</td>
+            <td><a href="https://www.isa.org" target="_blank" rel="noopener">isa.org</a></td>
+        </tr>
+        <tr>
+            <td><strong>OPC Foundation</strong></td>
+            <td>OPC UA 표준 제정 및 ISA-95 연동 스펙 관리</td>
+            <td><a href="https://opcfoundation.org" target="_blank" rel="noopener">opcfoundation.org</a></td>
+        </tr>
+        <tr>
+            <td><strong>NIST Smart Manufacturing</strong></td>
+            <td>미국 스마트제조 표준 및 MES 참조 아키텍처 연구</td>
+            <td><a href="https://www.nist.gov/programs-projects/smart-manufacturing-systems" target="_blank" rel="noopener">nist.gov</a></td>
+        </tr>
+    </tbody>
+</table>

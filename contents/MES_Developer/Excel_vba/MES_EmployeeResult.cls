@@ -1,0 +1,40 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "MES_EmployeeResult"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = True
+Private Const ThisModuleVersion As Integer = 1
+'
+'  #### ##    ####   ##  ##            ##   ##  #######   ####             ######                         ##                        #
+'   ##  ##   ##  ##  ##  ##            ### ###   ##   #  ##  ##             ##  ##                                                 ##
+'   ## ##   ##       ##  ##            #######   ## #    ###                ##  ##  #  ###    ####        ##    ####     ####     #####
+'   ####    ##       ##  ##            #######   ####     ###               #####    ### ##  ##  ##       ##   ##  ##   ##  ##     ##
+'   ## ##   ##  ###  ##  ##            ## # ##   ## #       ###             ##       ##  ##  ##  ##       ##   ######   ##         ##
+'   ##  ##   ##  ##  ##  ##            ##   ##   ##   #  ##  ##             ##       ##      ##  ##   ##  ##   ##       ##  ##     ## #
+'  #### ##    #####  ######            ##   ##  #######   ####             ####     ####      ####    ##  ##    ####     ####       ##
+'                                                                                                      ####
+'
+' 엑셀의 모든 ` - MagicSheet & 엑사모 - 황기성님 소스 사용
+'======================================================
+'작업자별 생산 실적을 조회
+'Program by junipa7
+'******************************************************
+Option Explicit   '변수가 지정되지 않으면 에러가 나도록 정의
+
+
+'조회 버튼이 눌러지면 실행되는이벤트
+Private Sub cmdDisplay_Click()
+    Dim sSQL As String
+    
+    'Data를 가져오기 위한 저장 프로시져 호출 Query를 만든다.
+    sSQL = "dbo.ProcessResult_Employee '" + Range("STARTDATE").text + "', '" + Range("ENDDATE").text + "'"
+    
+    '저장 프로시져를 호출하고 결과를 Excel Sheet에 출력한다.
+    Call SelectToRange(sSQL, Range("DATA"))
+      
+End Sub
+

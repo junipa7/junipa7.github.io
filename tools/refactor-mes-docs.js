@@ -1,8 +1,8 @@
 const fs = require("fs");
 
 const targets = [
-    ["contents/MES/MES_Developer_Education.html", "mes-education"],
-    ["contents/MES/MES_Website.html", "mes-standards"]
+    ["contents/MES_Developer/MES_Developer_Education.html", "mes-education"],
+    ["contents/MES_Developer/MES_Website.html", "mes-standards"]
 ];
 
 function extractBody(html) {
