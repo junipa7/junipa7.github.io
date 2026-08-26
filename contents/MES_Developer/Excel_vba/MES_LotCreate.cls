@@ -1,87 +1,78 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "MES_LotCreate"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = True
 Private Const ThisModuleVersion As Integer = 1
 
-Option Explicit   'º¯¼ö°¡ ÁöÁ¤µÇÁö ¾ÊÀ¸¸é ¿¡·¯°¡ ³ªµµ·Ï Á¤ÀÇ
+Option Explicit   'ë³€ìˆ˜ê°€ ì§€ì •ë˜ì§€ ì•Šìœ¼ë©´ ì—ëŸ¬ê°€ ë‚˜ë„ë¡ ì •ì˜
 
-'´Ù¸¥ Sheet¿¡¼­ È£ÃâÇÒ¶§ ½ÇÇà
+'ë‹¤ë¥¸ Sheetì—ì„œ í˜¸ì¶œí• ë•Œ ì‹¤í–‰
 Public Sub Worksheet_Link(PlanID As Integer)
     Range("B1").value = PlanID
     Call cmdDisplay_Click
 End Sub
 
-'Á¶È¸ ¹öÆ°ÀÌ ´­·¯Áö¸é ½ÇÇàµÇ´ÂÀÌº¥Æ®
+'ì¡°íšŒ ë²„íŠ¼ì´ ëˆŒëŸ¬ì§€ë©´ ì‹¤í–‰ë˜ëŠ”ì´ë²¤íŠ¸
 Private Sub cmdDisplay_Click()
     Dim sSQL As String
        
-    'Data¸¦ °¡Á®¿À±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.Lot_Select " + Range("PLANID").text
     
-    'ÀúÀå ÇÁ·Î½ÃÁ®¸¦ È£ÃâÇÏ°í °á°ú¸¦ Excel Sheet¿¡ Ãâ·ÂÇÑ´Ù.
+    'ì €ì¥ í”„ë¡œì‹œì ¸ë¥¼ í˜¸ì¶œí•˜ê³  ê²°ê³¼ë¥¼ Excel Sheetì— ì¶œë ¥í•œë‹¤.
     Call SelectToRange(sSQL, Range("DATA"))
     
-    'Á¶È¸¸¦ ´Ù½ÃÇÑ °æ¿ì¿¡´Â ¹è¿­À» ÃÊ±âÈ­ÇÏ¿© ÁöÁ¤µÈ DELETE/SAVE ¸¦ ¾ø¾Ø´Ù.
+    'ì¡°íšŒë¥¼ ë‹¤ì‹œí•œ ê²½ìš°ì—ëŠ” ë°°ì—´ì„ ì´ˆê¸°í™”í•˜ì—¬ ì§€ì •ëœ DELETE/SAVE ë¥¼ ì—†ì•¤ë‹¤.
     ReDim sDataList(Range("DATA").Rows.Count)
     
-    'Sheet¿¡ Á¶°ÇºÎ ¼­½Ä ÁöÁ¤ÇÏ¿© Lot»óÅÂ°¡ Ãë¼Ò¸é ¹ß°£»ö ±ÛÀÚ¿¡ Ãë¼Ò¼± ¹İ¿µ
+    'Sheetì— ì¡°ê±´ë¶€ ì„œì‹ ì§€ì •í•˜ì—¬ Lotìƒíƒœê°€ ì·¨ì†Œë©´ ë°œê°„ìƒ‰ ê¸€ìì— ì·¨ì†Œì„  ë°˜ì˜
     Call ConditionForm_Set
     
 End Sub
 
-'»èÁ¦Á¶È¸ ¹öÆ°ÀÌ ´­·¯Áö¸é ½ÇÇàµÇ´ÂÀÌº¥Æ®
+'ì‚­ì œì¡°íšŒ ë²„íŠ¼ì´ ëˆŒëŸ¬ì§€ë©´ ì‹¤í–‰ë˜ëŠ”ì´ë²¤íŠ¸
 Private Sub cmdDelete_Click()
     Dim sSQL As String
    
-    If Range("H" & ActiveCell.Row).text = "Ãë¼Ò" Then
+    If Range("H" & ActiveCell.Row).text = "ì·¨ì†Œ" Then
         sSQL = "dbo.Lot_Delete '" + Cells(ActiveCell.Row, 1).text + "', 'UNDELETE'" + ", '" + MES_Master.Range("WORKER") + "'"
     Else
         sSQL = "dbo.Lot_Delete '" + Cells(ActiveCell.Row, 1).text + "', 'DELETE'" + ", '" + MES_Master.Range("WORKER") + "'"
     End If
     Call ExecCmd(sSQL)
     
-    'Á¶È¸ ButtonÀ» °­Á¦·Î ´­·¯¼­ ´Ù½ÃÁ¶È¸
+    'ì¡°íšŒ Buttonì„ ê°•ì œë¡œ ëˆŒëŸ¬ì„œ ë‹¤ì‹œì¡°íšŒ
     Call cmdDisplay_Click
     
 End Sub
 
-'ÀúÀåÁ¶È¸ ¹öÆ°ÀÌ ´­·¯Áö¸é ½ÇÇàµÇ´ÂÀÌº¥Æ®
+'ì €ì¥ì¡°íšŒ ë²„íŠ¼ì´ ëˆŒëŸ¬ì§€ë©´ ì‹¤í–‰ë˜ëŠ”ì´ë²¤íŠ¸
 Private Sub cmdSave_Click()
     Dim sSQL As String
     
     sSQL = "dbo.Lot_Create " + Range("PLANID").text + ", " + Range("FACTORY").text + ", " + Range("LINE").text + ", " + Range("QTY").text + ", '" + MES_Master.Range("WORKER") + "'"
     Call ExecCmd(sSQL)
     
-    'Á¶È¸ ButtonÀ» °­Á¦·Î ´­·¯¼­ ´Ù½ÃÁ¶È¸
+    'ì¡°íšŒ Buttonì„ ê°•ì œë¡œ ëˆŒëŸ¬ì„œ ë‹¤ì‹œì¡°íšŒ
     Call cmdDisplay_Click
     
 End Sub
 
 
-'Lot¿¬°áÀ» ´©¸£¸é Lot½ÇÀû Ã³¸®·Î ÀÌµ¿ÇÑ´Ù.
+'Lotì—°ê²°ì„ ëˆ„ë¥´ë©´ Lotì‹¤ì  ì²˜ë¦¬ë¡œ ì´ë™í•œë‹¤.
 Private Sub cmdLot_Click()
     
     If Cells(ActiveCell.Row, 1).value > 0 Then
         Call MES_Result.Worksheet_Link(Cells(ActiveCell.Row, 1).value)
         MES_Result.Activate
     Else
-        MsgBox ("Data°¡ ÀÖ´Â ¼¿À» ¸ÕÀú ¼±ÅÃÇÏ°í ¹öÆ°À» ´©¸£¼¼¿ä")
+        MsgBox ("Dataê°€ ìˆëŠ” ì…€ì„ ë¨¼ì € ì„ íƒí•˜ê³  ë²„íŠ¼ì„ ëˆ„ë¥´ì„¸ìš”")
     End If
 End Sub
 
 
-'Sheet¿¡ Á¶°ÇºÎ ¼­½ÄÀ» Àû¿ëÇÏ¿© LOT»óÅÂ°¡ Ãë¼ÒÀÌ¸é Ãë¼Ò¼±°ú »¡°£»ö ±ÛÀÚ¸¦ Ç¥½ÃÇÑ´Ù.
+'Sheetì— ì¡°ê±´ë¶€ ì„œì‹ì„ ì ìš©í•˜ì—¬ LOTìƒíƒœê°€ ì·¨ì†Œì´ë©´ ì·¨ì†Œì„ ê³¼ ë¹¨ê°„ìƒ‰ ê¸€ìë¥¼ í‘œì‹œí•œë‹¤.
 Private Sub ConditionForm_Set()
 
     With Range("DATA")
         .FormatConditions.Delete
-        .FormatConditions.Add Type:=xlExpression, Formula1:="=IF($H5 = ""Ãë¼Ò"",TRUE,FALSE)"
+        .FormatConditions.Add Type:=xlExpression, Formula1:="=IF($H5 = ""ì·¨ì†Œ"",TRUE,FALSE)"
         .FormatConditions(.FormatConditions.Count).SetFirstPriority
         .FormatConditions(1).Font.Strikethrough = True
         .FormatConditions(1).Font.Color = -16776961

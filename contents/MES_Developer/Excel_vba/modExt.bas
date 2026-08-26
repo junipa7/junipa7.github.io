@@ -3,14 +3,12 @@ Private Const ThisModuleVersion As Integer = 1
 
 Option Explicit
 
-'¿©·¯°¡Áö ±â´É Test
-'[ÃâÃ³] ÆÄÀÏ¿¡ ¸ğµâ ¸ğµÎ »èÁ¦ÇÏ´Â VBA|ÀÛ¼ºÀÚ Excel nara
-
+'ë§¤í¬ë¡œ ì‚­ì œ í…ŒìŠ¤íŠ¸
+'[ì¶œì²˜] íŒŒì¼ì—ì„œ ë§¤í¬ë¡œë¥¼ ì™„ì „íˆ ì‚­ì œí•˜ëŠ” VBA | ì‘ì„±ì Excel nara
 
 Sub test()
-
-     'DeleteVBA Workbooks("¿øÇÏ´Â ÆÄÀÏ ÀÌ¸§.xlsm")
-     DeleteVBA Workbooks(2) 'µÎ¹øÂ° ½ÃÆ®ÀÇ ¸ÅÅ©·Î¸¦ »èÁ¦ÇÕ´Ï´Ù
+     'DeleteVBA Workbooks("ì›í•˜ëŠ” íŒŒì¼ ì´ë¦„.xlsm")
+     DeleteVBA Workbooks(2) 'ë‘ë²ˆì§¸ ì—´ë¦° ì›Œí¬ë¶ì˜ ë§¤í¬ë¡œë¥¼ ì‚­ì œí•©ë‹ˆë‹¤
 End Sub
 
 Sub DeleteVBA(wb As Workbook)
@@ -18,14 +16,14 @@ Sub DeleteVBA(wb As Workbook)
     Dim k As Long
     With wb.VBProject
         If .Protection = 1 Then
-            MsgBox "º¸È£µÈ ¹®¼­ÀÔ´Ï´Ù!", vbExclamation, Application.UserName
+            MsgBox "ë³´í˜¸ëœ í”„ë¡œì íŠ¸ì…ë‹ˆë‹¤!", vbExclamation, Application.UserName
         Else
             For Each c In .VBComponents
                 Select Case c.Type
-                    Case 100 '¹®¼­ ¸ğµâÀÇ °æ¿ì
+                    Case 100 'ì‹œíŠ¸ ëª¨ë“ˆ (ì½”ë“œ ë¼ì¸ë§Œ ë¹„ì›€)
                         k = c.CodeModule.CountOfLines
                         c.CodeModule.DeleteLines 1, k
-                    Case 1 ', 2, 3 'Ç¥ÁØ¸ğµâ, Å¬·¡½º ¸ğµâ, Æû ¸ğµâÀÇ °æ¿ì
+                    Case 1, 2, 3 'í‘œì¤€ëª¨ë“ˆ, í´ë˜ìŠ¤ëª¨ë“ˆ, ìœ ì €í¼ ì œê±°
                         .VBComponents.Remove c
                 End Select
             Next c
@@ -34,7 +32,7 @@ Sub DeleteVBA(wb As Workbook)
     Dim D As DialogSheet
     Dim S As Object
     
-    '¸ÅÅ©·Î ½ÃÆ®¿Í ´ÙÀÌ¾ó·Î±× ½ÃÆ® »èÁ¦
+    'ë§¤í¬ë¡œ ì‹œíŠ¸ ë° ë‹¤ì´ì–¼ë¡œê·¸ ì‹œíŠ¸ ì œê±°
     Application.DisplayAlerts = False
     For Each D In wb.DialogSheets
         D.Delete
@@ -49,36 +47,35 @@ Sub DeleteVBA(wb As Workbook)
 
 End Sub
 
-
-
+'ê³µì • ê´€ë¦¬ í‘œì¤€ ì‹œíŠ¸ ë™ì  ìƒì„±
 Sub Create_MES_Product_Process()
 
     Dim xObject As Object
     Dim NewSheet As Worksheet
     
-'    If FindSheetName("°øÁ¤Á¤º¸") Then
-'        MsgBox "°øÁ¤Á¤º¸ Sheet°¡ ÀÌ¹Ì ÀÖ½À´Ï´Ù."
+'    If FindSheetName("ê³µì •") Then
+'        MsgBox "í•´ë‹¹ Sheetê°€ ì´ë¯¸ ì¡´ì¬í•©ë‹ˆë‹¤."
 '        Exit Sub
 '    End If
     
     Set NewSheet = Worksheets.Add
-    NewSheet.Name = "°øÁ¤Á¤º¸"
+    NewSheet.Name = "ê³µì •"
     NewSheet.Activate
 
-    Range("A1").FormulaR1C1 = "°øÁ¤Á¾·ù"
-    Range("B1").FormulaR1C1 = "ÀüÃ¼"
-    Range("A3").FormulaR1C1 = "°øÁ¤ÄÚµå"
-    Range("B3").FormulaR1C1 = "°øÁ¤¸í"
-    Range("C3").FormulaR1C1 = "ÀÔ·ÂÇüÅÂ"
-    Range("D3").FormulaR1C1 = "°øÁ¤Á¾·ù"
-    Range("E3").FormulaR1C1 = "¼³ºñÀ¯¹«"
-    Range("F3").FormulaR1C1 = "µî·ÏÀÏ½Ã"
-    Range("G3").FormulaR1C1 = "µî·ÏÀÚ"
+    Range("A1").FormulaR1C1 = "ê³µì •"
+    Range("B1").FormulaR1C1 = "ì™„ì œí’ˆ"
+    Range("A3").FormulaR1C1 = "ê³µì •ì½”ë“œ"
+    Range("B3").FormulaR1C1 = "ê³µì •ëª…"
+    Range("C3").FormulaR1C1 = "ì…ë ¥êµ¬ë¶„"
+    Range("D3").FormulaR1C1 = "ì„¤ë¹„"
+    Range("E3").FormulaR1C1 = "ì‘ì—…ì¥"
+    Range("F3").FormulaR1C1 = "ë“±ë¡ì¼ì‹œ"
+    Range("G3").FormulaR1C1 = "ë“±ë¡ì"
 
     With Range("B1").Interior
         .Pattern = xlSolid
         .PatternColorIndex = xlAutomatic
-        .Color = 65535
+        .Color = 65535 'ë…¸ë€ìƒ‰ ë°°ê²½
         .TintAndShade = 0
         .PatternTintAndShade = 0
     End With
@@ -112,21 +109,21 @@ Sub Create_MES_Product_Process()
         .Weight = xlThin
     End With
 
+    'ActiveX ë²„íŠ¼ ë™ì  ìƒì„±
     Set xObject = ActiveSheet.OLEObjects.Add(ClassType:="Forms.CommandButton.1", Link:=False, DisplayAsIcon:=False, Left:=175, Top:=1, Width:=65, Height:=22)
     xObject.Name = "cmdDisplay"
-    xObject.Object.Caption = "Á¶È¸"
+    xObject.Object.Caption = "ì¡°íšŒ"
 
     Set xObject = ActiveSheet.OLEObjects.Add(ClassType:="Forms.CommandButton.1", Link:=False, DisplayAsIcon:=False, Left:=250, Top:=1, Width:=65, Height:=22)
     xObject.Name = "cmdDelete"
-    xObject.Object.Caption = "»èÁ¦"
+    xObject.Object.Caption = "ì‚­ì œ"
 
     Set xObject = ActiveSheet.OLEObjects.Add(ClassType:="Forms.CommandButton.1", Link:=False, DisplayAsIcon:=False, Left:=325, Top:=1, Width:=65, Height:=22)
     xObject.Name = "cmdSave"
-    xObject.Object.Caption = "ÀúÀå"
+    xObject.Object.Caption = "ì €ì¥"
 
-
-    NewSheet.Names.Add Name:="WORK", RefersToR1C1:="=°øÁ¤Á¤º¸!R1C2"
-    NewSheet.Names.Add Name:="DATA", RefersToR1C1:="=°øÁ¤Á¤º¸!R3C1"
+    'ëª…ëª…ëœ ë²”ìœ„ ì •ì˜
+    NewSheet.Names.Add Name:="WORK", RefersToR1C1:="=ê³µì •!R1C2"
+    NewSheet.Names.Add Name:="DATA", RefersToR1C1:="=ê³µì •!R3C1"
       
-    
-End Sub
+End Sub

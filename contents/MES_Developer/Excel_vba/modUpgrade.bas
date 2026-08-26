@@ -3,8 +3,8 @@ Private Const ThisModuleVersion As Integer = 1
 
 Option Explicit
 
+'ì „ì²´ ëª¨ë“ˆ ì†ŒìŠ¤ì½”ë“œë¥¼ ì¶”ì¶œí•˜ì—¬ DBì— ë²„ì „ì—… ë°±ì—… ì €ì¥
 Sub UpgradeModuleSave()
-    'SaveCodeModules "C:\Users\Public\Documents\ExcelBackup\"
     Dim xMyCom As Object 'VBComponent
     Dim sSQL As String
     Dim sType As String
@@ -13,7 +13,9 @@ Sub UpgradeModuleSave()
     For Each xMyCom In ThisWorkbook.VBProject.VBComponents
         If xMyCom.CodeModule.CountOfLines > 0 Then
         
+            'ì†ì„± í—¤ë”ë¥¼ ì œì™¸í•œ 2ë²ˆì§¸ ì¤„ë¶€í„° ì†ŒìŠ¤ì½”ë“œ ì¶”ì¶œ í›„ ìœ ë‹ˆì½”ë“œ ë³€í™˜
             sData = StrConv(xMyCom.CodeModule.Lines(2, xMyCom.CodeModule.CountOfLines), vbWide)
+            
             If xMyCom.Type = 1 Then
                 sType = "Excel_Module"
             ElseIf xMyCom.Type = 2 Then
@@ -24,28 +26,30 @@ Sub UpgradeModuleSave()
                 sType = "Excel_Sheet"
             End If
             
-            'ÀúÀåÀÎ °æ¿ì È£ÃâÇÒ ¸í·É ÁöÁ¤
+            'ì €ì¥ í”„ë¡œì‹œì € í˜¸ì¶œ
             sSQL = "dbo.UpgradeMaster_Save '" + xMyCom.CodeModule.Name + "', '" + sType + "', '" + sData + "', '" + MES_Master.Range("WORKER").text + "'"
             Call ExecCmd(sSQL)
             
         End If
     Next
     
-    MsgBox "ÀüÃ¼ ModuleÀÌ ÀúÀåµÇ¾ú½À´Ï´Ù."
+    MsgBox "ì „ì²´ Moduleì´ ì €ì¥ë˜ì—ˆìŠµë‹ˆë‹¤."
 End Sub
 
+'DBì—ì„œ ìµœì‹  ì†ŒìŠ¤ì½”ë“œë¥¼ ë‹¤ìš´ë¡œë“œí•˜ì—¬ ëŸ°íƒ€ì„ í•«íŒ¨ì¹˜ êµì²´
 Sub UpgradeModuleLoad()
-    'ImportCodeModules "C:\Users\Public\Documents\ExcelBackup\"
     Dim xMyCom As Object 'VBComponent
     Dim sType As String
     Dim sData As String
 
     For Each xMyCom In ThisWorkbook.VBProject.VBComponents
+        'ìê¸° ìì‹ (modUpgrade)ì€ ì‹¤í–‰ ì¤‘ì´ë¯€ë¡œ êµì²´ ëŒ€ìƒì—ì„œ ì œì™¸í•˜ì—¬ ì•ˆì „ì„± í™•ë³´
         If xMyCom.CodeModule.Name <> "modUpgrade" Then
             
-            sData = StrConv(UpgradeSelect("¾÷±×·¡ÀÌµå", xMyCom.CodeModule.Name), vbNarrow)
+            sData = StrConv(UpgradeSelect("ì—…ê·¸ë ˆì´ë“œ", xMyCom.CodeModule.Name), vbNarrow)
             
             If Len(sData) > 1 Then
+                'ê¸°ì¡´ ì†ŒìŠ¤ì½”ë“œ ì‚­ì œ í›„ ìµœì‹  ì½”ë“œë¡œ êµì²´
                 xMyCom.CodeModule.DeleteLines 1, xMyCom.CodeModule.CountOfLines
                 xMyCom.CodeModule.AddFromString sData
             End If
@@ -53,48 +57,38 @@ Sub UpgradeModuleLoad()
         End If
     Next
     
-    MsgBox "ÀüÃ¼ ModuleÀÌ LoadingµÇ¾ú½À´Ï´Ù."
+    MsgBox "ì „ì²´ Moduleì´ Loadingë˜ì—ˆìŠµë‹ˆë‹¤."
 End Sub
 
-'ÇÏ³ªÀÇ °ª¸¸ ¹İÈ¯
+'ëª¨ë“ˆ ì—…ë°ì´íŠ¸ ì „ìš© ê²©ë¦¬ DB ì¿¼ë¦¬
 Private Function UpgradeSelect(ByRef sGubun As String, ByRef sFindValue As String) As String
     Dim mConnection As New ADODB.Connection
     Dim mRecordSet As New ADODB.Recordset
     Dim mCommand As New ADODB.Command
 
-    'Call OpenConnection
     mConnection.ConnectionString = "Driver={SQL Server};Server=203.249.29.116,1433;Database=MESDB;Uid=sa1;pwd=qwer1234!;Connect Timeout=60;"
     Call mConnection.Open
     mCommand.ActiveConnection = mConnection
     
-    'ExecuteCmd
     mCommand.CommandText = "One_Select '" + sGubun + "', '" + sFindValue + "'"
     Set mRecordSet = mCommand.Execute
     
-    '°³Ã¼°¡ ´İÇôÀÖÀ¸¸é ½ÇÇà ±İÁö
     If mRecordSet.State > 0 Then
-        'RecordSet¿¡ ReturnµÈ °ªÀÌ ¾Æ¿¹ ¾øÀ¸¸é Skip
-        '0 °ÇÀÌ¶óµµ ReturnµÇ¸éState°¡ 0ÀÌ ¾Æ´Ô
         If mRecordSet.BOF = False Or mRecordSet.EOF = False Then
-            'mRecordSet.MoveFirst
-            
             UpgradeSelect = mRecordSet(0).value
         End If
     End If
     
-    'RecordSetÀÇ »óÅÂ°¡ ¿­·ÁÀÖÀ¸¸é ¸ÕÀú Close ½ÃÅ²´Ù.
     If Not mRecordSet Is Nothing Then
         If mRecordSet.State = adStateOpen Then mRecordSet.Close
     End If
     Set mRecordSet = Nothing
     
-    'ConnectionÀÇ »óÅÂ°¡ ¿­·ÁÀÖÀ¸¸é ¸ÕÀú Close ½ÃÅ²´Ù.
     If Not mConnection Is Nothing Then
         If mConnection.State = adStateOpen Then mConnection.Close
     End If
     Set mConnection = Nothing
     
-    '°ü·Ãº¯¼ö¸¦ ÃÊ±âÈ­ ÇÑ´Ù.
     Set mCommand = Nothing
     
 End Function
@@ -102,46 +96,11 @@ End Function
 Private Function BinaryToHex(Binary)
   Dim c1, Out, OneByte
 
-  'For each source byte
   For c1 = 1 To LenB(Binary)
-    'Get the byte As hex
     OneByte = Hex(AscB(MidB(Binary, c1, 1)))
-
-    'append zero For bytes < 0x10
     If Len(OneByte) = 1 Then OneByte = "0" & OneByte
-
-    'join the byte To OutPut stream
     Out = Out & OneByte
   Next
 
-  'Set OutPut value
   BinaryToHex = Out
-End Function
-
-'Sub docversion()
-'Dim dlvVersions As Office.DocumentLibraryVersions
-'    Dim dlvVersion As Office.DocumentLibraryVersion
-'    Dim strVersionInfo As String
-'
-'    Set dlvVersions = ThisWorkbook.DocumentLibraryVersions
-'    If dlvVersions.IsVersioningEnabled Then
-'        strVersionInfo = "This document has " & _
-'        dlvVersions.Count & " versions: " & vbCrLf
-'        For Each dlvVersion In dlvVersions
-'            strVersionInfo = strVersionInfo & _
-'            " - Version #: " & dlvVersion.Index & vbCrLf & _
-'            " - Modified by: " & dlvVersion.ModifiedBy & vbCrLf & _
-'            " - Modified on: " & dlvVersion.Modified & vbCrLf & _
-'            " - Comments: " & dlvVersion.Comments & vbCrLf
-'        Next
-'    Else
-'        strVersionInfo = "Versioning not enabled for this document."
-'    End If
-'
-'    MsgBox strVersionInfo, vbInformation + vbOKOnly, "Version Information"
-'    Set dlvVersion = Nothing
-'    Set dlvVersions = Nothing
-'End Sub
-
-
-
+End Function

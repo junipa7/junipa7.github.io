@@ -1,76 +1,78 @@
 Attribute VB_Name = "modADO"
 Private Const ThisModuleVersion As Integer = 4
 
-Option Explicit   'º¯¼ö°¡ ÁöÁ¤µÇÁö ¾ÊÀ¸¸é ¿¡·¯°¡ ³ªµµ·Ï Á¤ÀÇ
+Option Explicit   'ë³€ìˆ˜ ì„ ì–¸ ê°•ì œ
 
 Private mDataBase As New ADODB.Connection
 Private mRS As New ADODB.Recordset
 Private mCmd As New ADODB.Command
     
 
-' Database¸¦ ¿¬°á
+' Databaseì— ì—°ê²°
 Private Sub OpenConnection()    '(iServer As Integer)
     Dim sConnString As String
     
-    If Range("SERVER").text = "¿î¿µ¼­¹ö" Then
+    If Range("SERVER").text = "ìš´ì˜ì„œë²„" Then
         sConnString = "Driver={SQL Server};Server=203.249.29.116,1433;Database=MESDB;Uid=sa1;pwd=qwer1234!;Connect Timeout=60;"
     ElseIf Range("SERVER").text = "Huni Home" Then
         sConnString = "Driver={SQL Server};Server=leesh.iptime.org,1214;Database=TESTDB;Uid=mesuser;pwd=hunihome1004;Connect Timeout=60;"
     Else
         sConnString = "Driver={SQL Server};Server=localhost\SQLEXPRESS;Database=MESDB;Uid=mesuser;pwd=mesuser1;Connect Timeout=60;"
     End If
-
+    
+    'Connectionì— ì—°ê²°ë¬¸ìì—´ ì„¤ì •
     mDataBase.ConnectionString = sConnString
     
+    'DB Open
     Call mDataBase.Open
-
+    
+    'Commandì— í™œì„± ì—°ê²° í• ë‹¹
     mCmd.ActiveConnection = mDataBase
+    
 End Sub
 
-
-
-
-'¸ğµç ConnectionÀÇ »óÅÂ¸¦ CloseÇÏ°í ÃÊ±âÈ­ ÇÑ´Ù.
+' Database ì—°ê²° ì¢…ë£Œ
 Private Sub CloseConnection()
-    'RecordSetÀÇ »óÅÂ°¡ ¿­·ÁÀÖÀ¸¸é ¸ÕÀú Close ½ÃÅ²´Ù.
+
+    'RecordSet ê°ì²´ê°€ ì—´ë ¤ ìˆìœ¼ë©´ Close ì‹œí‚¨ë‹¤.
     If Not mRS Is Nothing Then
         If mRS.State = adStateOpen Then mRS.Close
     End If
     Set mRS = Nothing
     
-    'ConnectionÀÇ »óÅÂ°¡ ¿­·ÁÀÖÀ¸¸é ¸ÕÀú Close ½ÃÅ²´Ù.
+    'Connection ê°ì²´ê°€ ì—´ë ¤ ìˆìœ¼ë©´ Close ì‹œí‚¨ë‹¤.
     If Not mDataBase Is Nothing Then
         If mDataBase.State = adStateOpen Then mDataBase.Close
     End If
     Set mDataBase = Nothing
     
-    '°ü·Ãº¯¼ö¸¦ ÃÊ±âÈ­ ÇÑ´Ù.
+    'ì»¤ë§¨ë“œ ì´ˆê¸°í™”
     Set mCmd = Nothing
 
 End Sub
 
-'Äõ¸®¸¦ ½ÇÇàÇÏ¿© °á°ú¸¦ RecordSetÀ¸·Î ¹İÈ¯ ¹Ş´Â´Ù.
-Private Function ExecuteCmd(sSQL As String) As Boolean
-
+' Databaseì— ëª…ë ¹ ì‹¤í–‰
+Private Function ExecuteCmd(ByRef sSQL As String) As Boolean
     On Error GoTo ErrorHandler
-
+    
+    ExecuteCmd = True
     mCmd.CommandText = sSQL
     Set mRS = mCmd.Execute
     
-    ExecuteCmd = True
     Exit Function
-
+  
 ErrorHandler:
     ExecuteCmd = False
-
+  
     If Err <> 0 Then
-        'MsgBox Err.Source & "-->" & Err.Description, , "Error"
-        MsgBox "[SQL Server¿¡·¯]" & Mid(Err.Description, 48, 999), , "Error"
+        'OLEDB/ODBCì˜ ê¸°ë³¸ ì˜¤ë¥˜ í—¤ë”(47ì)ë¥¼ ì˜ë¼ë‚´ê³  í•µì‹¬ SQL Server ì—ëŸ¬ ë©”ì‹œì§€ë§Œ ì¶œë ¥
+        MsgBox "[SQL Serverì˜¤ë¥˜] " & Mid(Err.Description, 48, 999), , "Error"
     End If
 End Function
 
-'ÀúÀå ÇÁ·Î½ÃÁ®¸¦ È£ÃâÇÏ°í °á°ú¸¦ ¹è¿­º¯¼ö·Î ¹İÈ¯ÇÑ´Ù.
-Public Function ExecCmd(ByRef sSQL As String) As Variant
+' SQLì„ ì‹¤í–‰í•˜ê³  ê·¸ ê²°ê³¼ë¥¼ 2ì°¨ì› ë°°ì—´ë¡œ ë°˜í™˜
+Public Function ExecCmd(ByVal sSQL As String) As Variant
+    
     Call OpenConnection
     
     If Not ExecuteCmd(sSQL) Then
@@ -78,21 +80,19 @@ Public Function ExecCmd(ByRef sSQL As String) As Variant
         Exit Function
     End If
 
-    '°³Ã¼°¡ ´İÇôÀÖÀ¸¸é ½ÇÇà ±İÁö
+    'ê°ì²´ê°€ ì •ìƒ ë°˜í™˜ë˜ì—ˆëŠ”ì§€ í™•ì¸
     If mRS.State > 0 Then
-        'RecordSet¿¡ ReturnµÈ °ªÀÌ ¾Æ¿¹ ¾øÀ¸¸é Skip
-        '0 °ÇÀÌ¶óµµ ReturnµÇ¸éState°¡ 0ÀÌ ¾Æ´Ô
+        'RecordSetì´ ë¹„ì–´ìˆëŠ” ê²½ìš° Returnì„ ê±´ë„ˆëœ€
         If mRS.BOF = False Or mRS.EOF = False Then
             ExecCmd = mRS.GetRows
         End If
     End If
 
-    
     Call CloseConnection
 End Function
 
-'Äõ¸®ÀÇ ½ÇÇà°á°ú¸¦ ÁöÁ¤µÈ SheetÀÇ RangeÀ§Ä¡¿¡ Ãâ·ÂÇÑ´Ù.
-'º¹¼ö°³ÀÇ RecordSetÀÌ ¹İÈ¯µÈ °æ¿ì Rangeµµ º¹¼ö·Î ÁöÁ¤ÇÏ¸é µÊ.
+' SQLì„ ì‹¤í–‰í•˜ê³  ê·¸ ê²°ê³¼ë¥¼ Sheetì˜ Range ìœ„ì¹˜ì— ì¶œë ¥í•œë‹¤.
+' ë‹¤ì¤‘ RecordSetì„ ë°˜í™˜í•˜ëŠ” ê²½ìš° Rangeë¥¼ ì—¬ëŸ¬ ì˜ì—­ìœ¼ë¡œ ì§€ì •í•˜ë©´ ëŒ€ì‘ëœë‹¤.
 Public Function SelectToSheet(ByRef sSQL As String, ByRef xRange As Range, Optional iSkipClear As Integer = 0) As Boolean
     On Error GoTo ErrorHandler
     
@@ -110,37 +110,34 @@ Public Function SelectToSheet(ByRef sSQL As String, ByRef xRange As Range, Optio
 
     Application.ScreenUpdating = False
     
-    For iCount = 1 To xRange.Areas.Count    'º¹¼ö·Î ÁöÁ¤µÈ Range °¹¼ö
-        'Range°¡ º¹¼ö·Î ÁöÁ¤µÈ°æ¿ì ItemÀ¸·Î ±¸ºĞÇÑ´Ù.
+    For iCount = 1 To xRange.Areas.Count    'ë‹¤ì¤‘ Range ì˜ì—­ ìˆœíšŒ
+        'Rangeì˜ ê¸°ì¡´ ë°ì´í„° ì˜ì—­ì„ Clearí•œë‹¤.
         xRange.Areas.Item(iCount).CurrentRegion.Offset(1, iSkipClear).ClearContents
         xRange.Areas.Item(iCount).Offset(0, iSkipClear).CopyFromRecordset mRS
         
-        'Data°¡ ¾ø´Â °æ¿ì°¡ ÇÏ³ª¶óµµ ÀÖÀ¸¸é False¸¦ ¹İÈ¯
+        'Dataê°€ ì—†ëŠ” ê²½ìš°ê°€ í•˜ë‚˜ë¼ë„ ìˆìœ¼ë©´ Falseë¥¼ ë°˜í™˜
         If mRS.BOF = True And mRS.EOF = True Then
             SelectToSheet = False
         End If
             
         Set mRS = mRS.NextRecordset
-
     Next
   
     ' clean up
     Call CloseConnection
     
     Application.ScreenUpdating = True
-    
     Exit Function
   
 ErrorHandler:
     Call CloseConnection
   
     If Err <> 0 Then
-        MsgBox "[SQL Server¿¡·¯]" & Mid(Err.Description, 48, 999), , "Error"
+        MsgBox "[SQL Serverì˜¤ë¥˜] " & Mid(Err.Description, 48, 999), , "Error"
     End If
 End Function
 
-'Äõ¸®ÀÇ ½ÇÇà°á°ú¸¦ ÁöÁ¤µÈ SheetÀÇ RangeÀ§Ä¡¿¡ Ãâ·ÂÇÑ´Ù.
-'º¹¼ö°³ÀÇ RecordSetÀÌ ¹İÈ¯µÈ °æ¿ì Rangeµµ º¹¼ö·Î ÁöÁ¤ÇÏ¸é µÊ.
+' SQLì„ ì‹¤í–‰í•˜ê³  ê·¸ ê²°ê³¼ë¥¼ Sheetì˜ Range ìœ„ì¹˜ì— ì¶œë ¥í•œë‹¤.
 Public Function SelectToRange(ByRef sSQL As String, ByRef xRange As Range) As Boolean
     On Error GoTo ErrorHandler
     
@@ -158,44 +155,38 @@ Public Function SelectToRange(ByRef sSQL As String, ByRef xRange As Range) As Bo
 
     Application.ScreenUpdating = False
     
-    For iCount = 1 To xRange.Areas.Count    'º¹¼ö·Î ÁöÁ¤µÈ Range °¹¼ö
-        'Range°¡ º¹¼ö·Î ÁöÁ¤µÈ°æ¿ì ItemÀ¸·Î ±¸ºĞÇÑ´Ù.
+    For iCount = 1 To xRange.Areas.Count    'ë‹¤ì¤‘ Range ì˜ì—­ ìˆœíšŒ
         xRange.Areas.Item(iCount).ClearContents
         xRange.Areas.Item(iCount).CopyFromRecordset mRS
         
-        'Data°¡ ¾ø´Â °æ¿ì°¡ ÇÏ³ª¶óµµ ÀÖÀ¸¸é False¸¦ ¹İÈ¯
+        'Dataê°€ ì—†ëŠ” ê²½ìš°ê°€ í•˜ë‚˜ë¼ë„ ìˆìœ¼ë©´ Falseë¥¼ ë°˜í™˜
         If mRS.BOF = True And mRS.EOF = True Then
             SelectToRange = False
         End If
             
         Set mRS = mRS.NextRecordset
-
     Next
   
     ' clean up
     Call CloseConnection
     
     Application.ScreenUpdating = True
-    
     Exit Function
   
 ErrorHandler:
     Call CloseConnection
   
     If Err <> 0 Then
-        MsgBox "[SQL Server¿¡·¯]" & Mid(Err.Description, 48, 999), , "Error"
+        MsgBox "[SQL Serverì˜¤ë¥˜] " & Mid(Err.Description, 48, 999), , "Error"
     End If
 End Function
     
-'ÇÏ³ªÀÇ °ª¸¸ ¹İÈ¯
+' í•˜ë‚˜ì˜ ê°’ë§Œ ì¡°íšŒí•˜ì—¬ ë°˜í™˜
 Public Function OneSelect(ByVal sGubun As String, ByVal sFindValue As String) As String
-    
     Dim sSQL As String
    
     OneSelect = ""
-    
     sSQL = "One_Select '" + sGubun + "', '" + sFindValue + "'"
-    
     
     Call OpenConnection
     
@@ -204,21 +195,17 @@ Public Function OneSelect(ByVal sGubun As String, ByVal sFindValue As String) As
         Exit Function
     End If
 
-    '°³Ã¼°¡ ´İÇôÀÖÀ¸¸é ½ÇÇà ±İÁö
+    'ê°ì²´ê°€ ì •ìƒ ë°˜í™˜ë˜ì—ˆëŠ”ì§€ í™•ì¸
     If mRS.State > 0 Then
-        'RecordSet¿¡ ReturnµÈ °ªÀÌ ¾Æ¿¹ ¾øÀ¸¸é Skip
-        '0 °ÇÀÌ¶óµµ ReturnµÇ¸éState°¡ 0ÀÌ ¾Æ´Ô
         If mRS.BOF = False Or mRS.EOF = False Then
             OneSelect = mRS(0).value
         End If
     End If
 
-    
     Call CloseConnection
-    
 End Function
 
-'Database¿¡¼­ ÀĞÀº RecordSetÀÇ Data¸¦ TreeView¿¡ ÀúÀåÇÑ´Ù.
+' Databaseì—ì„œ ê°€ì ¸ì˜¨ RecordSet ë°ì´í„°ë¥¼ TreeView ì»¨íŠ¸ë¡¤ì— ë°”ì¸ë”©í•œë‹¤.
 Public Sub SelectToTreeview(sSQL As String, xTreeView As TreeView)
     On Error GoTo ErrorHandler
     
@@ -235,19 +222,18 @@ Public Sub SelectToTreeview(sSQL As String, xTreeView As TreeView)
     
     xTreeView.Nodes.Clear
     
-   Do Until mRS.EOF
+    Do Until mRS.EOF
         sNodetext = mRS!Type.value & " > " & mRS!Material.value & " : " & mRS!Name.value & " * " & mRS!Qty.value & " EA"
         
         If mRS!Type = "FERT" Then
             Set xNode = xTreeView.Nodes.Add(, , Key:=mRS!Material.value, text:=sNodetext)
         Else
-           Set xNode = xTreeView.Nodes.Add(mRS!Parents.value, tvwChild, mRS!Material.value, sNodetext)
+            Set xNode = xTreeView.Nodes.Add(mRS!Parents.value, tvwChild, mRS!Material.value, sNodetext)
         End If
             
         xNode.Expanded = True
-
-      mRS.MoveNext
-   Loop
+        mRS.MoveNext
+    Loop
     
     ' clean up
     Call CloseConnection
@@ -257,32 +243,29 @@ ErrorHandler:
     Call CloseConnection
   
     If Err <> 0 Then
-        MsgBox "[SQL Server¿¡·¯]" & Mid(Err.Description, 48, 999), , "Error"
+        MsgBox "[SQL Serverì˜¤ë¥˜] " & Mid(Err.Description, 48, 999), , "Error"
     End If
 End Sub
 
-
-
-'»ç¿øÀÌ¸§ÀÌ Database¿¡ µî·ÏµÇ¾î ÀÖ´ÂÁö °Ë»çÇÑ´Ù.
+' ì‘ì—…ì ì´ë¦„ì´ Databaseì— ë“±ë¡ë˜ì–´ ìˆëŠ”ì§€ ê²€ì‚¬í•œë‹¤.
 Public Function MESUserCheck(sUserName As String) As Boolean
     Dim sSQL As String
     Dim xResult As Variant
     
-    sSQL = "One_Select '»ç¿ø¹øÈ£', '" + sUserName + "'"
+    sSQL = "One_Select 'ì‘ì—…ì', '" + sUserName + "'"
 
     xResult = ExecCmd(sSQL)
     
     If IsEmpty(xResult) Then
-        MsgBox "µ¥ÀÌÅÍº£ÀÌ½º¿¡ µî·ÏµÇÁö¾ÊÀº ÀÛ¾÷ÀÚ ÀÔ´Ï´Ù."
+        MsgBox "ë°ì´í„°ë² ì´ìŠ¤ì— ë“±ë¡ë˜ì§€ ì•Šì€ ì‘ì—…ìì…ë‹ˆë‹¤."
         MESUserCheck = False
         Exit Function
     End If
     
     MESUserCheck = True
-
 End Function
 
-'ÇöÀç PCÀÇ IP Address¸¦ °Ë»çÇÑ´Ù.
+' í˜„ì¬ PCì˜ IP Addressë¥¼ ê²€ì‚¬í•œë‹¤.
 Private Function IPAssressCheck(sCheckIPAddress As String) As Boolean
     Dim NIC As Variant
     Dim NICs As Object
@@ -303,7 +286,7 @@ Private Function IPAssressCheck(sCheckIPAddress As String) As Boolean
     IPAssressCheck = False
 End Function
 
-
+' í˜„ì¬ í†µí•©ë¬¸ì„œë¥¼ ë°”ì´ë„ˆë¦¬ í˜•íƒœë¡œ DBì— ë°±ì—… ì €ì¥
 Public Sub UpgradeFileSave()
     Dim sSQL As String
     Dim xStream As ADODB.Stream
@@ -321,7 +304,6 @@ Public Sub UpgradeFileSave()
     sFilename = ThisWorkbook.Name
     sSQL = "SELECT * FROM dbo.UpgradeFiles WHERE FileName = '" & sFilename & "'"
     
-    
     Call OpenConnection
     
     mRS.Open sSQL, mDataBase, adOpenKeyset, adLockOptimistic
@@ -331,7 +313,7 @@ Public Sub UpgradeFileSave()
     End If
 
     xStream.LoadFromFile "__MES_Save_Copy_File__.xlsm"
-    mRS.Fields("FileNAme").value = sFilename
+    mRS.Fields("FileName").value = sFilename
     mRS.Fields("Version").value = mRS.Fields("Version").value + 1
     mRS.Fields("Data").value = xStream.Read
     mRS.Fields("EventTime").value = DateTime.Now()
@@ -339,9 +321,9 @@ Public Sub UpgradeFileSave()
     mRS.Update
     
     xStream.Close
-    ' clean up
     Call CloseConnection
     Kill "__MES_Save_Copy_File__.xlsm"
+    MsgBox "í†µí•©ë¬¸ì„œê°€ DBì— ì„±ê³µì ìœ¼ë¡œ ì €ì¥ë˜ì—ˆìŠµë‹ˆë‹¤."
     Exit Sub
   
 ErrorHandler:
@@ -350,11 +332,11 @@ ErrorHandler:
     Kill "__MES_Save_Copy_File__.xlsm"
   
     If Err <> 0 Then
-        MsgBox "[SQL Server¿¡·¯]" & Mid(Err.Description, 48, 999), , "Error"
+        MsgBox "[SQL Serverì˜¤ë¥˜] " & Mid(Err.Description, 48, 999), , "Error"
     End If
-
 End Sub
 
+' DBì—ì„œ ìµœì‹  ë°”ì´ë„ˆë¦¬ íŒŒì¼ì„ ë‹¤ìš´ë¡œë“œ
 Public Sub UpgradeFileLoad(sFilename As String)
     Dim sSQL As String
     Dim xStream As ADODB.Stream
@@ -372,7 +354,7 @@ Public Sub UpgradeFileLoad(sFilename As String)
     mRS.Open sSQL, mDataBase, adOpenKeyset, adLockOptimistic
     
     If mRS.EOF Then
-        MsgBox "ÀúÀåµÈ ÆÄÀÏÀÌ ¾ø½À´Ï´Ù."
+        MsgBox "í•´ë‹¹ íŒŒì¼ì´ DBì— ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤."
         Exit Sub
     End If
 
@@ -380,8 +362,8 @@ Public Sub UpgradeFileLoad(sFilename As String)
     xStream.SaveToFile sFilename
     
     xStream.Close
-    ' clean up
     Call CloseConnection
+    MsgBox "ìµœì‹  ë²„ì „ íŒŒì¼ì´ ë‹¤ìš´ë¡œë“œë˜ì—ˆìŠµë‹ˆë‹¤."
     Exit Sub
   
 ErrorHandler:
@@ -389,8 +371,6 @@ ErrorHandler:
     Call CloseConnection
   
     If Err <> 0 Then
-        MsgBox "[SQL Server¿¡·¯]" & Mid(Err.Description, 48, 999), , "Error"
+        MsgBox "[SQL Serverì˜¤ë¥˜] " & Mid(Err.Description, 48, 999), , "Error"
     End If
-
-End Sub
-
+End Sub

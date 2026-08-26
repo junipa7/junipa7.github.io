@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MES_BillOfMaterial.cls 자재명세서(BOM) 관리 상세 기술 분석서 - Smart MES Developer Manual</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Pretendard:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --panel: #ffffff;
+            --panel-soft: #f8fafc;
+            --ink: #17202a;
+            --muted: #64748b;
+            --line: #d7dde8;
+            --accent: #137a7f;
+            --accent-soft: #e9f7f6;
+            --blue: #2864a8;
+            --blue-soft: #eef5fc;
+            --orange: #b85c18;
+            --green: #2e7d32;
+            --shadow: 0 10px 30px rgba(25, 35, 58, 0.08);
+            --code-bg: #0f172a;
+            --code-ink: #93c5fd;
+        }
+
+        body.dark-mode {
+            --bg: #111827;
+            --panel: #172033;
+            --panel-soft: #1d293d;
+            --ink: #edf2f7;
+            --muted: #a7b0c0;
+            --line: #2f3b52;
+            --accent: #4cc4bd;
+            --accent-soft: #183c40;
+            --blue: #60a5fa;
+            --blue-soft: #1e293b;
+            --orange: #f59e0b;
+            --green: #34d399;
+            --shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+            --code-bg: #030712;
+            --code-ink: #60a5fa;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: Arial, "Malgun Gothic", "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--ink);
+            line-height: 1.7;
+            padding-bottom: 80px;
+        }
+
+        /* Top Sticky Interactive Navigation */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: var(--panel);
+            border-bottom: 1px solid var(--line);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 10px 20px;
+        }
+        .nav-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--ink);
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+        .nav-brand-badge {
+            background: var(--accent);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+        .nav-groups {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        /* Dropdown & Button Styles */
+        .nav-dropdown {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 6px;
+            margin-bottom: -6px;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: var(--ink);
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover, .nav-dropdown:hover .nav-btn {
+            color: #ffffff;
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .nav-btn.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            border-color: var(--accent);
+        }
+        .nav-dropdown-content {
+            display: none;
+            position: absolute;
+            top: calc(100% - 2px);
+            left: 0;
+            min-width: 200px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            padding: 6px 0;
+            z-index: 1001;
+        }
+        .nav-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: transparent;
+        }
+        .nav-dropdown:hover .nav-dropdown-content {
+            display: block;
+        }
+        .dropdown-item {
+            display: block;
+            padding: 8px 16px;
+            color: var(--ink);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .dropdown-item:hover {
+            color: var(--accent);
+            background: var(--accent-soft);
+            padding-left: 20px;
+        }
+        .dropdown-item.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            font-weight: 700;
+        }
+
+        .nav-link-simple {
+            text-decoration: none;
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .nav-link-simple:hover {
+            color: var(--ink);
+            background-color: var(--panel-soft);
+            border-color: var(--line);
+        }
+        .nav-link-simple.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            border-color: var(--accent);
+        }
+        .nav-link-simple.ref-link {
+            color: #fff;
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .nav-link-simple.ref-link:hover {
+            background: #0e5e62;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 20px;
+        }
+
+        /* Hero Header */
+        header {
+            background: #101826;
+            color: #ffffff;
+            border-radius: 14px;
+            padding: 32px 36px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+            border-bottom: 5px solid var(--accent);
+            position: relative;
+        }
+        .badge-version {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.12);
+            color: #a5f3fc;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        header h1 { font-size: 1.85rem; font-weight: 800; color: #ffffff; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .subtitle { color: #dbe3ef; font-size: 0.95rem; line-height: 1.6; }
+
+        /* 4-Summary Grid */
+        .nav-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .summary-card {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+        }
+        .summary-card .label { font-size: 0.78rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+        .summary-card .value { font-size: 1.15rem; font-weight: 800; color: var(--blue); margin-top: 4px; }
+
+        /* Section Container */
+        .section-card {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 26px;
+            margin-bottom: 26px;
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid var(--line);
+            padding-bottom: 12px;
+        }
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        /* Image Display Box */
+        .ui-preview-box {
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 18px 0;
+            text-align: center;
+        }
+        .ui-preview-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            border: 1px solid var(--line);
+        }
+        .ui-caption {
+            margin-top: 10px;
+            font-size: 0.84rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        /* Function / Code Cards */
+        .fn-card {
+            background-color: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 18px;
+        }
+        .fn-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+        .fn-name { font-size: 1.02rem; font-weight: 800; color: var(--blue); font-family: Consolas, 'Fira Code', monospace; }
+        .fn-badge {
+            font-size: 0.72rem; padding: 3px 9px; border-radius: 6px; font-weight: 700;
+        }
+        .fn-badge.pub { background: #e8f5e9; color: var(--green); border: 1px solid #c8e6c9; }
+        .fn-badge.priv { background: #fff3e0; color: var(--orange); border: 1px solid #ffe0b2; }
+        .fn-badge.sql { background: var(--blue-soft); color: var(--blue); border: 1px solid #bfdbfe; }
+
+        body.dark-mode .fn-badge.pub { background: #132e1b; color: #81c784; border-color: #1b5e20; }
+        body.dark-mode .fn-badge.priv { background: #332112; color: #ffb74d; border-color: #e65100; }
+        body.dark-mode .fn-badge.sql { background: #1e293b; color: #93c5fd; border-color: #3b82f6; }
+
+        /* Code Block */
+        .code-box {
+            background-color: var(--code-bg);
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: Consolas, 'Fira Code', Monaco, monospace;
+            font-size: 0.86rem;
+            color: var(--code-ink);
+            overflow-x: auto;
+            margin: 14px 0;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+            tab-size: 4;
+        }
+        .analysis-box {
+            background: var(--accent-soft);
+            border-left: 4px solid var(--accent);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.88rem;
+            color: var(--ink);
+            margin-top: 12px;
+        }
+        .analysis-box ul, .analysis-box ol {
+            margin-left: 18px;
+            margin-top: 6px;
+        }
+        .analysis-box li {
+            margin-bottom: 4px;
+        }
+
+        /* Step Flows */
+        .step-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+        .step-card {
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .step-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .step-title { font-weight: 800; color: var(--ink); margin-bottom: 4px; font-size: 0.94rem; }
+        .step-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 0.86rem; background: var(--panel); }
+        th, td { padding: 10px 14px; text-align: left; border: 1px solid var(--line); vertical-align: top; }
+        th { background-color: var(--panel-soft); color: var(--ink); font-weight: 800; }
+        td code { font-family: Consolas, monospace; color: var(--accent); background: var(--accent-soft); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+
+        /* Portal Module Cards (index.html) */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .module-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: var(--shadow);
+        }
+        .module-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+        }
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .module-name { font-family: Consolas, 'Fira Code', monospace; font-weight: 800; font-size: 0.95rem; }
+        .module-ver { font-size: 0.72rem; padding: 2px 7px; border-radius: 5px; font-weight: 700; }
+        .module-summary { font-size: 0.84rem; color: var(--muted); line-height: 1.55; margin-bottom: 16px; }
+        .module-link-btn {
+            display: block;
+            text-align: center;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.84rem;
+            font-weight: 800;
+            transition: all 0.2s ease;
+        }
+        .module-link-btn:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 18px 22px;
+            box-shadow: var(--shadow);
+        }
+        .stat-title { font-size: 0.8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+        .stat-value { font-size: 1.5rem; font-weight: 800; margin: 4px 0; }
+        .stat-desc { font-size: 0.8rem; color: var(--muted); }
+
+        footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin-top: 36px;
+        }
+</style>
+</head>
+<body>
+        <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">
+                <span>🏭 Smart MES Manual</span>
+                <span class="nav-brand-badge">Developer Docs</span>
+            </a>
+            <div class="nav-groups">
+                <a href="index.html" class="nav-link-simple">🏠 홈 (Index)</a>
+                
+                <!-- 1. 기준정보 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-master" class="nav-btn active">
+                        📋 기준정보 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="Process.html" class="dropdown-item">공정 관리 (Process)</a>
+                        <a href="Management.html" class="dropdown-item">기종 마스터 (Management)</a>
+                        <a href="MngSpec.html" class="dropdown-item">공정 사양 (MngSpec)</a>
+                        <a href="BillOfMaterial.html" class="dropdown-item active">자재명세서 (BOM)</a>
+                        <a href="MngDisplay.html" class="dropdown-item">종합 대시보드 (Display)</a>
+                    </div>
+                </div>
+
+                <!-- 2. 생산/실적 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-prod" class="nav-btn">
+                        ⚙️ 생산/실적 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="InputPlan.html" class="dropdown-item">투입 계획 (InputPlan)</a>
+                        <a href="LotCreate.html" class="dropdown-item">LOT 생성 (LotCreate)</a>
+                        <a href="Result.html" class="dropdown-item">생산 실적 (Result)</a>
+                        <a href="Inspection.html" class="dropdown-item">검사 실적 (Inspection)</a>
+                        <a href="LotStop.html" class="dropdown-item">LOT 중지/해제 (LotStop)</a>
+                        <a href="MachineStop.html" class="dropdown-item">설비 비가동 (MachineStop)</a>
+                        <a href="Warehousing.html" class="dropdown-item">자재 입고/이동 (Warehousing)</a>
+                        <a href="EmployeeResult.html" class="dropdown-item">작업자 실적 (Employee)</a>
+                    </div>
+                </div>
+
+                <!-- 3. 시스템/공통 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-core" class="nav-btn">
+                        🔧 시스템/공통 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="Master.html" class="dropdown-item">마스터 관리 (MES_Master)</a>
+                        <a href="ADO.html" class="dropdown-item">DB 커넥션 (modADO)</a>
+                        <a href="Ext.html" class="dropdown-item">보안/템플릿 (modExt)</a>
+                        <a href="RibbonMenu.html" class="dropdown-item">리본 메뉴 (modRibbonMenu)</a>
+                        <a href="Sheet.html" class="dropdown-item">UI 유틸 (modSheet)</a>
+                        <a href="Upgrade.html" class="dropdown-item">런타임 핫패치 (modUpgrade)</a>
+                    </div>
+                </div>
+
+                <a href="References.html" class="nav-link-simple ref-link">📚 학습참고</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <header>
+            <div class="badge-version">기준정보 (Master Data) • Screen Architecture Manual</div>
+            <h1>MES_BillOfMaterial.cls 자재명세서(BOM) 관리 상세 기술 분석서</h1>
+            <p class="subtitle">기종별 모자재/자자재 소요 자재명세서(BOM) 등록, 소요단위/수량 관리 및 다단계 계층형 트리뷰(frmMngTree) 시각화</p>
+        </header>
+
+        <!-- 4 Summary Cards -->
+        <div class="nav-summary">
+            
+        <div class="summary-card">
+            <div class="label">화면 모듈</div>
+            <div class="value">MES_BillOfMaterial.cls</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">매핑 백엔드 테이블</div>
+            <div class="value">dbo.BillOfMaterial</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">연계 저장 프로시저</div>
+            <div class="value">BillOfMaterial_Select / Save / Delete / TreeSelect</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">BOM 트리뷰 전개</div>
+            <div class="value">frmMngTree.frm 연동</div>
+        </div>
+        </div>
+
+        <!-- 1. UI 구조 및 실제 화면 분석 -->
+        <div class="section-card">
+            <h2 class="section-title">1. MES_BillOfMaterial.cls 자재명세서 화면 레이아웃 & UI 컨트롤 분석</h2>
+            <p style="color: #cbd5e1; margin-bottom: 16px;">
+                <strong>MES_BillOfMaterial</strong> 화면은 제품 기종을 생산하기 위해 투입되는 자자재(Child Material/Part) 목록과 소요 단위(EA, KG 등), 소요 수량(Count)을 정의하는 제조 BOM 마스터 관리 화면입니다. 상단의 <strong>[BOM 트리 조회]</strong> 버튼을 누르면 팝업 폼(frmMngTree)이 호출되어 다단계 계층 구조를 시각적으로 전개합니다.
+            </p>
+
+            <div class="ui-preview-box">
+                <img src="MES_BillOfMaterial.jpg" alt="MES_BillOfMaterial.cls 실제 구동 화면">
+                <div class="ui-caption">▲ [MES_BillOfMaterial.jpg] 실제 엑셀 클라이언트 구동 화면 (상단 조회조건/ActiveX 버튼 및 DATA 그리드)</div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr><th>구분</th><th>엑셀 셀 주소</th><th>명명된 범위 (Name)</th><th>연계 DB 컬럼 / 컨트롤 설명</th></tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td><strong>조회 조건</strong></td>
+            <td><code>B1</code></td>
+            <td><code>Range("MANAGEMENT")</code></td>
+            <td>모기종 코드 (드롭다운 목록)</td>
+        </tr>
+        <tr>
+            <td><strong>ActiveX 버튼</strong></td>
+            <td><code>상단 행</code></td>
+            <td><code>cmdDisplay, cmdDelete, cmdSave, cmdTree</code></td>
+            <td>[조회], [삭제], [저장] 및 [BOM트리] 팝업 전개 버튼</td>
+        </tr>
+        <tr>
+            <td><strong>데이터 영역</strong></td>
+            <td><code>A3:F25</code></td>
+            <td><code>Range("DATA")</code></td>
+            <td>BOM 소요자재 데이터 그리드</td>
+        </tr>
+        <tr>
+            <td><strong>컬럼 1 (A열)</strong></td>
+            <td><code>DATA.Columns(1)</code></td>
+            <td>-</td>
+            <td><code>dbo.BillOfMaterial.Management</code> (모기종 코드 - varchar(50))</td>
+        </tr>
+        <tr>
+            <td><strong>컬럼 2 (B열)</strong></td>
+            <td><code>DATA.Columns(2)</code></td>
+            <td>-</td>
+            <td><code>dbo.BillOfMaterial.ChildManagement</code> (소요 자자재/원자재 코드 - varchar(50))</td>
+        </tr>
+        <tr>
+            <td><strong>컬럼 3 (C열)</strong></td>
+            <td><code>DATA.Columns(3)</code></td>
+            <td>-</td>
+            <td><code>dbo.BillOfMaterial.Unit</code> (단위 - 공통코드 'BillOfMaterial.Unit')</td>
+        </tr>
+        <tr>
+            <td><strong>컬럼 4 (D열)</strong></td>
+            <td><code>DATA.Columns(4)</code></td>
+            <td>-</td>
+            <td><code>dbo.BillOfMaterial.Count</code> (소요 수량 - numeric(18,3))</td>
+        </tr>
+        <tr>
+            <td><strong>컬럼 5 (E열)</strong></td>
+            <td><code>DATA.Columns(5)</code></td>
+            <td>-</td>
+            <td><code>dbo.BillOfMaterial.EventTime</code> (등록일시)</td>
+        </tr>
+        <tr>
+            <td><strong>컬럼 6 (F열)</strong></td>
+            <td><code>DATA.Columns(6)</code></td>
+            <td>-</td>
+            <td><code>dbo.BillOfMaterial.EventUser</code> (등록자)</td>
+        </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 2. MS-SQL 데이터베이스 백엔드 아키텍처 -->
+        <div class="section-card">
+            <h2 class="section-title">2. MS-SQL Server 백엔드 구조 (MESDB_CREATE.sql)</h2>
+            <p style="color: #cbd5e1; margin-bottom: 16px;">
+                <code>MESDB_CREATE.sql</code>에 정의된 백엔드 테이블 DDL 스키마 및 연계 저장 프로시저(Stored Procedure)의 완전한 T-SQL 구현 소스코드입니다.
+            </p>
+            
+        <div class="fn-card">
+            <div class="fn-header">
+                <span class="fn-name">TABLE [dbo].[BillOfMaterial]</span>
+                <span class="fn-badge sql">DDL Definition</span>
+            </div>
+            <p style='color: #cbd5e1; margin-bottom: 10px;'>BOM 자재명세서 테이블 DDL</p>
+            <pre class="code-box"><code>CREATE TABLE [dbo].[BillOfMaterial](
+    [Management]      [varchar](50) NOT NULL,    -- 모제품/기종 코드
+    [ChildManagement] [varchar](50) NOT NULL,    -- 투입 자제품/원자재 코드
+    [Unit]            [varchar](50) NOT NULL,    -- 소요 단위 (EA, M, G 등)
+    [Count]           [numeric](18, 3) NOT NULL, -- 1단위 생산당 소요 수량
+    [EventTime]       [datetime] NOT NULL,       -- 등록일시
+    [EventUser]       [varchar](50) NOT NULL,    -- 등록 작업자
+    CONSTRAINT [PK_BillOfMaterial] PRIMARY KEY CLUSTERED (
+        [Management] ASC, [ChildManagement] ASC
+    )
+) ON [PRIMARY]</code></pre>
+        </div>
+        <div class="fn-card">
+            <div class="fn-header">
+                <span class="fn-name">PROCEDURE [dbo].[BillOfMaterial_Select]</span>
+                <span class="fn-badge sql">Stored Procedure</span>
+            </div>
+            <p style='color: #cbd5e1; margin-bottom: 10px;'>기종별 BOM 목록 조회</p>
+            <pre class="code-box"><code>CREATE PROCEDURE [dbo].[BillOfMaterial_Select](
+    @Management varchar(50)
+)
+AS
+BEGIN
+    SET NOCOUNT ON
+    SELECT * FROM dbo.BillOfMaterial WITH(NOLOCK)
+    WHERE Management = @Management
+    ORDER BY ChildManagement
+    RETURN 0
+END</code></pre>
+        </div>
+        <div class="fn-card">
+            <div class="fn-header">
+                <span class="fn-name">PROCEDURE [dbo].[BillOfMaterial_TreeSelect]</span>
+                <span class="fn-badge sql">Stored Procedure (Recursive CTE)</span>
+            </div>
+            <p style='color: #cbd5e1; margin-bottom: 10px;'>다계층 BOM 전개 쿼리</p>
+            <pre class="code-box"><code>CREATE PROCEDURE [dbo].[BillOfMaterial_TreeSelect](
+    @Management varchar(50)
+)
+AS
+BEGIN
+    SET NOCOUNT ON
+    -- 재귀 CTE를 이용한 N레벨 다계층 BOM 전개
+    WITH BOM_CTE AS (
+        -- Anchor Member (최상위 모제품)
+        SELECT 
+            Management, 
+            ChildManagement, 
+            Unit, 
+            [Count], 
+            1 AS [Level],
+            CAST(Management + ' > ' + ChildManagement AS varchar(500)) AS NodePath
+        FROM dbo.BillOfMaterial WITH(NOLOCK)
+        WHERE Management = @Management
+
+        UNION ALL
+
+        -- Recursive Member (하위 자재 전개)
+        SELECT 
+            B.Management, 
+            B.ChildManagement, 
+            B.Unit, 
+            B.[Count], 
+            C.[Level] + 1 AS [Level],
+            CAST(C.NodePath + ' > ' + B.ChildManagement AS varchar(500)) AS NodePath
+        FROM dbo.BillOfMaterial B WITH(NOLOCK)
+        INNER JOIN BOM_CTE C ON B.Management = C.ChildManagement
+    )
+    SELECT * FROM BOM_CTE ORDER BY NodePath
+    RETURN 0
+END</code></pre>
+        </div>
+        <div class="fn-card">
+            <div class="fn-header">
+                <span class="fn-name">PROCEDURE [dbo].[BillOfMaterial_Save]</span>
+                <span class="fn-badge sql">Stored Procedure (UPSERT)</span>
+            </div>
+            <p style='color: #cbd5e1; margin-bottom: 10px;'>BOM 항목 저장/수정</p>
+            <pre class="code-box"><code>CREATE PROCEDURE [dbo].[BillOfMaterial_Save](
+    @Management varchar(50),
+    @ChildManagement varchar(50),
+    @Unit varchar(50),
+    @Count numeric(18,3),
+    @EventTime datetime,
+    @EventUser varchar(50) = 'SYSTEM'
+)
+AS
+BEGIN
+    SET NOCOUNT ON
+    DECLARE @CurrentTime datetime
+    SET @CurrentTime = GETDATE()
+
+    IF (SELECT COUNT(*) FROM dbo.BillOfMaterial 
+        WHERE Management = @Management AND ChildManagement = @ChildManagement) = 0
+        INSERT INTO dbo.BillOfMaterial VALUES(@Management, @ChildManagement, @Unit, @Count, @CurrentTime, @EventUser);
+    ELSE
+        UPDATE dbo.BillOfMaterial
+        SET Unit = @Unit,
+            [Count] = @Count,
+            EventTime = @CurrentTime,
+            EventUser = @EventUser
+        WHERE Management = @Management AND ChildManagement = @ChildManagement
+
+    RETURN 0
+END</code></pre>
+        </div>
+        </div>
+
+        <!-- 3. VBA 클라이언트 동작 라이프사이클 -->
+        <div class="section-card">
+            <h2 class="section-title">3. VBA 클라이언트 동작 라이프사이클 & 상태 관리</h2>
+            <div class="step-container">
+                
+        <div class="step-card">
+            <span class="step-badge" style="background: var(--primary);">1. 시트 초기화</span>
+            <div class="step-title">Worksheet_Activate</div>
+            <div class="step-desc">기종 목록 드롭다운 설정, 자재단위 드롭다운 바인딩 및 변경추적 배열 초기화</div>
+        </div>
+        <div class="step-card">
+            <span class="step-badge" style="background: var(--primary);">2. BOM 조회</span>
+            <div class="step-title">cmdDisplay_Click</div>
+            <div class="step-desc"><code>dbo.BillOfMaterial_Select</code>를 호출하여 모기종에 배속된 자자재 소요 목록 그리드 출력</div>
+        </div>
+        <div class="step-card">
+            <span class="step-badge" style="background: var(--secondary);">3. 트리뷰 팝업</span>
+            <div class="step-title">cmdTree_Click</div>
+            <div class="step-desc"><code>frmMngTree.Show</code>를 호출하여 재귀 CTE 쿼리 기반의 계층형 BOM 트리뷰 시각화</div>
+        </div>
+        <div class="step-card">
+            <span class="step-badge" style="background: var(--danger);">4. 삭제/저장</span>
+            <div class="step-title">cmdDelete / cmdSave</div>
+            <div class="step-desc">취소선 토글 및 <code>dbo.BillOfMaterial_Save/Delete</code> 일괄 트랜잭션 수행</div>
+        </div>
+            </div>
+        </div>
+
+        <!-- 4. VBA 프로시저 상세 소스코드 해설 -->
+        <div class="section-card">
+            <h2 class="section-title">4. MES_BillOfMaterial.cls 핵심 프로시저 상세 소스코드 해설</h2>
+            
+        <div class="fn-card">
+            <div class="fn-header">
+                <span class="fn-name">Private Sub cmdTree_Click() - 계층형 BOM 트리뷰 전개</span>
+                <span class="fn-badge pub">TreeView Visualizer</span>
+            </div>
+            <p style="color: #cbd5e1;">ActiveX TreeView 팝업 폼을 호출하여 다계층 BOM을 시각화</p>
+            <pre class="code-box"><code>Private Sub cmdTree_Click()
+    '조회조건에 기종이 선택되어 있는지 확인
+    If Range("MANAGEMENT").Value = "" Then
+        MsgBox "BOM 트리를 조회할 기종을 먼저 선택하세요.", vbExclamation, "기종 미선택"
+        Exit Sub
+    End If
+    
+    'frmMngTree 팝업 폼 로드 및 선택 기종 전달
+    frmMngTree.sTargetManagement = Range("MANAGEMENT").Value
+    frmMngTree.Show vbModal
+End Sub</code></pre>
+            
+            <div class="analysis-box">
+                <strong>💡 핵심 로직 및 현장 적용 포인트:</strong>
+                <ul><li><code>frmMngTree</code> 내부에서 <code>modADO.SelectToTreeview</code> 함수를 호출하여 <code>dbo.BillOfMaterial_TreeSelect</code> 결과셋을 노드 계층구조로 자동 빌드합니다.</li></ul>
+            </div>
+        </div>
+        </div>
+
+        <footer>
+            <p>© Smart MES Development Team. MES_BillOfMaterial.cls Technical Manual.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Synchronize dark-mode class with parent window or localStorage
+        function syncTheme() {
+            try {
+                if (window.parent && window.parent.document.body.classList.contains('dark-mode')) {
+                    document.body.classList.add('dark-mode');
+                } else if (localStorage.getItem('theme') === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            } catch(e) {}
+        }
+        syncTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'THEME_CHANGE') {
+                if (event.data.theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

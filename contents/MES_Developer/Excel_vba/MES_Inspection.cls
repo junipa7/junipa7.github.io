@@ -1,49 +1,40 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "MES_Inspection"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = True
 Private Const ThisModuleVersion As Integer = 2
 
-Option Explicit   'º¯¼ö°¡ ÁöÁ¤µÇÁö ¾ÊÀ¸¸é ¿¡·¯°¡ ³ªµµ·Ï Á¤ÀÇ
+Option Explicit   'ë³€ìˆ˜ê°€ ì§€ì •ë˜ì§€ ì•Šìœ¼ë©´ ì—ëŸ¬ê°€ ë‚˜ë„ë¡ ì •ì˜
 
-'´Ù¸¥ Sheet¿¡¼­ È£ÃâÇÒ¶§ ½ÇÇà
+'ë‹¤ë¥¸ Sheetì—ì„œ í˜¸ì¶œí• ë•Œ ì‹¤í–‰
 Public Sub Worksheet_Link(LotID As String)
     Range("LOTID").value = LotID
     Call cmdDisplay_Click
 End Sub
 
-'»ı»ê½ÇÀû Ã³¸®·Î ÀÌµ¿ÇÑ´Ù.
+'ìƒì‚°ì‹¤ì  ì²˜ë¦¬ë¡œ ì´ë™í•œë‹¤.
 Private Sub cmdLink_Click()
     If Range("LOTID") > "" Then
         Call MES_Result.Worksheet_Link(Range("LOTID").value)
         MES_Result.Activate
     Else
-        MsgBox ("LOT ID°¡ ¾ø½À´Ï´Ù.")
+        MsgBox ("LOT IDê°€ ì—†ìŠµë‹ˆë‹¤.")
     End If
 End Sub
 
-'Á¶È¸ ¹öÆ°ÀÌ ´­·¯Áö¸é ½ÇÇàµÇ´ÂÀÌº¥Æ®
+'ì¡°íšŒ ë²„íŠ¼ì´ ëˆŒëŸ¬ì§€ë©´ ì‹¤í–‰ë˜ëŠ”ì´ë²¤íŠ¸
 Private Sub cmdDisplay_Click()
     Dim sSQL As String
     
-    'Lot°¡ Á¸ÀçÇÏÁö ¾ÊÀ¸¸é ÁßÁö
-    Range("LOTID").Offset(0, 1).value = OneSelect("·ÎÆ®¹øÈ£", Range("LOTID").text)
+    'Lotê°€ ì¡´ì¬í•˜ì§€ ì•Šìœ¼ë©´ ì¤‘ì§€
+    Range("LOTID").Offset(0, 1).value = OneSelect("ë¡œíŠ¸ë²ˆí˜¸", Range("LOTID").text)
     If Range("LOTID").Offset(0, 1).text = "" Then
         Exit Sub
     End If
     
-    'Data¸¦ °¡Á®¿À±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.SpecResult_Select '" + Range("LOTID").text + "'"
     
-    'ÀúÀå ÇÁ·Î½ÃÁ®¸¦ È£ÃâÇÏ°í °á°ú¸¦ Excel Sheet¿¡ Ãâ·ÂÇÑ´Ù.
+    'ì €ì¥ í”„ë¡œì‹œì ¸ë¥¼ í˜¸ì¶œí•˜ê³  ê²°ê³¼ë¥¼ Excel Sheetì— ì¶œë ¥í•œë‹¤.
     Call SelectToRange(sSQL, Range("DATA_HEAD, DATA"))
     
-    'Data°¡ 1°Ç¸¸ ÀÖÀ»¶§ End(xlDown)À» »ç¿ëÇÏ¸é ÃÖ´ëÇà±îÁö ¼±ÅÃÀÌ µÇ¾î ¼Óµµ°¡ ´À·ÁÁü
+    'Dataê°€ 1ê±´ë§Œ ìˆì„ë•Œ End(xlDown)ì„ ì‚¬ìš©í•˜ë©´ ìµœëŒ€í–‰ê¹Œì§€ ì„ íƒì´ ë˜ì–´ ì†ë„ê°€ ëŠë ¤ì§
     Call ComboSetup(Range("DATA"), 9, 10)
 
 End Sub
@@ -53,40 +44,40 @@ Private Sub cmdSave_Click()
     Dim sSQL As String
     Dim sSpecInfo As String
     
-    If Range("LOTSTATUS").value <> "ÁøÇà" Then
-        MsgBox "LOT°¡ ÁøÇàÁßÀÌ ¾Æ´Ï¸é °Ë»ç½ÇÀû Ã³¸®¸¦ ÇÒ¼ö ¾ø½À´Ï´Ù."
+    If Range("LOTSTATUS").value <> "ì§„í–‰" Then
+        MsgBox "LOTê°€ ì§„í–‰ì¤‘ì´ ì•„ë‹ˆë©´ ê²€ì‚¬ì‹¤ì  ì²˜ë¦¬ë¥¼ í• ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
         Exit Sub
     End If
     
-    'ÃøÁ¤°ªÀ» ÇÏ³ªÀÇ ¹®ÀÚ¿­·Î º¯È¯
+    'ì¸¡ì •ê°’ì„ í•˜ë‚˜ì˜ ë¬¸ìì—´ë¡œ ë³€í™˜
     sSpecInfo = RangeToString(Range("DATA"), 3, 10, 11)
 
-    'Data¸¦ ÀúÀåÇÏ±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ì €ì¥í•˜ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.SpecResult_Save '" & Range("LOTID").text & "', " & Range("SEQ").value & ", '" & sSpecInfo & "', '" & MES_Master.Range("WORKER") & "'"
 
     Call ExecCmd(sSQL)
    
-    'ÀúÀåÀÌ ¿Ï·áµÇ¸é »ı»ê½ÇÀû ÀÔ·ÂÀ¸·Î °­Á¦ÀÌµ¿
+    'ì €ì¥ì´ ì™„ë£Œë˜ë©´ ìƒì‚°ì‹¤ì  ì…ë ¥ìœ¼ë¡œ ê°•ì œì´ë™
     Call cmdLink_Click
 End Sub
 
-'Cell¿¡¼­ Data¼öÁ¤ÀÌ ¹ß»ıÇÏ¸é ½ÇÇàµÇ´Â Event
+'Cellì—ì„œ Dataìˆ˜ì •ì´ ë°œìƒí•˜ë©´ ì‹¤í–‰ë˜ëŠ” Event
 Private Sub Worksheet_Change(ByVal Target As Range)
 
-    'Worksheet_Activate°¡ ½ÇÇàÀÌ ¾ÈµÇ¾ú°Å³ª Sheet¿¡ Data¸¦ »Ñ¸®´Â ÁßÀÌ¸é ¹Ù·Î ºüÁ®³ª°¨.
+    'Worksheet_Activateê°€ ì‹¤í–‰ì´ ì•ˆë˜ì—ˆê±°ë‚˜ Sheetì— Dataë¥¼ ë¿Œë¦¬ëŠ” ì¤‘ì´ë©´ ë°”ë¡œ ë¹ ì ¸ë‚˜ê°.
     If Not Application.ScreenUpdating Then
         Exit Sub
     End If
 
-    '»ç¾çÄÚµå°¡ ÀÖ´Â ÇàÀÇ º¯°æÀÎÁö È®ÀÎ
+    'ì‚¬ì–‘ì½”ë“œê°€ ìˆëŠ” í–‰ì˜ ë³€ê²½ì¸ì§€ í™•ì¸
     If Cells(Target.Row, Range("DATA").Column) <> "" Then
-        'Data¼öÁ¤ÀÌ ÃøÁ¤°ª ¿­ÀÎÁö È®ÀÎÇÏ¿© Á¤»óÀÔ·ÂÀÌ¸é ÀÚµ¿ÆÇÁ¤
+        'Dataìˆ˜ì •ì´ ì¸¡ì •ê°’ ì—´ì¸ì§€ í™•ì¸í•˜ì—¬ ì •ìƒì…ë ¥ì´ë©´ ìë™íŒì •
         If Target.Column = Range("INPUT").Column Then
-            '¼öÁ¤¿¡ ÀÇÇÑ ¹«ÇÑ ·çÇÁ¸¦ ¹æÁö ÇÑ´Ù
+            'ìˆ˜ì •ì— ì˜í•œ ë¬´í•œ ë£¨í”„ë¥¼ ë°©ì§€ í•œë‹¤
             Application.ScreenUpdating = False
             
-            'ÄŞº¸³Ä ¾Æ´Ï³Ä¿¡ µû¶ó ÆÇÁ¤±âÁØÀÌ ´Ù¸§
-            If Target.Offset(0, -5).text = "¼±ÅÃ" Then
+            'ì½¤ë³´ëƒ ì•„ë‹ˆëƒì— ë”°ë¼ íŒì •ê¸°ì¤€ì´ ë‹¤ë¦„
+            If Target.Offset(0, -5).text = "ì„ íƒ" Then
                 Target.Offset(0, 1).FormulaR1C1 = "=IF(RC[-1]=RC[-5],""OK"",""NG"")"
             Else
                 Target.Offset(0, 1).FormulaR1C1 = "=IF(OR(RC[-1]<RC[-4],RC[-1]>RC[-3]),""NG"",""OK"")"

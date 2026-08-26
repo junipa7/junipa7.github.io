@@ -1,160 +1,151 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "MES_Process"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = True
 Private Const ThisModuleVersion As Integer = 1
 
-Option Explicit   'º¯¼ö°¡ ÁöÁ¤µÇÁö ¾ÊÀ¸¸é ¿¡·¯°¡ ³ªµµ·Ï Á¤ÀÇ
+Option Explicit   'ë³€ìˆ˜ê°€ ì§€ì •ë˜ì§€ ì•Šìœ¼ë©´ ì—ëŸ¬ê°€ ë‚˜ë„ë¡ ì •ì˜
 
-Private sDataList() As String 'Sheet¿¡¼­ ³»¿ëÀ» ¼öÁ¤ÇÏ¸é ¾î´ÀÇàÀÌ ¼öÁ¤µÇ¾ú´ÂÁö ÀúÀå
+Private sDataList() As String 'Sheetì—ì„œ ë‚´ìš©ì„ ìˆ˜ì •í•˜ë©´ ì–´ëŠí–‰ì´ ìˆ˜ì •ë˜ì—ˆëŠ”ì§€ ì €ì¥
 
-'°³¹ß½Ã º¯°æÇØ¾ßÇÒ À§Ä¡
-'¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é¡é
+'ê°œë°œì‹œ ë³€ê²½í•´ì•¼í•  ìœ„ì¹˜
+'â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“â†“
 Private Const QUERY_SELECT As String = "dbo.Process_Select"
 Private Const QUERY___SAVE As String = "dbo.Process_Save"
 Private Const QUERY_DELETE As String = "dbo.Process_Delete"
 
-'¼±ÅÃ Äõ¸® ½ÇÇà½Ã ÆÄ¶ó¸ŞÅÍ
+'ì„ íƒ ì¿¼ë¦¬ ì‹¤í–‰ì‹œ íŒŒë¼ë©”í„°
 Private Function QuerySelectParameter() As String
     QuerySelectParameter = "'" + Range("WORK").value + "'"
 End Function
-'»èÁ¦ Äõ¸® ½ÇÇà½Ã ÆÄ¶ó¸ŞÅÍ
+'ì‚­ì œ ì¿¼ë¦¬ ì‹¤í–‰ì‹œ íŒŒë¼ë©”í„°
 Private Function QueryDeleteParameter(iRownumber As Long) As String
     QueryDeleteParameter = "'" + Range("DATA").Cells(iRownumber, 1).text + "'"
 End Function
-'SheetÀÇ °ªÀÌ ¹Ù²î¸é ÀÚµ¿À¸·Î º¯°æÇÒ °ª Á¤ÀÇ
+'Sheetì˜ ê°’ì´ ë°”ë€Œë©´ ìë™ìœ¼ë¡œ ë³€ê²½í•  ê°’ ì •ì˜
 Private Sub AutoChangeValue(iRownumber As Long)
     Range("DATA").Cells(iRownumber, 6).value = DateTime.Now()
     Range("DATA").Cells(iRownumber, 7).value = MES_Master.Range("WORKER").text
 End Sub
 
-'½ÇÇàÀü ÃÊ±âÈ­ ÇØ¾ßÇÒ º¯¼ö
+'ì‹¤í–‰ì „ ì´ˆê¸°í™” í•´ì•¼í•  ë³€ìˆ˜
 Private Sub Worksheet_Activate()
     Static bInitflag As Boolean
     
     If bInitflag = False Then
-         '¹è¿­º¯¼öÀÇ Å©±â¸¦ ÀçÁ¶Á¤
+         'ë°°ì—´ë³€ìˆ˜ì˜ í¬ê¸°ë¥¼ ì¬ì¡°ì •
         ReDim sDataList(Range("DATA").Rows.Count)
         
-        'ÄÚµåÁ¤º¸¸¦ Sheet¿¡ ¸ô·ÏÇüÅÂ·Î ÀÔ·ÂÁ¦¾àÀ» °É¾îÁØ´Ù.
+        'ì½”ë“œì •ë³´ë¥¼ Sheetì— ëª°ë¡í˜•íƒœë¡œ ì…ë ¥ì œì•½ì„ ê±¸ì–´ì¤€ë‹¤.
         Call RangeCode_Set(Range("DATA").Columns(3), CodeList_Select("Process.Work"))
         Call RangeCode_Set(Range("DATA").Columns(4), CodeList_Select("Process.Type"))
         Call RangeCode_Set(Range("DATA").Columns(5), "Y,N")
-        Call RangeCode_Set(Range("WORK"), "ÀüÃ¼," & Range("DATA").Columns(4).Validation.Formula1)
+        Call RangeCode_Set(Range("WORK"), "ì „ì²´," & Range("DATA").Columns(4).Validation.Formula1)
         
         bInitflag = True
     End If
 End Sub
-'¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è¡è
+'â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘â†‘
 
 
-'Á¶È¸ ¹öÆ°ÀÌ ´­·¯Áö¸é ½ÇÇàµÇ´ÂÀÌº¥Æ®
+'ì¡°íšŒ ë²„íŠ¼ì´ ëˆŒëŸ¬ì§€ë©´ ì‹¤í–‰ë˜ëŠ”ì´ë²¤íŠ¸
 Private Sub cmdDisplay_Click()
     Dim sSQL As String
       
-    'Ãë¼Ò¼± »èÁ¦
+    'ì·¨ì†Œì„  ì‚­ì œ
     Call DeleteLine_Cancel(Range("DATA"))
     
-    'Data¸¦ °¡Á®¿À±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = QUERY_SELECT + " " + QuerySelectParameter()
     
-    'ÀúÀå ÇÁ·Î½ÃÁ®¸¦ È£ÃâÇÏ°í °á°ú¸¦ Excel Sheet¿¡ Ãâ·ÂÇÑ´Ù.
+    'ì €ì¥ í”„ë¡œì‹œì ¸ë¥¼ í˜¸ì¶œí•˜ê³  ê²°ê³¼ë¥¼ Excel Sheetì— ì¶œë ¥í•œë‹¤.
     Call SelectToRange(sSQL, Range("DATA"))
     
-    'Á¶È¸¸¦ ´Ù½ÃÇÑ °æ¿ì¿¡´Â ¹è¿­À» ÃÊ±âÈ­ÇÏ¿© ÁöÁ¤µÈ DELETE/SAVE ¸¦ ¾ø¾Ø´Ù.
+    'ì¡°íšŒë¥¼ ë‹¤ì‹œí•œ ê²½ìš°ì—ëŠ” ë°°ì—´ì„ ì´ˆê¸°í™”í•˜ì—¬ ì§€ì •ëœ DELETE/SAVE ë¥¼ ì—†ì•¤ë‹¤.
     ReDim sDataList(Range("DATA").Rows.Count)
     
-    '³¯ÀÚÄÃ·³ÀÇ Ç¥½ÃÇü½Ä º¯°æ
+    'ë‚ ìì»¬ëŸ¼ì˜ í‘œì‹œí˜•ì‹ ë³€ê²½
     Call DateFromatSet(Range("DATA").Columns(6))
 
 End Sub
 
-'»èÁ¦Á¶È¸ ¹öÆ°ÀÌ ´­·¯Áö¸é ½ÇÇàµÇ´ÂÀÌº¥Æ®
+'ì‚­ì œì¡°íšŒ ë²„íŠ¼ì´ ëˆŒëŸ¬ì§€ë©´ ì‹¤í–‰ë˜ëŠ”ì´ë²¤íŠ¸
 Private Sub cmdDelete_Click()
     Dim iDataRow As Long
     
-    'Sheet¿¡¼­ Data¹üÀ§ ³»ÀÇ Data°¡ º¯°æµÇ¾ú´ÂÁö È®ÀÎ
+    'Sheetì—ì„œ Dataë²”ìœ„ ë‚´ì˜ Dataê°€ ë³€ê²½ë˜ì—ˆëŠ”ì§€ í™•ì¸
     If Change_Check(ActiveCell, Range("DATA")) Then
         
-        'ActiveµÈ CellÁÖ¼Ò¿¡¼­ Data¿µ¿ªÀÇ ½ÃÀÛÁÖ¼ÒÀÇ Â÷ÀÌ¸¦ ÀÌ¿ëÇÏ¿© Row¹øÈ£¸¦ ±¸ÇÑ´Ù.
+        'Activeëœ Cellì£¼ì†Œì—ì„œ Dataì˜ì—­ì˜ ì‹œì‘ì£¼ì†Œì˜ ì°¨ì´ë¥¼ ì´ìš©í•˜ì—¬ Rowë²ˆí˜¸ë¥¼ êµ¬í•œë‹¤.
         iDataRow = ActiveCell.Row - Range("DATA").Row + 1
    
         If sDataList(iDataRow) = "DELETE" Then
         
-            'ÀÌ¹Ì »èÁ¦µÇ¾î ÀÖÀ¸¸é »èÁ¦ Ãë¼Ò
+            'ì´ë¯¸ ì‚­ì œë˜ì–´ ìˆìœ¼ë©´ ì‚­ì œ ì·¨ì†Œ
             sDataList(iDataRow) = ""
             
-            'Ãë¼Ò¼± »èÁ¦
+            'ì·¨ì†Œì„  ì‚­ì œ
             Call DeleteLine_Cancel(Range("DATA").Rows(iDataRow))
         Else
-            'Data¹üÀ§ ³»¸é º¯¼ö¿¡ DELETE ÁöÁ¤
+            'Dataë²”ìœ„ ë‚´ë©´ ë³€ìˆ˜ì— DELETE ì§€ì •
             sDataList(iDataRow) = "DELETE"
             
-            'Ãë¼Ò¼±À» Ç¥½ÃÇÏ°í ¹®ÀÚ¸¦ »¡°£»öÀ¸·Î º¯°æ
+            'ì·¨ì†Œì„ ì„ í‘œì‹œí•˜ê³  ë¬¸ìë¥¼ ë¹¨ê°„ìƒ‰ìœ¼ë¡œ ë³€ê²½
             Call DeleteLine_Create(Range("DATA").Rows(iDataRow))
         End If
     End If
         
 End Sub
 
-'ÀúÀåÁ¶È¸ ¹öÆ°ÀÌ ´­·¯Áö¸é ½ÇÇàµÇ´ÂÀÌº¥Æ®
+'ì €ì¥ì¡°íšŒ ë²„íŠ¼ì´ ëˆŒëŸ¬ì§€ë©´ ì‹¤í–‰ë˜ëŠ”ì´ë²¤íŠ¸
 Private Sub cmdSave_Click()
     Dim iDataRow As Long
     Dim sSQL As String
    
     For iDataRow = 1 To Range("DATA").Rows.Count
         If sDataList(iDataRow) = "DELETE" Then
-            'Ãë¼Ò¼± »èÁ¦
+            'ì·¨ì†Œì„  ì‚­ì œ
             Call DeleteLine_Cancel(Range("DATA").Rows(iDataRow))
-            '»èÁ¦ÀÎ °æ¿ì È£ÃâÇÒ ¸í·É ÁöÁ¤
+            'ì‚­ì œì¸ ê²½ìš° í˜¸ì¶œí•  ëª…ë ¹ ì§€ì •
             sSQL = QUERY_DELETE + " " + QueryDeleteParameter(iDataRow)
             Call ExecCmd(sSQL)
         ElseIf sDataList(iDataRow) = "SAVE" Then
-            'ÀúÀåÀÎ °æ¿ì È£ÃâÇÒ ¸í·É ÁöÁ¤
+            'ì €ì¥ì¸ ê²½ìš° í˜¸ì¶œí•  ëª…ë ¹ ì§€ì •
             sSQL = QUERY___SAVE + " " + DataList_Create(Range("DATA").Rows(iDataRow))
             Call ExecCmd(sSQL)
         End If
-        'Ã¹¹øÂ° ¿­ÀÌ °ø¹éÀÌ¸é ¹è¿­ÀÇ ³¡±îÁö °¡Áö¾Ê°í ¹Ù·ÎÁ¾·á
+        'ì²«ë²ˆì§¸ ì—´ì´ ê³µë°±ì´ë©´ ë°°ì—´ì˜ ëê¹Œì§€ ê°€ì§€ì•Šê³  ë°”ë¡œì¢…ë£Œ
         If Range("DATA").Cells(iDataRow, 1) = "" Then
             Exit For
         End If
     
     Next
     
-    'Á¶È¸ ButtonÀ» °­Á¦·Î ´­·¯¼­ ´Ù½ÃÁ¶È¸
+    'ì¡°íšŒ Buttonì„ ê°•ì œë¡œ ëˆŒëŸ¬ì„œ ë‹¤ì‹œì¡°íšŒ
     Call cmdDisplay_Click
     
 End Sub
 
-'Cell¿¡¼­ Data¼öÁ¤ÀÌ ¹ß»ıÇÏ¸é ½ÇÇàµÇ´Â Event
+'Cellì—ì„œ Dataìˆ˜ì •ì´ ë°œìƒí•˜ë©´ ì‹¤í–‰ë˜ëŠ” Event
 Private Sub Worksheet_Change(ByVal Target As Range)
     Dim iDataRow As Long
     
-    'Sheet¿¡ Data¸¦ »Ñ¸®´Â ÁßÀÌ¸é ¹Ù·Î ºüÁ®³ª°¨.
+    'Sheetì— Dataë¥¼ ë¿Œë¦¬ëŠ” ì¤‘ì´ë©´ ë°”ë¡œ ë¹ ì ¸ë‚˜ê°.
     If Application.ScreenUpdating = False Then
         Exit Sub
     End If
 
-    '3Çà ÀÌÈÄÀÇ Data°¡ º¯°æµÇ¾ú´ÂÁö È®ÀÎ
+    '3í–‰ ì´í›„ì˜ Dataê°€ ë³€ê²½ë˜ì—ˆëŠ”ì§€ í™•ì¸
     If Change_Check(Target, Range("DATA")) Then
         
-        'ActiveµÈ CellÁÖ¼Ò¿¡¼­ Data¿µ¿ªÀÇ ½ÃÀÛÁÖ¼ÒÀÇ Â÷ÀÌ¸¦ ÀÌ¿ëÇÏ¿© Row¹øÈ£¸¦ ±¸ÇÑ´Ù.
+        'Activeëœ Cellì£¼ì†Œì—ì„œ Dataì˜ì—­ì˜ ì‹œì‘ì£¼ì†Œì˜ ì°¨ì´ë¥¼ ì´ìš©í•˜ì—¬ Rowë²ˆí˜¸ë¥¼ êµ¬í•œë‹¤.
         iDataRow = Target.Row - Range("DATA").Row + 1
         
-        '¼öÁ¤¿¡ ÀÇÇÑ ¹«ÇÑ ·çÇÁ¸¦ ¹æÁö ÇÑ´Ù
+        'ìˆ˜ì •ì— ì˜í•œ ë¬´í•œ ë£¨í”„ë¥¼ ë°©ì§€ í•œë‹¤
         Application.ScreenUpdating = False
         
         Call AutoChangeValue(iDataRow)
         
         Application.ScreenUpdating = True
         
-        'º¯°æµÈ DataÇàÀÇ Range¸¦ ±¸ÇÑ´Ü.
-        'º¯°æ Range¿¡ Data°¡ ¹ÌÀÔ·ÂµÈ CellÀÌ ÀÖ´ÂÁö È®ÀÎÇÑ´Ù.
+        'ë³€ê²½ëœ Dataí–‰ì˜ Rangeë¥¼ êµ¬í•œë‹¨.
+        'ë³€ê²½ Rangeì— Dataê°€ ë¯¸ì…ë ¥ëœ Cellì´ ìˆëŠ”ì§€ í™•ì¸í•œë‹¤.
         If AllDataInput_Check(Range("DATA").Rows(iDataRow)) Then
             sDataList(iDataRow) = "SAVE"
         End If

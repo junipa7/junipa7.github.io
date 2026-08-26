@@ -1,33 +1,24 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "MES_MachineStop"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = True
 Private Const ThisModuleVersion As Integer = 2
 
-Option Explicit   'º¯¼ö°¡ ÁöÁ¤µÇÁö ¾ÊÀ¸¸é ¿¡·¯°¡ ³ªµµ·Ï Á¤ÀÇ
+Option Explicit   'ë³€ìˆ˜ê°€ ì§€ì •ë˜ì§€ ì•Šìœ¼ë©´ ì—ëŸ¬ê°€ ë‚˜ë„ë¡ ì •ì˜
 
-Private bInitflag As Boolean  'Worksheet_Activate ½ÇÇà¿©ºÎ¸¦ ÀúÀå
+Private bInitflag As Boolean  'Worksheet_Activate ì‹¤í–‰ì—¬ë¶€ë¥¼ ì €ì¥
 
-'´Ù¸¥ Sheet¿¡¼­ È£ÃâÇÒ¶§ ½ÇÇà
+'ë‹¤ë¥¸ Sheetì—ì„œ í˜¸ì¶œí• ë•Œ ì‹¤í–‰
 Public Sub Worksheet_Link(sParameter As String)
     Range("MACHINE").value = sParameter
     Call cmdDisplay_Click
 End Sub
 
-'½ÇÇàÀü ÃÊ±âÈ­ ÇØ¾ßÇÒ º¯¼ö
+'ì‹¤í–‰ì „ ì´ˆê¸°í™” í•´ì•¼í•  ë³€ìˆ˜
 Private Sub Worksheet_Activate()
     Static bInitflag As Boolean
     
     If bInitflag = False Then
-         '¹è¿­º¯¼öÀÇ Å©±â¸¦ ÀçÁ¶Á¤
+         'ë°°ì—´ë³€ìˆ˜ì˜ í¬ê¸°ë¥¼ ì¬ì¡°ì •
         ReDim sDataList(Range("DATA").Rows.Count)
         
-        'ÄÚµåÁ¤º¸¸¦ Sheet¿¡ ¸ô·ÏÇüÅÂ·Î ÀÔ·ÂÁ¦¾àÀ» °É¾îÁØ´Ù.
+        'ì½”ë“œì •ë³´ë¥¼ Sheetì— ëª°ë¡í˜•íƒœë¡œ ì…ë ¥ì œì•½ì„ ê±¸ì–´ì¤€ë‹¤.
         Call RangeCode_Set(Range("MACHINE"), CodeList_Select("Machine.Machine"))
         Call RangeCode_Set(Range("STOPCODE"), CodeList_Select("Machine.StopCode"))
         
@@ -35,64 +26,64 @@ Private Sub Worksheet_Activate()
     End If
 End Sub
 
-'Á¶È¸ ¹öÆ°ÀÌ ´­·¯Áö¸é ½ÇÇàµÇ´ÂÀÌº¥Æ®
+'ì¡°íšŒ ë²„íŠ¼ì´ ëˆŒëŸ¬ì§€ë©´ ì‹¤í–‰ë˜ëŠ”ì´ë²¤íŠ¸
 Private Sub cmdDisplay_Click()
     Dim sSQL As String
     
-    '¼³ºñ°¡ Á¸ÀçÇÏÁö ¾ÊÀ¸¸é ÁßÁö
-    Range("MACHINE").Offset(0, 1).value = OneSelect("¼³ºñ¸í", Range("MACHINE").text)
+    'ì„¤ë¹„ê°€ ì¡´ì¬í•˜ì§€ ì•Šìœ¼ë©´ ì¤‘ì§€
+    Range("MACHINE").Offset(0, 1).value = OneSelect("ì„¤ë¹„ëª…", Range("MACHINE").text)
     If Range("MACHINE").Offset(0, 1).text = "" Then
         Exit Sub
     End If
     
-    'Data¸¦ °¡Á®¿À±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.MachineStop_Select '" + Range("MACHINE").text + "'"
-    'ÀúÀå ÇÁ·Î½ÃÁ®¸¦ È£ÃâÇÏ°í °á°ú¸¦ Excel Sheet¿¡ Ãâ·ÂÇÑ´Ù.
+    'ì €ì¥ í”„ë¡œì‹œì ¸ë¥¼ í˜¸ì¶œí•˜ê³  ê²°ê³¼ë¥¼ Excel Sheetì— ì¶œë ¥í•œë‹¤.
     Call SelectToRange(sSQL, Range("DATA_HEAD, DATA"))
     
 End Sub
 
-'¼³ºñ¸¦ ½Å±Ô·Î ÁßÁö½ÃÅ²´Ù.
+'ì„¤ë¹„ë¥¼ ì‹ ê·œë¡œ ì¤‘ì§€ì‹œí‚¨ë‹¤.
 Private Sub cmdStop_Click()
     Dim sSQL As String
     Dim sAlarm As String
     Dim sReason As String
     
-    'Lot»óÅÂ Ã¼Å©
+    'Lotìƒíƒœ ì²´í¬
     If Range("STATUS").value = "STOP" Then
-        MsgBox "¼³ºñ°¡ ÀÌ¹Ì ÁßÁö»óÅÂ¶ó ÁßÁö Ã³¸®¸¦ ÇÒ¼ö ¾ø½À´Ï´Ù."
+        MsgBox "ì„¤ë¹„ê°€ ì´ë¯¸ ì¤‘ì§€ìƒíƒœë¼ ì¤‘ì§€ ì²˜ë¦¬ë¥¼ í• ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
         Exit Sub
     End If
 
-    'Alarm Ã¼Å©
+    'Alarm ì²´í¬
     If Range("STOPCODE").text = "" Then
-        MsgBox "ÁßÁö¸¦ ÁöÁ¤ÇÏ·Á¸é ¸ÕÀú ÁßÁöÁ¾·ùÀ» ¼±ÅÃÇØ¾ß ÇÕ´Ï´Ù."
+        MsgBox "ì¤‘ì§€ë¥¼ ì§€ì •í•˜ë ¤ë©´ ë¨¼ì € ì¤‘ì§€ì¢…ë¥˜ì„ ì„ íƒí•´ì•¼ í•©ë‹ˆë‹¤."
         Exit Sub
     End If
     
-    sReason = InputBox("ÁßÁö»çÀ¯¸¦ ÀÔ¿ªÇÏ¼¼¿ä")
+    sReason = InputBox("ì¤‘ì§€ì‚¬ìœ ë¥¼ ì…ì—­í•˜ì„¸ìš”")
     If Len(sReason) < 5 Then
-        MsgBox "ÁßÁö»çÀ¯´Â 5±ÛÀÚ ÀÌ»ó ÀÔ·ÂÇØ¾ß ÇÕ´Ï´Ù."
+        MsgBox "ì¤‘ì§€ì‚¬ìœ ëŠ” 5ê¸€ì ì´ìƒ ì…ë ¥í•´ì•¼ í•©ë‹ˆë‹¤."
         Exit Sub
     End If
     
-    'Data¸¦ ÀúÀåÇÏ±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ì €ì¥í•˜ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.MachineStop_Stop '" & Range("MACHINE").text & "', '" & Range("STOPCODE").text & "', '" & sReason & "', '" & MES_Master.Range("WORKER") & "'"
 
     Call ExecCmd(sSQL)
 
-    'Á¶È¸ ButtonÀ» °­Á¦·Î ´­·¯¼­ ´Ù½ÃÁ¶È¸
+    'ì¡°íšŒ Buttonì„ ê°•ì œë¡œ ëˆŒëŸ¬ì„œ ë‹¤ì‹œì¡°íšŒ
     Call cmdDisplay_Click
 End Sub
 
-'LotÁßÁö¸¦ ÇØÁ¦½ÃÅ²´Ù.
+'Lotì¤‘ì§€ë¥¼ í•´ì œì‹œí‚¨ë‹¤.
 Private Sub cmdRelease_Click()
     Dim sSQL As String
     Dim sReason As String
     Dim sStopCode As String
     
     If Range("STATUS").value <> "STOP" Then
-        MsgBox "¼³ºñ°¡ ÁßÁöÁßÀÌ ¾Æ´Ï¸é ÇØÁ¦ Ã³¸®¸¦ ÇÒ¼ö ¾ø½À´Ï´Ù."
+        MsgBox "ì„¤ë¹„ê°€ ì¤‘ì§€ì¤‘ì´ ì•„ë‹ˆë©´ í•´ì œ ì²˜ë¦¬ë¥¼ í• ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
         Exit Sub
     End If
     
@@ -102,18 +93,18 @@ Private Sub cmdRelease_Click()
         sStopCode = Range("DATA").Cells(1, 1).End(xlDown).text
     End If
     
-    sReason = InputBox("ÇØÁ¦»çÀ¯¸¦ ÀÔ¿ªÇÏ¼¼¿ä")
+    sReason = InputBox("í•´ì œì‚¬ìœ ë¥¼ ì…ì—­í•˜ì„¸ìš”")
     If Len(sReason) < 5 Then
-        MsgBox "ÇØÁ¦»çÀ¯´Â 5±ÛÀÚ ÀÌ»ó ÀÔ·ÂÇØ¾ß ÇÕ´Ï´Ù."
+        MsgBox "í•´ì œì‚¬ìœ ëŠ” 5ê¸€ì ì´ìƒ ì…ë ¥í•´ì•¼ í•©ë‹ˆë‹¤."
         Exit Sub
     End If
 
-    'Data¸¦ ÀúÀåÇÏ±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ì €ì¥í•˜ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.MachineStop_Release '" & sStopCode & "', '" & sReason & "', '" & MES_Master.Range("WORKER") & "'"
 
     Call ExecCmd(sSQL)
 
-    'Á¶È¸ ButtonÀ» °­Á¦·Î ´­·¯¼­ ´Ù½ÃÁ¶È¸
+    'ì¡°íšŒ Buttonì„ ê°•ì œë¡œ ëˆŒëŸ¬ì„œ ë‹¤ì‹œì¡°íšŒ
     Call cmdDisplay_Click
 End Sub
 

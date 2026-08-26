@@ -1,12 +1,3 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "MES_EmployeeResult"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = True
 Private Const ThisModuleVersion As Integer = 1
 '
 '  #### ##    ####   ##  ##            ##   ##  #######   ####             ######                         ##                        #
@@ -18,22 +9,22 @@ Private Const ThisModuleVersion As Integer = 1
 '  #### ##    #####  ######            ##   ##  #######   ####             ####     ####      ####    ##  ##    ####     ####       ##
 '                                                                                                      ####
 '
-' ¿¢¼¿ÀÇ ¸ğµç ` - MagicSheet & ¿¢»ç¸ğ - È²±â¼º´Ô ¼Ò½º »ç¿ë
+' ì—‘ì…€ì˜ ëª¨ë“  ` - MagicSheet & ì—‘ì‚¬ëª¨ - í™©ê¸°ì„±ë‹˜ ì†ŒìŠ¤ ì‚¬ìš©
 '======================================================
-'ÀÛ¾÷ÀÚº° »ı»ê ½ÇÀûÀ» Á¶È¸
+'ì‘ì—…ìë³„ ìƒì‚° ì‹¤ì ì„ ì¡°íšŒ
 'Program by junipa7
 '******************************************************
-Option Explicit   'º¯¼ö°¡ ÁöÁ¤µÇÁö ¾ÊÀ¸¸é ¿¡·¯°¡ ³ªµµ·Ï Á¤ÀÇ
+Option Explicit   'ë³€ìˆ˜ê°€ ì§€ì •ë˜ì§€ ì•Šìœ¼ë©´ ì—ëŸ¬ê°€ ë‚˜ë„ë¡ ì •ì˜
 
 
-'Á¶È¸ ¹öÆ°ÀÌ ´­·¯Áö¸é ½ÇÇàµÇ´ÂÀÌº¥Æ®
+'ì¡°íšŒ ë²„íŠ¼ì´ ëˆŒëŸ¬ì§€ë©´ ì‹¤í–‰ë˜ëŠ”ì´ë²¤íŠ¸
 Private Sub cmdDisplay_Click()
     Dim sSQL As String
     
-    'Data¸¦ °¡Á®¿À±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.ProcessResult_Employee '" + Range("STARTDATE").text + "', '" + Range("ENDDATE").text + "'"
     
-    'ÀúÀå ÇÁ·Î½ÃÁ®¸¦ È£ÃâÇÏ°í °á°ú¸¦ Excel Sheet¿¡ Ãâ·ÂÇÑ´Ù.
+    'ì €ì¥ í”„ë¡œì‹œì ¸ë¥¼ í˜¸ì¶œí•˜ê³  ê²°ê³¼ë¥¼ Excel Sheetì— ì¶œë ¥í•œë‹¤.
     Call SelectToRange(sSQL, Range("DATA"))
       
 End Sub

@@ -264,7 +264,7 @@ const SITE_MENU_CONFIG = [
                     { title: "MES 관련 표준 및 웹사이트", path: "contents/MES_Developer/MES_Website.html" },
                     { title: "개발 도구 설치 및 학습 가이드", path: "contents/MES_Developer/Tool_install.html", mode: "iframe" },
                     { title: "스마트 MES 제조실행 및 개발 시스템", path: "contents/MES_Developer/MES_Guide_UI_test.html", mode: "iframe" },
-                    { title: "Excel VBA MES 실전 개발 가이드 & 코드북", path: "contents/MES_Developer/VBA_Education_Guide.html", mode: "iframe" }
+                    { title: "Excel VBA MES 개발자 매뉴얼 & 코드북", path: "contents/MES_Developer/Manual/index.html", mode: "iframe" }
                 ]
             }
         ]

@@ -1,43 +1,34 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "MES_Warehousing"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = True
 Private Const ThisModuleVersion As Integer = 2
 
-Option Explicit   'º¯¼ö°¡ ÁöÁ¤µÇÁö ¾ÊÀ¸¸é ¿¡·¯°¡ ³ªµµ·Ï Á¤ÀÇ
+Option Explicit   'ë³€ìˆ˜ê°€ ì§€ì •ë˜ì§€ ì•Šìœ¼ë©´ ì—ëŸ¬ê°€ ë‚˜ë„ë¡ ì •ì˜
 
-'½ÇÇàÀü ÃÊ±âÈ­ ÇØ¾ßÇÒ º¯¼ö
+'ì‹¤í–‰ì „ ì´ˆê¸°í™” í•´ì•¼í•  ë³€ìˆ˜
 Private Sub Worksheet_Activate()
     Static bInitflag As Boolean
     
     If bInitflag = False Then
-         '¹è¿­º¯¼öÀÇ Å©±â¸¦ ÀçÁ¶Á¤
+         'ë°°ì—´ë³€ìˆ˜ì˜ í¬ê¸°ë¥¼ ì¬ì¡°ì •
         ReDim sDataList(Range("DATA").Rows.Count)
         
-        'ÄÚµåÁ¤º¸¸¦ Sheet¿¡ ¸ô·ÏÇüÅÂ·Î ÀÔ·ÂÁ¦¾àÀ» °É¾îÁØ´Ù.
-        Call RangeCode_Set(Range("WHEREHOUSE"), "ÀüÃ¼," + CodeList_Select("WhereHouse.WhereHouse"))
+        'ì½”ë“œì •ë³´ë¥¼ Sheetì— ëª°ë¡í˜•íƒœë¡œ ì…ë ¥ì œì•½ì„ ê±¸ì–´ì¤€ë‹¤.
+        Call RangeCode_Set(Range("WHEREHOUSE"), "ì „ì²´," + CodeList_Select("WhereHouse.WhereHouse"))
         Call RangeCode_Set(Range("MATERIAL"), CodeList_Select("Material.Material"))
         
         bInitflag = True
     End If
 End Sub
 
-'Á¶È¸ ¹öÆ°ÀÌ ´­·¯Áö¸é ½ÇÇàµÇ´ÂÀÌº¥Æ®
+'ì¡°íšŒ ë²„íŠ¼ì´ ëˆŒëŸ¬ì§€ë©´ ì‹¤í–‰ë˜ëŠ”ì´ë²¤íŠ¸
 Private Sub cmdDisplay_Click()
     Dim sSQL As String
     
-    'Lot°¡ Á¸ÀçÇÏÁö ¾ÊÀ¸¸é ÁßÁö
-    Range("WHEREHOUSE").Offset(0, 1).value = OneSelect("Ã¢°í¸í", Range("WHEREHOUSE").text)
+    'Lotê°€ ì¡´ì¬í•˜ì§€ ì•Šìœ¼ë©´ ì¤‘ì§€
+    Range("WHEREHOUSE").Offset(0, 1).value = OneSelect("ì°½ê³ ëª…", Range("WHEREHOUSE").text)
 
-    'Data¸¦ °¡Á®¿À±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.MaterialInventory_Select '" + Range("WHEREHOUSE").text + "'"
     
-    'ÀúÀå ÇÁ·Î½ÃÁ®¸¦ È£ÃâÇÏ°í °á°ú¸¦ Excel Sheet¿¡ Ãâ·ÂÇÑ´Ù.
+    'ì €ì¥ í”„ë¡œì‹œì ¸ë¥¼ í˜¸ì¶œí•˜ê³  ê²°ê³¼ë¥¼ Excel Sheetì— ì¶œë ¥í•œë‹¤.
     Call SelectToSheet(sSQL, Range("DATA"))
     
 '    Range("MATERIAL") = ""
@@ -45,29 +36,29 @@ Private Sub cmdDisplay_Click()
     
 End Sub
 
-'ÀúÀåÁ¶È¸ ¹öÆ°ÀÌ ´­·¯Áö¸é ½ÇÇàµÇ´ÂÀÌº¥Æ®
+'ì €ì¥ì¡°íšŒ ë²„íŠ¼ì´ ëˆŒëŸ¬ì§€ë©´ ì‹¤í–‰ë˜ëŠ”ì´ë²¤íŠ¸
 Private Sub cmdSave_Click()
     Dim sSQL As String
 
-    If Range("WHEREHOUSE").text = "ÀüÃ¼" Then
-        MsgBox "ÀÚÀçÀÔ°í´Â ¿øÀÚÀç Ã¢°í¿¡¸¸ ½ÇÇàÇÒ¼ö ÀÖ½À´Ï´Ù."
+    If Range("WHEREHOUSE").text = "ì „ì²´" Then
+        MsgBox "ìì¬ì…ê³ ëŠ” ì›ìì¬ ì°½ê³ ì—ë§Œ ì‹¤í–‰í• ìˆ˜ ìˆìŠµë‹ˆë‹¤."
         Exit Sub
     End If
     
-    If Range("MATERIAL").text = "ÀüÃ¼" Then
-         MsgBox "ÀÚÀç¸¦ ¼±ÅÃÇÑÈÄ ½ÇÇàÇÏ½Ê½Ã¿ä."
+    If Range("MATERIAL").text = "ì „ì²´" Then
+         MsgBox "ìì¬ë¥¼ ì„ íƒí•œí›„ ì‹¤í–‰í•˜ì‹­ì‹œìš”."
         Exit Sub
     End If
 
     If Range("QTY").value < 1 Then
-        MsgBox "ÀÔ°í¼ö·®À» ÀÔ·ÂÇÑÈÄ ½ÇÇàÇÏ½Ê½Ã¿ä."
+        MsgBox "ì…ê³ ìˆ˜ëŸ‰ì„ ì…ë ¥í•œí›„ ì‹¤í–‰í•˜ì‹­ì‹œìš”."
         Exit Sub
     End If
     
-    sSQL = "dbo.MaterialInventory_Create '" + Range("WHEREHOUSE").text + "', '" + Range("MATERIAL").text + "', 'Á¤»ó', " + Range("QTY").text + ", '" + MES_Master.Range("WORKER") + "'"
+    sSQL = "dbo.MaterialInventory_Create '" + Range("WHEREHOUSE").text + "', '" + Range("MATERIAL").text + "', 'ì •ìƒ', " + Range("QTY").text + ", '" + MES_Master.Range("WORKER") + "'"
     Call ExecCmd(sSQL)
     
-    'Á¶È¸ ButtonÀ» °­Á¦·Î ´­·¯¼­ ´Ù½ÃÁ¶È¸
+    'ì¡°íšŒ Buttonì„ ê°•ì œë¡œ ëˆŒëŸ¬ì„œ ë‹¤ì‹œì¡°íšŒ
     Call cmdDisplay_Click
     
 End Sub
@@ -75,25 +66,25 @@ End Sub
 Private Sub cmdMove_Click()
     Dim sSQL As String
     
-    If Range("WHEREHOUSE").text = "ÀüÃ¼" Then
-        MsgBox "ÀÚÀçÀÌµ¿Àº ÇöÀå Ã¢°í¿¡¸¸ ½ÇÇàÇÒ¼ö ÀÖ½À´Ï´Ù."
+    If Range("WHEREHOUSE").text = "ì „ì²´" Then
+        MsgBox "ìì¬ì´ë™ì€ í˜„ì¥ ì°½ê³ ì—ë§Œ ì‹¤í–‰í• ìˆ˜ ìˆìŠµë‹ˆë‹¤."
         Exit Sub
     End If
     
-    If Range("MATERIAL").text = "ÀüÃ¼" Then
-         MsgBox "ÀÚÀç¸¦ ¼±ÅÃÇÑÈÄ ½ÇÇàÇÏ½Ê½Ã¿ä."
+    If Range("MATERIAL").text = "ì „ì²´" Then
+         MsgBox "ìì¬ë¥¼ ì„ íƒí•œí›„ ì‹¤í–‰í•˜ì‹­ì‹œìš”."
         Exit Sub
     End If
 
     If Range("QTY").value < 1 Then
-        MsgBox "ÀÔ°í¼ö·®À» ÀÔ·ÂÇÑÈÄ ½ÇÇàÇÏ½Ê½Ã¿ä."
+        MsgBox "ì…ê³ ìˆ˜ëŸ‰ì„ ì…ë ¥í•œí›„ ì‹¤í–‰í•˜ì‹­ì‹œìš”."
         Exit Sub
     End If
     
-    sSQL = "dbo.MaterialMove_Moving2 '" + Range("MATERIAL").text + "', " + Range("QTY").text + ", '" + Range("WHEREHOUSE").text + "', 'Á¤»ó', '" + MES_Master.Range("WORKER") + "'"
+    sSQL = "dbo.MaterialMove_Moving2 '" + Range("MATERIAL").text + "', " + Range("QTY").text + ", '" + Range("WHEREHOUSE").text + "', 'ì •ìƒ', '" + MES_Master.Range("WORKER") + "'"
     Call ExecCmd(sSQL)
     
-    'Á¶È¸ ButtonÀ» °­Á¦·Î ´­·¯¼­ ´Ù½ÃÁ¶È¸
+    'ì¡°íšŒ Buttonì„ ê°•ì œë¡œ ëˆŒëŸ¬ì„œ ë‹¤ì‹œì¡°íšŒ
     Call cmdDisplay_Click
 
 

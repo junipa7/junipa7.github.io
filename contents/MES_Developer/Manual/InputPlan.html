@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MES_InputPlan.cls 생산 투입 계획 수립 상세 기술 분석서 - Smart MES Developer Manual</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Pretendard:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --panel: #ffffff;
+            --panel-soft: #f8fafc;
+            --ink: #17202a;
+            --muted: #64748b;
+            --line: #d7dde8;
+            --accent: #137a7f;
+            --accent-soft: #e9f7f6;
+            --blue: #2864a8;
+            --blue-soft: #eef5fc;
+            --orange: #b85c18;
+            --green: #2e7d32;
+            --shadow: 0 10px 30px rgba(25, 35, 58, 0.08);
+            --code-bg: #0f172a;
+            --code-ink: #93c5fd;
+        }
+
+        body.dark-mode {
+            --bg: #111827;
+            --panel: #172033;
+            --panel-soft: #1d293d;
+            --ink: #edf2f7;
+            --muted: #a7b0c0;
+            --line: #2f3b52;
+            --accent: #4cc4bd;
+            --accent-soft: #183c40;
+            --blue: #60a5fa;
+            --blue-soft: #1e293b;
+            --orange: #f59e0b;
+            --green: #34d399;
+            --shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+            --code-bg: #030712;
+            --code-ink: #60a5fa;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: Arial, "Malgun Gothic", "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--ink);
+            line-height: 1.7;
+            padding-bottom: 80px;
+        }
+
+        /* Top Sticky Interactive Navigation */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: var(--panel);
+            border-bottom: 1px solid var(--line);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 10px 20px;
+        }
+        .nav-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--ink);
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+        .nav-brand-badge {
+            background: var(--accent);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+        .nav-groups {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        /* Dropdown & Button Styles */
+        .nav-dropdown {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 6px;
+            margin-bottom: -6px;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: var(--ink);
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover, .nav-dropdown:hover .nav-btn {
+            color: #ffffff;
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .nav-btn.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            border-color: var(--accent);
+        }
+        .nav-dropdown-content {
+            display: none;
+            position: absolute;
+            top: calc(100% - 2px);
+            left: 0;
+            min-width: 200px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            padding: 6px 0;
+            z-index: 1001;
+        }
+        .nav-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: transparent;
+        }
+        .nav-dropdown:hover .nav-dropdown-content {
+            display: block;
+        }
+        .dropdown-item {
+            display: block;
+            padding: 8px 16px;
+            color: var(--ink);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .dropdown-item:hover {
+            color: var(--accent);
+            background: var(--accent-soft);
+            padding-left: 20px;
+        }
+        .dropdown-item.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            font-weight: 700;
+        }
+
+        .nav-link-simple {
+            text-decoration: none;
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .nav-link-simple:hover {
+            color: var(--ink);
+            background-color: var(--panel-soft);
+            border-color: var(--line);
+        }
+        .nav-link-simple.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            border-color: var(--accent);
+        }
+        .nav-link-simple.ref-link {
+            color: #fff;
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .nav-link-simple.ref-link:hover {
+            background: #0e5e62;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 20px;
+        }
+
+        /* Hero Header */
+        header {
+            background: #101826;
+            color: #ffffff;
+            border-radius: 14px;
+            padding: 32px 36px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+            border-bottom: 5px solid var(--accent);
+            position: relative;
+        }
+        .badge-version {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.12);
+            color: #a5f3fc;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        header h1 { font-size: 1.85rem; font-weight: 800; color: #ffffff; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .subtitle { color: #dbe3ef; font-size: 0.95rem; line-height: 1.6; }
+
+        /* 4-Summary Grid */
+        .nav-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .summary-card {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+        }
+        .summary-card .label { font-size: 0.78rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+        .summary-card .value { font-size: 1.15rem; font-weight: 800; color: var(--blue); margin-top: 4px; }
+
+        /* Section Container */
+        .section-card {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 26px;
+            margin-bottom: 26px;
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid var(--line);
+            padding-bottom: 12px;
+        }
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        /* Image Display Box */
+        .ui-preview-box {
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 18px 0;
+            text-align: center;
+        }
+        .ui-preview-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            border: 1px solid var(--line);
+        }
+        .ui-caption {
+            margin-top: 10px;
+            font-size: 0.84rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        /* Function / Code Cards */
+        .fn-card {
+            background-color: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 18px;
+        }
+        .fn-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+        .fn-name { font-size: 1.02rem; font-weight: 800; color: var(--blue); font-family: Consolas, 'Fira Code', monospace; }
+        .fn-badge {
+            font-size: 0.72rem; padding: 3px 9px; border-radius: 6px; font-weight: 700;
+        }
+        .fn-badge.pub { background: #e8f5e9; color: var(--green); border: 1px solid #c8e6c9; }
+        .fn-badge.priv { background: #fff3e0; color: var(--orange); border: 1px solid #ffe0b2; }
+        .fn-badge.sql { background: var(--blue-soft); color: var(--blue); border: 1px solid #bfdbfe; }
+
+        body.dark-mode .fn-badge.pub { background: #132e1b; color: #81c784; border-color: #1b5e20; }
+        body.dark-mode .fn-badge.priv { background: #332112; color: #ffb74d; border-color: #e65100; }
+        body.dark-mode .fn-badge.sql { background: #1e293b; color: #93c5fd; border-color: #3b82f6; }
+
+        /* Code Block */
+        .code-box {
+            background-color: var(--code-bg);
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: Consolas, 'Fira Code', Monaco, monospace;
+            font-size: 0.86rem;
+            color: var(--code-ink);
+            overflow-x: auto;
+            margin: 14px 0;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+            tab-size: 4;
+        }
+        .analysis-box {
+            background: var(--accent-soft);
+            border-left: 4px solid var(--accent);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.88rem;
+            color: var(--ink);
+            margin-top: 12px;
+        }
+        .analysis-box ul, .analysis-box ol {
+            margin-left: 18px;
+            margin-top: 6px;
+        }
+        .analysis-box li {
+            margin-bottom: 4px;
+        }
+
+        /* Step Flows */
+        .step-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+        .step-card {
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .step-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .step-title { font-weight: 800; color: var(--ink); margin-bottom: 4px; font-size: 0.94rem; }
+        .step-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 0.86rem; background: var(--panel); }
+        th, td { padding: 10px 14px; text-align: left; border: 1px solid var(--line); vertical-align: top; }
+        th { background-color: var(--panel-soft); color: var(--ink); font-weight: 800; }
+        td code { font-family: Consolas, monospace; color: var(--accent); background: var(--accent-soft); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+
+        /* Portal Module Cards (index.html) */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .module-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: var(--shadow);
+        }
+        .module-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+        }
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .module-name { font-family: Consolas, 'Fira Code', monospace; font-weight: 800; font-size: 0.95rem; }
+        .module-ver { font-size: 0.72rem; padding: 2px 7px; border-radius: 5px; font-weight: 700; }
+        .module-summary { font-size: 0.84rem; color: var(--muted); line-height: 1.55; margin-bottom: 16px; }
+        .module-link-btn {
+            display: block;
+            text-align: center;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.84rem;
+            font-weight: 800;
+            transition: all 0.2s ease;
+        }
+        .module-link-btn:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 18px 22px;
+            box-shadow: var(--shadow);
+        }
+        .stat-title { font-size: 0.8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+        .stat-value { font-size: 1.5rem; font-weight: 800; margin: 4px 0; }
+        .stat-desc { font-size: 0.8rem; color: var(--muted); }
+
+        footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin-top: 36px;
+        }
+</style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">
+                <span>🏭 Smart MES Manual</span>
+                <span class="nav-brand-badge">Developer Docs</span>
+            </a>
+            <div class="nav-groups">
+                <a href="index.html" class="nav-link-simple">🏠 홈 (Index)</a>
+                
+                <!-- 1. 기준정보 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-master" class="nav-btn">
+                        📋 기준정보 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="Process.html" class="dropdown-item">공정 관리 (Process)</a>
+                        <a href="Management.html" class="dropdown-item">기종 마스터 (Management)</a>
+                        <a href="MngSpec.html" class="dropdown-item">공정 사양 (MngSpec)</a>
+                        <a href="BillOfMaterial.html" class="dropdown-item">자재명세서 (BOM)</a>
+                        <a href="MngDisplay.html" class="dropdown-item">종합 대시보드 (Display)</a>
+                    </div>
+                </div>
+
+                <!-- 2. 생산/실적 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-prod" class="nav-btn active">
+                        ⚙️ 생산/실적 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="InputPlan.html" class="dropdown-item active">투입 계획 (InputPlan)</a>
+                        <a href="LotCreate.html" class="dropdown-item">LOT 생성 (LotCreate)</a>
+                        <a href="Result.html" class="dropdown-item">생산 실적 (Result)</a>
+                        <a href="Inspection.html" class="dropdown-item">검사 실적 (Inspection)</a>
+                        <a href="LotStop.html" class="dropdown-item">LOT 중지/해제 (LotStop)</a>
+                        <a href="MachineStop.html" class="dropdown-item">설비 비가동 (MachineStop)</a>
+                        <a href="Warehousing.html" class="dropdown-item">자재 입고/이동 (Warehousing)</a>
+                        <a href="EmployeeResult.html" class="dropdown-item">작업자 실적 (Employee)</a>
+                    </div>
+                </div>
+
+                <!-- 3. 시스템/공통 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-core" class="nav-btn">
+                        🔧 시스템/공통 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="Master.html" class="dropdown-item">마스터 관리 (MES_Master)</a>
+                        <a href="ADO.html" class="dropdown-item">DB 커넥션 (modADO)</a>
+                        <a href="Ext.html" class="dropdown-item">보안/템플릿 (modExt)</a>
+                        <a href="RibbonMenu.html" class="dropdown-item">리본 메뉴 (modRibbonMenu)</a>
+                        <a href="Sheet.html" class="dropdown-item">UI 유틸 (modSheet)</a>
+                        <a href="Upgrade.html" class="dropdown-item">런타임 핫패치 (modUpgrade)</a>
+                    </div>
+                </div>
+
+                <a href="References.html" class="nav-link-simple ref-link">📚 학습참고</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <header>
+            <div class="badge-version">생산/실적 (Production) • Screen Architecture Manual</div>
+            <h1>MES_InputPlan.cls 생산 투입 계획 수립 상세 기술 분석서</h1>
+            <p class="subtitle">기간별/기종별 생산 투입 계획 등록(기본 1000EA 자동 채번), 상태 관리(PLAN, RUN, END) 및 LOT 생성 화면으로 계획ID 자동 전달</p>
+        </header>
+
+        <!-- 4 Summary Cards -->
+        <div class="nav-summary">
+            
+        <div class="summary-card">
+            <div class="label">화면 모듈</div>
+            <div class="value">MES_InputPlan.cls</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">매핑 백엔드 테이블</div>
+            <div class="value">dbo.InputPlan</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">연계 저장 프로시저</div>
+            <div class="value">InputPlan_Select / Save / Delete</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">화면 연계 라우팅</div>
+            <div class="value">Worksheet_BeforeDoubleClick -> LotCreate</div>
+        </div>
+        </div>
+
+        <!-- 1. UI 구조 및 실제 화면 분석 -->
+        <div class="section-card">
+            <h2 class="section-title">1. MES_InputPlan.cls 생산 투입 계획 수립 상세 기술 분석서 화면 레이아웃 & UI 컨트롤 분석</h2>
+            <p style="color: #cbd5e1; margin-bottom: 16px;">
+                <strong>MES_InputPlan</strong> 화면은 생산 관리자가 특정 기간(From ~ To Date) 동안 특정 기종을 얼마만큼 생산할 것인지 투입 계획(PlanID)을 등록하고 관리하는 화면입니다. 행을 추가하면 기본 1000EA 수량이 자동으로 세팅되며, 계획 행을 더블클릭하면 즉시 LOT 생성 화면(MES_LotCreate)으로 전환되어 해당 계획에 대한 작업 지시 LOT를 발행할 수 있습니다.
+            </p>
+
+            <div class="ui-preview-box">
+                <img src="MES_InputPlan.jpg" alt="MES_InputPlan.cls 실제 구동 화면">
+                <div class="ui-caption">▲ [MES_InputPlan.jpg] 실제 엑셀 클라이언트 구동 화면 (상단 조회조건/ActiveX 버튼 및 DATA 그리드)</div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr><th>구분</th><th>엑셀 셀 주소</th><th>명명된 범위 (Name)</th><th>연계 DB 컬럼 / 컨트롤 설명</th></tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td><strong>조회 시작일</strong></td>
+            <td><code>B1</code></td>
+            <td><code>Range("FROM_DATE")</code></td>
+            <td>계획 조회 시작일 (yyyy-mm-dd)</td>
+        </tr>
+        <tr>
+            <td><strong>조회 종료일</strong></td>
+            <td><code>D1</code></td>
+            <td><code>Range("TO_DATE")</code></td>
+            <td>계획 조회 종료일 (yyyy-mm-dd)</td>
+        </tr>
+        <tr>
+            <td><strong>기종 필터</strong></td>
+            <td><code>F1</code></td>
+            <td><code>Range("MANAGEMENT")</code></td>
+            <td>기종 필터 드롭다운 (전체 또는 특정 기종)</td>
+        </tr>
+        <tr>
+            <td><strong>ActiveX 버튼</strong></td>
+            <td><code>상단 행</code></td>
+            <td><code>cmdDisplay, cmdDelete, cmdSave</code></td>
+            <td>[조회], [삭제] 취소선, [저장] 일괄 트랜잭션</td>
+        </tr>
+        <tr>
+            <td><strong>데이터 영역</strong></td>
+            <td><code>A3:G25</code></td>
+            <td><code>Range("DATA")</code></td>
+            <td>투입 계획 데이터 그리드</td>
+        </tr>
+        <tr>
+            <td><strong>컬럼 1 (A열)</strong></td>
+            <td><code>DATA.Columns(1)</code></td>
+            <td>-</td>
+            <td><code>dbo.InputPlan.PlanID</code> (계획고유번호 - varchar(50), PK)</td>
+        </tr>
+        <tr>
+            <td><strong>컬럼 2 (B열)</strong></td>
+            <td><code>DATA.Columns(2)</code></td>
+            <td>-</td>
+            <td><code>dbo.InputPlan.Management</code> (기종코드 - varchar(50))</td>
+        </tr>
+        <tr>
+            <td><strong>컬럼 3 (C열)</strong></td>
+            <td><code>DATA.Columns(3)</code></td>
+            <td>-</td>
+            <td><code>dbo.InputPlan.PlanCount</code> (계획 수량 - int, 기본 1000)</td>
+        </tr>
+        <tr>
+            <td><strong>컬럼 4 (D열)</strong></td>
+            <td><code>DATA.Columns(4)</code></td>
+            <td>-</td>
+            <td><code>dbo.InputPlan.Status</code> (진행상태 - PLAN/RUN/END)</td>
+        </tr>
+        <tr>
+            <td><strong>컬럼 5 (E열)</strong></td>
+            <td><code>DATA.Columns(5)</code></td>
+            <td>-</td>
+            <td><code>dbo.InputPlan.EventTime</code> (등록일시)</td>
+        </tr>
+        <tr>
+            <td><strong>컬럼 6 (F열)</strong></td>
+            <td><code>DATA.Columns(6)</code></td>
+            <td>-</td>
+            <td><code>dbo.InputPlan.EventUser</code> (등록자)</td>
+        </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 2. MS-SQL 데이터베이스 백엔드 아키텍처 -->
+        <div class="section-card">
+            <h2 class="section-title">2. MS-SQL Server 백엔드 구조 (MESDB_CREATE.sql)</h2>
+            <p style="color: #cbd5e1; margin-bottom: 16px;">
+                <code>MESDB_CREATE.sql</code>에 정의된 백엔드 테이블 DDL 스키마 및 연계 저장 프로시저(Stored Procedure)의 완전한 T-SQL 구현 소스코드입니다.
+            </p>
+            
+        <div class="fn-card">
+            <div class="fn-header">
+                <span class="fn-name">TABLE [dbo].[InputPlan]</span>
+                <span class="fn-badge sql">DDL Definition</span>
+            </div>
+            <p style='color: #cbd5e1; margin-bottom: 10px;'>생산 투입 계획 테이블 DDL</p>
+            <pre class="code-box"><code>CREATE TABLE [dbo].[InputPlan](
+    [PlanID]     [varchar](50) NOT NULL, -- 생산 계획 고유번호 (PK)
+    [Management] [varchar](50) NOT NULL, -- 기종코드
+    [PlanCount]  [int] NOT NULL,         -- 계획 수량
+    [Status]     [varchar](50) NOT NULL, -- 상태 (PLAN: 계획수립, RUN: 생산중, END: 완료)
+    [EventTime]  [datetime] NOT NULL,    -- 등록일시
+    [EventUser]  [varchar](50) NOT NULL, -- 등록자
+    CONSTRAINT [PK_InputPlan] PRIMARY KEY CLUSTERED ([PlanID] ASC)
+) ON [PRIMARY]</code></pre>
+        </div>
+        <div class="fn-card">
+            <div class="fn-header">
+                <span class="fn-name">PROCEDURE [dbo].[InputPlan_Select]</span>
+                <span class="fn-badge sql">Stored Procedure</span>
+            </div>
+            <p style='color: #cbd5e1; margin-bottom: 10px;'>기간 및 기종별 투입 계획 조회</p>
+            <pre class="code-box"><code>CREATE PROCEDURE [dbo].[InputPlan_Select](
+    @FromDate varchar(10),
+    @ToDate varchar(10),
+    @Management varchar(50)
+)
+AS
+BEGIN
+    SET NOCOUNT ON
+    SELECT * FROM dbo.InputPlan WITH(NOLOCK)
+    WHERE EventTime >= @FromDate AND EventTime <= DATEADD(DAY, 1, @ToDate)
+      AND (@Management = '전체' OR Management = @Management)
+    ORDER BY EventTime DESC
+    RETURN 0
+END</code></pre>
+        </div>
+        <div class="fn-card">
+            <div class="fn-header">
+                <span class="fn-name">PROCEDURE [dbo].[InputPlan_Save]</span>
+                <span class="fn-badge sql">Stored Procedure (UPSERT)</span>
+            </div>
+            <p style='color: #cbd5e1; margin-bottom: 10px;'>투입 계획 저장 및 신규 PlanID 자동 채번</p>
+            <pre class="code-box"><code>CREATE PROCEDURE [dbo].[InputPlan_Save](
+    @PlanID varchar(50),
+    @Management varchar(50),
+    @PlanCount int,
+    @Status varchar(50),
+    @EventTime datetime,
+    @EventUser varchar(50) = 'SYSTEM'
+)
+AS
+BEGIN
+    SET NOCOUNT ON
+    DECLARE @CurrentTime datetime
+    SET @CurrentTime = GETDATE()
+
+    -- 1. 기종코드 검증
+    IF NOT EXISTS (SELECT 1 FROM dbo.Management WHERE Management = @Management)
+    BEGIN
+        RAISERROR('dbo.InputPlan_Save : Management 코드 오류 [%s]', 16, -1, @Management)
+        RETURN -10
+    END
+
+    -- 2. 신규 등록 시 PlanID 자동 채번 (예: PLN-YYYYMMDD-001)
+    IF @PlanID = '' OR @PlanID IS NULL
+    BEGIN
+        DECLARE @Seq int
+        SELECT @Seq = ISNULL(MAX(CAST(RIGHT(PlanID, 3) AS int)), 0) + 1 
+        FROM dbo.InputPlan 
+        WHERE PlanID LIKE 'PLN-' + CONVERT(varchar(8), GETDATE(), 112) + '%'
+        
+        SET @PlanID = 'PLN-' + CONVERT(varchar(8), GETDATE(), 112) + '-' + RIGHT('000' + CAST(@Seq AS varchar(3)), 3)
+    END
+
+    -- 3. UPSERT 실행
+    IF (SELECT COUNT(*) FROM dbo.InputPlan WHERE PlanID = @PlanID) = 0
+        INSERT INTO dbo.InputPlan VALUES(@PlanID, @Management, @PlanCount, ISNULL(@Status, 'PLAN'), @CurrentTime, @EventUser);
+    ELSE
+        UPDATE dbo.InputPlan
+        SET Management = @Management,
+            PlanCount = @PlanCount,
+            [Status] = @Status,
+            EventTime = @CurrentTime,
+            EventUser = @EventUser
+        WHERE PlanID = @PlanID
+
+    RETURN 0
+END</code></pre>
+        </div>
+        </div>
+
+        <!-- 3. VBA 클라이언트 동작 라이프사이클 -->
+        <div class="section-card">
+            <h2 class="section-title">3. VBA 클라이언트 동작 라이프사이클 & 상태 관리</h2>
+            <div class="step-container">
+                
+        <div class="step-card">
+            <span class="step-badge" style="background: var(--primary);">1. 기간 설정</span>
+            <div class="step-title">Worksheet_Activate</div>
+            <div class="step-desc">현재 월 1일 ~ 말일 자동 세팅 및 기종코드 드롭다운 콤보 유효성 검사 설정</div>
+        </div>
+        <div class="step-card">
+            <span class="step-badge" style="background: var(--primary);">2. 계획 조회</span>
+            <div class="step-title">cmdDisplay_Click</div>
+            <div class="step-desc"><code>dbo.InputPlan_Select</code> 호출 및 결과 그리드 바인딩</div>
+        </div>
+        <div class="step-card">
+            <span class="step-badge" style="background: var(--warning);">3. 행 추가 시 1000EA 기본값</span>
+            <div class="step-title">AutoChangeValue</div>
+            <div class="step-desc">기종 선택 시 계획수량 기본 1000EA, 상태 'PLAN', 등록일시 자동 기입</div>
+        </div>
+        <div class="step-card">
+            <span class="step-badge" style="background: var(--secondary);">4. 더블클릭 LOT 생성 이동</span>
+            <div class="step-title">Worksheet_BeforeDoubleClick</div>
+            <div class="step-desc">PlanID 더블클릭 시 <code>Worksheet_Link(MES_LotCreate, PlanID)</code>로 화면 전환</div>
+        </div>
+            </div>
+        </div>
+
+        <!-- 4. VBA 프로시저 상세 소스코드 해설 -->
+        <div class="section-card">
+            <h2 class="section-title">4. MES_InputPlan.cls 핵심 프로시저 상세 소스코드 해설</h2>
+            
+        <div class="fn-card">
+            <div class="fn-header">
+                <span class="fn-name">AutoChangeValue(iRownumber) - 기본 수량 및 상태 자동 설정</span>
+                <span class="fn-badge pub">Auto Value</span>
+            </div>
+            <p style="color: #cbd5e1;">신규 계획 등록 시 수량 1000EA 및 상태 PLAN 자동 세팅</p>
+            <pre class="code-box"><code>Private Sub AutoChangeValue(iRownumber As Long)
+    '3열(계획수량)이 비어있으면 1000EA 기본값 부여
+    If Range("DATA").Cells(iRownumber, 3).Value = "" Then
+        Range("DATA").Cells(iRownumber, 3).Value = 1000
+    End If
+    
+    '4열(상태)이 비어있으면 'PLAN' 부여
+    If Range("DATA").Cells(iRownumber, 4).Value = "" Then
+        Range("DATA").Cells(iRownumber, 4).Value = "PLAN"
+    End If
+    
+    '등록일시 및 작업자
+    Range("DATA").Cells(iRownumber, 5).Value = DateTime.Now()
+    Range("DATA").Cells(iRownumber, 6).Value = MES_Master.Range("WORKER").Text
+End Sub</code></pre>
+            
+            <div class="analysis-box">
+                <strong>💡 핵심 로직 및 현장 적용 포인트:</strong>
+                <ul><li>관리자가 기종만 선택하면 표준 로트 기본 수량(1,000개)과 초기 상태(PLAN)가 자동으로 채워집니다.</li></ul>
+            </div>
+        </div>
+        </div>
+
+        <footer>
+            <p>© Smart MES Development Team. MES_InputPlan.cls Technical Manual.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Synchronize dark-mode class with parent window or localStorage
+        function syncTheme() {
+            try {
+                if (window.parent && window.parent.document.body.classList.contains('dark-mode')) {
+                    document.body.classList.add('dark-mode');
+                } else if (localStorage.getItem('theme') === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            } catch(e) {}
+        }
+        syncTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'THEME_CHANGE') {
+                if (event.data.theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,32 +1,25 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmMngTree 
-   Caption         =   "BOM¡∂»∏"
-   ClientHeight    =   8070
-   ClientLeft      =   120
-   ClientTop       =   465
-   ClientWidth     =   11205
+   Caption         =   "Í∏∞Ï§ÄÏ†ïÎ≥¥ Í≥ÑÏ∏µ Ìä∏Î¶¨"
+   ClientHeight    =   6945
+   ClientLeft      =   45
+   ClientTop       =   375
+   ClientWidth     =   5850
    OleObjectBlob   =   "frmMngTree.frx":0000
-   StartUpPosition =   1  'º“¿Ø¿⁄ ∞°øÓµ•
+   StartUpPosition =   1  'CenterOwner
 End
 Attribute VB_Name = "frmMngTree"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-'¥Ÿ∏• Sheetø°º≠ «ˆ¿Á Sheet∏¶ »£√‚«“∂ß Ω««‡
+
+Option Explicit
+
 Public Sub Worksheet_Link(sManagement As String)
-    txtMng = sManagement
-    Call cmdDispaly_Click
+    Call modADO.SelectToTreeview("dbo.BOM_Tree_Select '" & sManagement & "'", Me.TreeView1)
 End Sub
 
-
-Private Sub cmdDispaly_Click()
-    Dim sSQL As String
-    
-    'Data∏¶ ∞°¡Æø¿±‚ ¿ß«— ¿˙¿Â «¡∑ŒΩ√¡Æ »£√‚ Query∏¶ ∏∏µÁ¥Ÿ.
-    sSQL = "dbo.BillOfMaterial_Treeview '" + txtMng.text + "'"
-
-    '¿˙¿Â «¡∑ŒΩ√¡Æ∏¶ »£√‚«œ∞Ì ∞·∞˙∏¶ Excel Sheetø° √‚∑¬«—¥Ÿ.
-    Call SelectToTreeview(sSQL, trBOM)
-End Sub
-
+Private Sub cmdClose_Click()
+    Unload Me
+End Sub

@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>엑셀 VBA 심화 학습 & 추천 참조 자료 - Smart MES Manual</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Pretendard:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --panel: #ffffff;
+            --panel-soft: #f8fafc;
+            --ink: #17202a;
+            --muted: #64748b;
+            --line: #d7dde8;
+            --accent: #137a7f;
+            --accent-soft: #e9f7f6;
+            --blue: #2864a8;
+            --blue-soft: #eef5fc;
+            --orange: #b85c18;
+            --green: #2e7d32;
+            --shadow: 0 10px 30px rgba(25, 35, 58, 0.08);
+            --code-bg: #0f172a;
+            --code-ink: #93c5fd;
+        }
+
+        body.dark-mode {
+            --bg: #111827;
+            --panel: #172033;
+            --panel-soft: #1d293d;
+            --ink: #edf2f7;
+            --muted: #a7b0c0;
+            --line: #2f3b52;
+            --accent: #4cc4bd;
+            --accent-soft: #183c40;
+            --blue: #60a5fa;
+            --blue-soft: #1e293b;
+            --orange: #f59e0b;
+            --green: #34d399;
+            --shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+            --code-bg: #030712;
+            --code-ink: #60a5fa;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: Arial, "Malgun Gothic", "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--ink);
+            line-height: 1.7;
+            padding-bottom: 80px;
+        }
+
+        /* Top Sticky Interactive Navigation */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: var(--panel);
+            border-bottom: 1px solid var(--line);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 10px 20px;
+        }
+        .nav-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--ink);
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+        .nav-brand-badge {
+            background: var(--accent);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+        .nav-groups {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        /* Dropdown & Button Styles */
+        .nav-dropdown {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 6px;
+            margin-bottom: -6px;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: var(--ink);
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover, .nav-dropdown:hover .nav-btn {
+            color: #ffffff;
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .nav-btn.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            border-color: var(--accent);
+        }
+        .nav-dropdown-content {
+            display: none;
+            position: absolute;
+            top: calc(100% - 2px);
+            left: 0;
+            min-width: 200px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            padding: 6px 0;
+            z-index: 1001;
+        }
+        .nav-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: transparent;
+        }
+        .nav-dropdown:hover .nav-dropdown-content {
+            display: block;
+        }
+        .dropdown-item {
+            display: block;
+            padding: 8px 16px;
+            color: var(--ink);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .dropdown-item:hover {
+            color: var(--accent);
+            background: var(--accent-soft);
+            padding-left: 20px;
+        }
+        .dropdown-item.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            font-weight: 700;
+        }
+
+        .nav-link-simple {
+            text-decoration: none;
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .nav-link-simple:hover {
+            color: var(--ink);
+            background-color: var(--panel-soft);
+            border-color: var(--line);
+        }
+        .nav-link-simple.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            border-color: var(--accent);
+        }
+        .nav-link-simple.ref-link {
+            color: #fff;
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .nav-link-simple.ref-link:hover {
+            background: #0e5e62;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 20px;
+        }
+
+        /* Hero Header */
+        header {
+            background: #101826;
+            color: #ffffff;
+            border-radius: 14px;
+            padding: 32px 36px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+            border-bottom: 5px solid var(--accent);
+            position: relative;
+        }
+        .badge-version {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.12);
+            color: #a5f3fc;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        header h1 { font-size: 1.85rem; font-weight: 800; color: #ffffff; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .subtitle { color: #dbe3ef; font-size: 0.95rem; line-height: 1.6; }
+
+        /* 4-Summary Grid */
+        .nav-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .summary-card {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+        }
+        .summary-card .label { font-size: 0.78rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+        .summary-card .value { font-size: 1.15rem; font-weight: 800; color: var(--blue); margin-top: 4px; }
+
+        /* Section Container */
+        .section-card {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 26px;
+            margin-bottom: 26px;
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid var(--line);
+            padding-bottom: 12px;
+        }
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        /* Image Display Box */
+        .ui-preview-box {
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 18px 0;
+            text-align: center;
+        }
+        .ui-preview-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            border: 1px solid var(--line);
+        }
+        .ui-caption {
+            margin-top: 10px;
+            font-size: 0.84rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        /* Function / Code Cards */
+        .fn-card {
+            background-color: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 18px;
+        }
+        .fn-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+        .fn-name { font-size: 1.02rem; font-weight: 800; color: var(--blue); font-family: Consolas, 'Fira Code', monospace; }
+        .fn-badge {
+            font-size: 0.72rem; padding: 3px 9px; border-radius: 6px; font-weight: 700;
+        }
+        .fn-badge.pub { background: #e8f5e9; color: var(--green); border: 1px solid #c8e6c9; }
+        .fn-badge.priv { background: #fff3e0; color: var(--orange); border: 1px solid #ffe0b2; }
+        .fn-badge.sql { background: var(--blue-soft); color: var(--blue); border: 1px solid #bfdbfe; }
+
+        body.dark-mode .fn-badge.pub { background: #132e1b; color: #81c784; border-color: #1b5e20; }
+        body.dark-mode .fn-badge.priv { background: #332112; color: #ffb74d; border-color: #e65100; }
+        body.dark-mode .fn-badge.sql { background: #1e293b; color: #93c5fd; border-color: #3b82f6; }
+
+        /* Code Block */
+        .code-box {
+            background-color: var(--code-bg);
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: Consolas, 'Fira Code', Monaco, monospace;
+            font-size: 0.86rem;
+            color: var(--code-ink);
+            overflow-x: auto;
+            margin: 14px 0;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+            tab-size: 4;
+        }
+        .analysis-box {
+            background: var(--accent-soft);
+            border-left: 4px solid var(--accent);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.88rem;
+            color: var(--ink);
+            margin-top: 12px;
+        }
+        .analysis-box ul, .analysis-box ol {
+            margin-left: 18px;
+            margin-top: 6px;
+        }
+        .analysis-box li {
+            margin-bottom: 4px;
+        }
+
+        /* Step Flows */
+        .step-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+        .step-card {
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .step-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .step-title { font-weight: 800; color: var(--ink); margin-bottom: 4px; font-size: 0.94rem; }
+        .step-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 0.86rem; background: var(--panel); }
+        th, td { padding: 10px 14px; text-align: left; border: 1px solid var(--line); vertical-align: top; }
+        th { background-color: var(--panel-soft); color: var(--ink); font-weight: 800; }
+        td code { font-family: Consolas, monospace; color: var(--accent); background: var(--accent-soft); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+
+        /* Portal Module Cards (index.html) */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .module-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: var(--shadow);
+        }
+        .module-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+        }
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .module-name { font-family: Consolas, 'Fira Code', monospace; font-weight: 800; font-size: 0.95rem; }
+        .module-ver { font-size: 0.72rem; padding: 2px 7px; border-radius: 5px; font-weight: 700; }
+        .module-summary { font-size: 0.84rem; color: var(--muted); line-height: 1.55; margin-bottom: 16px; }
+        .module-link-btn {
+            display: block;
+            text-align: center;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.84rem;
+            font-weight: 800;
+            transition: all 0.2s ease;
+        }
+        .module-link-btn:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 18px 22px;
+            box-shadow: var(--shadow);
+        }
+        .stat-title { font-size: 0.8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+        .stat-value { font-size: 1.5rem; font-weight: 800; margin: 4px 0; }
+        .stat-desc { font-size: 0.8rem; color: var(--muted); }
+
+        footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin-top: 36px;
+        }
+</style>
+</head>
+<body>
+                            <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">
+                <span>🏭 Smart MES Manual</span>
+                <span class="nav-brand-badge">Developer Docs</span>
+            </a>
+            <div class="nav-groups">
+                <a href="index.html" class="nav-link-simple">🏠 홈 (Index)</a>
+                
+                <!-- 1. 기준정보 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-master" class="nav-btn">
+                        📋 기준정보 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="Process.html" class="dropdown-item">공정 관리 (Process)</a>
+                        <a href="Management.html" class="dropdown-item">기종 마스터 (Management)</a>
+                        <a href="MngSpec.html" class="dropdown-item">공정 사양 (MngSpec)</a>
+                        <a href="BillOfMaterial.html" class="dropdown-item">자재명세서 (BOM)</a>
+                        <a href="MngDisplay.html" class="dropdown-item">종합 대시보드 (Display)</a>
+                    </div>
+                </div>
+
+                <!-- 2. 생산/실적 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-prod" class="nav-btn">
+                        ⚙️ 생산/실적 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="InputPlan.html" class="dropdown-item">투입 계획 (InputPlan)</a>
+                        <a href="LotCreate.html" class="dropdown-item">LOT 생성 (LotCreate)</a>
+                        <a href="Result.html" class="dropdown-item">생산 실적 (Result)</a>
+                        <a href="Inspection.html" class="dropdown-item">검사 실적 (Inspection)</a>
+                        <a href="LotStop.html" class="dropdown-item">LOT 중지/해제 (LotStop)</a>
+                        <a href="MachineStop.html" class="dropdown-item">설비 비가동 (MachineStop)</a>
+                        <a href="Warehousing.html" class="dropdown-item">자재 입고/이동 (Warehousing)</a>
+                        <a href="EmployeeResult.html" class="dropdown-item">작업자 실적 (Employee)</a>
+                    </div>
+                </div>
+
+                <!-- 3. 시스템/공통 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-core" class="nav-btn">
+                        🔧 시스템/공통 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="Master.html" class="dropdown-item">마스터 관리 (MES_Master)</a>
+                        <a href="ADO.html" class="dropdown-item">DB 커넥션 (modADO)</a>
+                        <a href="Ext.html" class="dropdown-item">보안/템플릿 (modExt)</a>
+                        <a href="RibbonMenu.html" class="dropdown-item">리본 메뉴 (modRibbonMenu)</a>
+                        <a href="Sheet.html" class="dropdown-item">UI 유틸 (modSheet)</a>
+                        <a href="Upgrade.html" class="dropdown-item">런타임 핫패치 (modUpgrade)</a>
+                    </div>
+                </div>
+
+                <a href="References.html" class="nav-link-simple ref-link active">📚 학습참고</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <header>
+            <div class="badge-version">추천 기술 레퍼런스 포털 • Reference Hub</div>
+            <h1>📚 엑셀 VBA 심화 학습 & 추천 참조 자료</h1>
+            <p class="subtitle">스마트 MES 시스템 개발, 유지보수 및 고성능 VBA 프로그래밍을 위한 핵심 추천 문서와 기술 가이드 모음</p>
+        </header>
+
+        <!-- 1. Deep Inside VBA -->
+        <div class="ref-card">
+            <div class="ref-header">
+                <a href="https://wikidocs.net/book/295" target="_blank" class="ref-title">
+                    📖 Deep Inside VBA (WikiDocs) ↗
+                </a>
+                <span class="ref-badge" style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);">온라인 도서 / 원리 해설</span>
+            </div>
+            <p style="color: #cbd5e1; margin-bottom: 12px;">
+                VBA의 단순 문법을 넘어, <strong>내부 런타임 엔진 동작 원리, 메모리 할당 구조, 문자열 포인터(BSTR/StrPtr), SAFEARRAY 배열 구조, COM 객체 바이딩</strong>을 심도 있게 다루는 국내 최고의 VBA 심화 기술 도서입니다.
+            </p>
+            <div class="analysis-box">
+                <strong>💡 스마트 MES 적용 연계 포인트:</strong>
+                <ul>
+                    <li><code>modADO.ExecCmd</code> 및 <code>GetRows</code>를 통한 2차원 SAFEARRAY 메모리 직접 바인딩 원리 이해</li>
+                    <li><code>modUpgrade</code>의 런타임 핫패치(VBAProject 내부 조작) 메커니즘 심화 학습</li>
+                    <li>대용량 데이터 처리 시 불필요한 메모리 복사를 방지하는 가변인자 및 ByRef 전달 최적화</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 2. Workbook 완벽 가이드 -->
+        <div class="ref-card">
+            <div class="ref-header">
+                <a href="https://kukuta.tistory.com/276" target="_blank" class="ref-title">
+                    📘 [VBA] Workbook 완벽 가이드 (Kukuta's Blog) ↗
+                </a>
+                <span class="ref-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">통합문서 객체 제어</span>
+            </div>
+            <p style="color: #cbd5e1; margin-bottom: 12px;">
+                <code>Workbook</code> 객체의 생명주기(Open, BeforeSave, BeforeClose 이벤트), <code>Workbooks.Add/Open/SaveCopyAs</code> 메서드, 보안/보호 속성 및 다중 통합문서 간 데이터 동기화 기법을 완벽히 정리한 가이드입니다.
+            </p>
+            <div class="analysis-box">
+                <strong>💡 스마트 MES 적용 연계 포인트:</strong>
+                <ul>
+                    <li><code>modADO.UpgradeFileSave</code>의 <code>ThisWorkbook.SaveCopyAs</code> 임시 파일 생성 및 DB 업로드 로직 이해</li>
+                    <li><code>modExt.DeleteVBA</code>에서 다중 워크북(<code>Workbooks(2)</code>) 참조 및 배포용 클린 워크북 변환 기법 적용</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 3. Worksheet 완벽 가이드 -->
+        <div class="ref-card">
+            <div class="ref-header">
+                <a href="https://kukuta.tistory.com/278" target="_blank" class="ref-title">
+                    📗 [VBA] Worksheet 완벽 가이드 (Kukuta's Blog) ↗
+                </a>
+                <span class="ref-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);">워크시트 객체 모델</span>
+            </div>
+            <p style="color: #cbd5e1; margin-bottom: 12px;">
+                <code>Worksheet</code> 객체의 핵심 속성, 시트 이벤트(<code>Worksheet_Activate</code>, <code>Worksheet_Change</code>, <code>Worksheet_SelectionChange</code>), 그리고 시트 동적 생성/삭제/보호 기법을 체계적으로 다룹니다.
+            </p>
+            <div class="analysis-box">
+                <strong>💡 스마트 MES 적용 연계 포인트:</strong>
+                <ul>
+                    <li>모든 화면 클래스(<code>MES_Process</code>, <code>MES_Result</code> 등)의 <code>Worksheet_Activate</code> 시 초기화 패턴</li>
+                    <li><code>Worksheet_Change</code> 이벤트에서 <code>Application.ScreenUpdating = False</code>를 통한 무한 루프(Event Cascading) 차단</li>
+                    <li><code>modExt.Create_MES_Product_Process</code>의 <code>Worksheets.Add</code> 시트 자동 생성 및 ActiveX 컨트롤 배치</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 4. 셀과 범위 선택하기 총정리 -->
+        <div class="ref-card">
+            <div class="ref-header">
+                <a href="https://knowhowbank.tistory.com/162" target="_blank" class="ref-title">
+                    📙 [Excel/VBA] 셀과 범위 선택하기 총정리! (KnowHowBank) ↗
+                </a>
+                <span class="ref-badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);">셀/영역 탐색 테크닉</span>
+            </div>
+            <p style="color: #cbd5e1; margin-bottom: 12px;">
+                <code>Select</code>를 배제하고 속도를 극대화하는 Range 탐색 방법, <code>Offset</code>, <code>Resize</code>, <code>End(xlDown/xlUp)</code>, <code>CurrentRegion</code>, <code>UsedRange</code> 활용법을 실무 중심으로 정리한 글입니다.
+            </p>
+            <div class="analysis-box">
+                <strong>💡 스마트 MES 적용 연계 포인트:</strong>
+                <ul>
+                    <li><code>modSheet.LineRange</code>의 <code>Target.CurrentRegion.Offset</code> 및 <code>Resize</code>를 통한 1개 행 동적 선택</li>
+                    <li><code>modSheet.FindNullRow</code>의 <code>Target.End(xlDown).Row + 1</code> 빈 행 탐색 알고리즘</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 5. Range 총정리 (네이버 블로그) -->
+        <div class="ref-card">
+            <div class="ref-header">
+                <a href="https://m.blog.naver.com/yjh0853/221947328622" target="_blank" class="ref-title">
+                    📕 엑셀 VBA(16): Range 총정리 (네이버 블로그) ↗
+                </a>
+                <span class="ref-badge" style="background: rgba(6, 182, 212, 0.2); color: #22d3ee; border: 1px solid rgba(6, 182, 212, 0.4);">Range 핵심 속성 예제</span>
+            </div>
+            <p style="color: #cbd5e1; margin-bottom: 12px;">
+                실무 엑셀 개발에서 필수적인 <code>Range</code> 객체의 폰트 서식, 배경색(Interior), 테두리(Borders), 값(Value/Text), 수식(FormulaR1C1) 및 주소(Address) 제어 예제를 직관적으로 설명합니다.
+            </p>
+            <div class="analysis-box">
+                <strong>💡 스마트 MES 적용 연계 포인트:</strong>
+                <ul>
+                    <li><code>modSheet.DeleteLine_Create</code> / <code>Cancel</code>의 <code>Font.Strikethrough = True</code> 취소선 처리</li>
+                    <li><code>modExt.Create_MES_Product_Process</code>의 표준 색상(<code>Color = 65535</code>), 테두리(<code>Weight = xlThin</code>) 자동 서식화</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 6. Range와 Cell 완벽 가이드 -->
+        <div class="ref-card">
+            <div class="ref-header">
+                <a href="https://kukuta.tistory.com/279" target="_blank" class="ref-title">
+                    📓 [VBA] Range와 Cell 완벽 가이드 (Kukuta's Blog) ↗
+                </a>
+                <span class="ref-badge" style="background: rgba(139, 92, 246, 0.2); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.4);">성능 최적화 & 배열 매핑</span>
+            </div>
+            <p style="color: #cbd5e1; margin-bottom: 12px;">
+                <code>Range("A1")</code>와 <code>Cells(row, col)</code>의 차이점, 루프 연산 시 셀 직접 접근 대신 2차원 Variant 배열로 메모리에 한 번에 올리고 내리는 초고속 성능 튜닝 기법을 설명합니다.
+            </p>
+            <div class="analysis-box">
+                <strong>💡 스마트 MES 적용 연계 포인트:</strong>
+                <ul>
+                    <li><code>Range("DATA").Rows.Count</code> 루프와 <code>Cells(iDataRow, col)</code> 매핑 구조</li>
+                    <li><code>modSheet.RangeToString</code>을 이용한 다중 Range 셀 값의 고속 직렬화(Serialization)</li>
+                    <li><code>CopyFromRecordset</code>을 이용한 셀 단위 반복문 없는 단 1줄 고속 데이터 출력</li>
+                </ul>
+            </div>
+        </div>
+
+        <footer>
+            <p>© Smart MES Enterprise Development Team. Complete Reference Documentation.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Synchronize dark-mode class with parent window or localStorage
+        function syncTheme() {
+            try {
+                if (window.parent && window.parent.document.body.classList.contains('dark-mode')) {
+                    document.body.classList.add('dark-mode');
+                } else if (localStorage.getItem('theme') === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            } catch(e) {}
+        }
+        syncTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'THEME_CHANGE') {
+                if (event.data.theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

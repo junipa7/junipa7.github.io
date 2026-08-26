@@ -1,97 +1,48 @@
 Attribute VB_Name = "modRibbonMenu"
 Private Const ThisModuleVersion As Integer = 2
 
-Option Explicit   'º¯¼ö°¡ ÁöÁ¤µÇÁö ¾ÊÀ¸¸é ¿¡·¯°¡ ³ªµµ·Ï Á¤ÀÇ
+Option Explicit   'ë³€ìˆ˜ ì„ ì–¸ ê°•ì œ
 
 'Callback for customButton1 onAction
-'Ribbon MenuÆíÁı±â »çÀÌÆ® ¿¬°á
+'Ribbon Menu ì—ë””í„° ì‚¬ì´íŠ¸ ì—°ê²°
 Sub conRibbonXEditorHttpSub(control As IRibbonControl)
-'    Dim xlApp As Object
-'
-'    Set xlApp = CreateObject("InternetExplorer.Application")
-'
-'    xlApp.Navigate "https://github.com/fernandreu/office-ribbonx-editor"
-'
-'    Do
-'        DoEvents
-'    Loop While xlApp.Busy
-'
-'    xlApp.Visible = True
-'    Set xlApp = Nothing
-    
     ActiveWorkbook.FollowHyperlink "https://github.com/fernandreu/office-ribbonx-editor"
-    
 End Sub
 
 'Callback for customButton2 onAction
-'±âÁØÁ¤º¸ SheetÀÇ ÀÛ¾÷ÀÚ¸¦ ¼öÁ¤ÇÏ·¯ ÀÌµ¿
+'ë§ˆìŠ¤í„° Sheetì˜ ì‘ì—…ì ì…ë ¥ë€ìœ¼ë¡œ ì´ë™
 Sub conWorkerChangeSub(control As IRibbonControl)
     MES_Master.Activate
     MES_Master.Range("WORKER").Select
 End Sub
 
 'Callback for customButton3 onAction
-'±âÁØÁ¤º¸ SheetÀÇ ¼­¹ö¸¦ ¼öÁ¤ÇÏ·¯ ÀÌµ¿
+'ë§ˆìŠ¤í„° Sheetì˜ ì„œë²„ ì„¤ì •ë€ìœ¼ë¡œ ì´ë™
 Sub conSQLServerChangeSub(control As IRibbonControl)
     MES_Master.Activate
     Range("SERVER").Select
 End Sub
 
-
 'Callback for customButton3 onAction
-'°øÁ¤Master Sheet¸¦ °øÁ¤Á¤º¸ Sheet·Î º¹»ç
+'ê³µì • Master Sheet ìƒì„± ë§¤í¬ë¡œ í˜¸ì¶œ
 Sub conMES_Product_Process(control As IRibbonControl)
-    
-'    If FindSheetName("°øÁ¤Master") Then
-'        MsgBox "°øÁ¤Á¤º¸ Sheet°¡ ÀÌ¹Ì ÀÖ½À´Ï´Ù."
-'        Exit Sub
-'    End If
-'
-'    MES_Process.Copy after:=Worksheets(Worksheets.Count)
-'
-'    ActiveSheet.Name = "°øÁ¤Master"
-    
     Call Create_MES_Product_Process
 End Sub
 
-
-
-
 'Callback for MES_UserInfo getText
+'ë¦¬ë³¸ ë©”ë‰´ì— í˜„ì¬ ì‘ì—…ì ëª…ì¹­ í‘œì‹œ
 Sub MES_Master_User_getText(control As IRibbonControl, ByRef returnedVal)
-
     returnedVal = MES_Master.Range("WORKER").text
-    
-    'Application.CommandBars.ExecuteMso
-'ExecuteMso  ÄÁÆ®·ÑÀ» ½ÇÇàÇÕ´Ï´Ù.
-'GetEnabledMso   ÄÁÆ®·ÑÀÌ »ç¿ë °¡´ÉÇÑ »óÅÂÀÌ¸é True °ªÀ» µ¹·ÁÁİ´Ï´Ù.
-'GetImageMso ÄÁÆ®·ÑÀÇ ÀÌ¹ÌÁö¸¦ ¾Ë·ÁÁİ´Ï´Ù.
-'GetLabelMso ÄÁÆ®·ÑÀÇ ·¹ÀÌºíÀ» ¾Ë·ÁÁİ´Ï´Ù.
-'GetPressedMso   ÇØ´ç ÄÁÆ®·ÑÀÌ ´­·ÁÁ³À¸¸é True °ªÀ» µ¹·ÁÁİ´Ï´Ù.
-'GetScreentipMso ÇØ´ç ÄÁÆ®·ÑÀÇ ½ºÅ©¸° ÆÁ µµ¿ò¸»À» Ç¥½ÃÇÕ´Ï´Ù.
-'GetSupertipMso  ÇØ´ç ÄÁÆ®·Ñ¿¡ ´ëÇÑ ÀÚ¼¼ÇÑ ¼³¸íÀ» Ç¥½ÃÇÕ´Ï´Ù.
-'Application.CommandBars.ExecuteMso ("ChartTypeAllInsertDialog")
-'
-'Application.CommandBars.ExecuteMso ("ChartTypeAllInsertDialog")
-'
-'´ÙÀ½ ÄÚµå¸¦ ½ÇÇàÇÏ¸é '¼±ÅÃÇÏ¿© ºÙ¿©³Ö±â' ÄÁÆ®·Ñ¿¡ ´ëÇÑ Ç³¼± ÇüÅÂÀÇ µµ¿ò¸»ÀÌ Ç¥½ÃµË´Ï´Ù.
-'
-'MsgBox Application.CommandBars.GetScreentipMso("PasteSpecialDialog")
-'
-'Æ¯Á¤ ÄÁÆ®·Ñ¿¡ ´ëÇÑ ÀÚ¼¼ÇÑ ¼³¸íÀ» º¸·Á¸é GetSupertipMso ¸Ş¼­µå¸¦ »ç¿ëÇÕ´Ï´Ù. 'ºÙ¿©³Ö±â' ÄÁÆ®·Ñ¿¡ ´ëÇÑ ÀÚ¼¼ÇÑ ¼³¸íÀ» º¸·Á¸é ÀÌ·¸°Ô ÇÏ¸é µË´Ï´Ù.
-'
-'MsgBox Application.CommandBars.GetSupertipMso("PasteMenu")
-
 End Sub
 
 'Callback for MES_UserInfo onChange
-'ÀÛ¾÷ÀÚ¸¦ º¯°æÇÏ¸é µ¥ÀÌÅ¸º£ÀÌ½º¿¡ ÀÖ´ÂÁö È®ÀÎ
+'ì‘ì—…ì ë³€ê²½ ì‹œ ì›Œí¬ì‹œíŠ¸ì— ë™ê¸°í™”
 Sub MES_Master_User_Change(control As IRibbonControl, text As String)
-        MES_Master.Range("WORKER").value = text
+    MES_Master.Range("WORKER").value = text
 End Sub
 
 'Callback for MES_ServerInfo onChange
-'¼­¹ö¸¦ º¯°æÇÏ¸é ±âÁØÁ¤º¸ Sheet¿¡µµ ÀÚµ¿ ¹İ¿µ
+'ì„œë²„ ë³€ê²½ ì‹œ ì›Œí¬ì‹œíŠ¸ì— ìë™ ë°˜ì˜
 Sub MES_Master_Server(control As IRibbonControl, text As String)
     Range("SERVER").value = text
 End Sub
@@ -100,18 +51,19 @@ Sub MES_Master_Server_getText(control As IRibbonControl, ByRef returnedVal)
     returnedVal = Range("SERVER").text
 End Sub
 
-
 'Callback for MES_ExcelSave onAction
+'ì „ì²´ ëª¨ë“ˆ ì†ŒìŠ¤ì½”ë“œ DB ì €ì¥
 Sub MES_ProgramSave(control As IRibbonControl)
     Call UpgradeModuleSave
 End Sub
 
 'Callback for MES_ExcelLoad onAction
+'DBì—ì„œ ìµœì‹  ëª¨ë“ˆ ì†ŒìŠ¤ì½”ë“œ í•«íŒ¨ì¹˜ ë¡œë”©
 Sub MES_ProgramLoad(control As IRibbonControl)
     Call UpgradeModuleLoad
 End Sub
 
-'SheetÀÌ¸§ÀÌ ÀÖ´ÂÁö¸¦ Âş¾Æ¿À´Â ÇÔ¼ö
+'Sheet ì´ë¦„ì´ ì¡´ì¬í•˜ëŠ”ì§€ í™•ì¸í•˜ëŠ” ìœ í‹¸ í•¨ìˆ˜
 Private Function FindSheetName(sSheetName As String) As Boolean
     Dim xSheet As Worksheet
     
@@ -121,9 +73,8 @@ Private Function FindSheetName(sSheetName As String) As Boolean
             FindSheetName = True
             Exit Function
         End If
-        
 ExitLab:
     Next
     
     FindSheetName = False
-End Function
+End Function

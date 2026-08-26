@@ -1,108 +1,99 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "MES_LotStop"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = True
 Private Const ThisModuleVersion As Integer = 2
 
-Option Explicit   'º¯¼ö°¡ ÁöÁ¤µÇÁö ¾ÊÀ¸¸é ¿¡·¯°¡ ³ªµµ·Ï Á¤ÀÇ
+Option Explicit   'ë³€ìˆ˜ê°€ ì§€ì •ë˜ì§€ ì•Šìœ¼ë©´ ì—ëŸ¬ê°€ ë‚˜ë„ë¡ ì •ì˜
 
-'½ÇÇàÀü ÃÊ±âÈ­ ÇØ¾ßÇÒ º¯¼ö
+'ì‹¤í–‰ì „ ì´ˆê¸°í™” í•´ì•¼í•  ë³€ìˆ˜
 Private Sub Worksheet_Activate()
     Static bInitflag As Boolean
     
     If bInitflag = False Then
-         '¹è¿­º¯¼öÀÇ Å©±â¸¦ ÀçÁ¶Á¤
+         'ë°°ì—´ë³€ìˆ˜ì˜ í¬ê¸°ë¥¼ ì¬ì¡°ì •
         ReDim sDataList(Range("DATA").Rows.Count)
         
-        'ÄÚµåÁ¤º¸¸¦ Sheet¿¡ ¸ô·ÏÇüÅÂ·Î ÀÔ·ÂÁ¦¾àÀ» °É¾îÁØ´Ù.
+        'ì½”ë“œì •ë³´ë¥¼ Sheetì— ëª°ë¡í˜•íƒœë¡œ ì…ë ¥ì œì•½ì„ ê±¸ì–´ì¤€ë‹¤.
         Call RangeCode_Set(Range("ALARM"), CodeList_Select("Ararm.Ararm"))
         
         bInitflag = True
     End If
 End Sub
 
-'´Ù¸¥ Sheet¿¡¼­ È£ÃâÇÒ¶§ ½ÇÇà
+'ë‹¤ë¥¸ Sheetì—ì„œ í˜¸ì¶œí• ë•Œ ì‹¤í–‰
 Public Sub Worksheet_Link(LotID As String)
     Range("LOTID").value = LotID
     Call cmdDisplay_Click
 End Sub
 
-'»ı»ê½ÇÀû Ã³¸®·Î ÀÌµ¿ÇÑ´Ù.
+'ìƒì‚°ì‹¤ì  ì²˜ë¦¬ë¡œ ì´ë™í•œë‹¤.
 Private Sub cmdLink_Click()
     If Range("LOTID") > "" Then
         Call MES_Result.Worksheet_Link(Range("LOTID").value)
         MES_Result.Activate
     Else
-        MsgBox ("LOT ID°¡ ¾ø½À´Ï´Ù.")
+        MsgBox ("LOT IDê°€ ì—†ìŠµë‹ˆë‹¤.")
     End If
 End Sub
 
 
-'Á¶È¸ ¹öÆ°ÀÌ ´­·¯Áö¸é ½ÇÇàµÇ´ÂÀÌº¥Æ®
+'ì¡°íšŒ ë²„íŠ¼ì´ ëˆŒëŸ¬ì§€ë©´ ì‹¤í–‰ë˜ëŠ”ì´ë²¤íŠ¸
 Private Sub cmdDisplay_Click()
     Dim sSQL As String
      
-    'Lot°¡ Á¸ÀçÇÏÁö ¾ÊÀ¸¸é ÁßÁö
-    Range("LOTID").Offset(0, 1).value = OneSelect("·ÎÆ®¹øÈ£", Range("LOTID").text)
+    'Lotê°€ ì¡´ì¬í•˜ì§€ ì•Šìœ¼ë©´ ì¤‘ì§€
+    Range("LOTID").Offset(0, 1).value = OneSelect("ë¡œíŠ¸ë²ˆí˜¸", Range("LOTID").text)
     If Range("LOTID").Offset(0, 1).text = "" Then
         Exit Sub
     End If
     
-    'Data¸¦ °¡Á®¿À±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.LotStop_Select '" + Range("LOTID").text + "'"
-    'ÀúÀå ÇÁ·Î½ÃÁ®¸¦ È£ÃâÇÏ°í °á°ú¸¦ Excel Sheet¿¡ Ãâ·ÂÇÑ´Ù.
+    'ì €ì¥ í”„ë¡œì‹œì ¸ë¥¼ í˜¸ì¶œí•˜ê³  ê²°ê³¼ë¥¼ Excel Sheetì— ì¶œë ¥í•œë‹¤.
     Call SelectToRange(sSQL, Range("DATA_HEAD, DATA"))
     
     'Range("ALARM") = ""
 
 End Sub
 
-'Lot¸¦ ½Å±Ô·Î ÁßÁö½ÃÅ²´Ù.
+'Lotë¥¼ ì‹ ê·œë¡œ ì¤‘ì§€ì‹œí‚¨ë‹¤.
 Private Sub cmdStop_Click()
     Dim sSQL As String
     Dim sAlarm As String
     Dim sReason As String
 
-    'Lot»óÅÂ Ã¼Å©
-    If Range("LOTSTATUS").value <> "ÁøÇà" Then
-        MsgBox "LOT°¡ ÁøÇàÁßÀÌ ¾Æ´Ï¸é ÁßÁö Ã³¸®¸¦ ÇÒ¼ö ¾ø½À´Ï´Ù."
+    'Lotìƒíƒœ ì²´í¬
+    If Range("LOTSTATUS").value <> "ì§„í–‰" Then
+        MsgBox "LOTê°€ ì§„í–‰ì¤‘ì´ ì•„ë‹ˆë©´ ì¤‘ì§€ ì²˜ë¦¬ë¥¼ í• ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
         Exit Sub
     End If
 
-    'Alarm Ã¼Å©
+    'Alarm ì²´í¬
     If Range("ALARM").text = "" Then
-        MsgBox "ÁßÁö¸¦ ÁöÁ¤ÇÏ·Á¸é ¸ÕÀú AlarmÀ» ¼±ÅÃÇØ¾ß ÇÕ´Ï´Ù."
+        MsgBox "ì¤‘ì§€ë¥¼ ì§€ì •í•˜ë ¤ë©´ ë¨¼ì € Alarmì„ ì„ íƒí•´ì•¼ í•©ë‹ˆë‹¤."
         Exit Sub
     End If
     
-    sReason = InputBox("ÁßÁö»çÀ¯¸¦ ÀÔ¿ªÇÏ¼¼¿ä")
+    sReason = InputBox("ì¤‘ì§€ì‚¬ìœ ë¥¼ ì…ì—­í•˜ì„¸ìš”")
     If Len(sReason) < 5 Then
-        MsgBox "ÁßÁö»çÀ¯´Â 5±ÛÀÚ ÀÌ»ó ÀÔ·ÂÇØ¾ß ÇÕ´Ï´Ù."
+        MsgBox "ì¤‘ì§€ì‚¬ìœ ëŠ” 5ê¸€ì ì´ìƒ ì…ë ¥í•´ì•¼ í•©ë‹ˆë‹¤."
         Exit Sub
     End If
     
-    'Data¸¦ ÀúÀåÇÏ±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ì €ì¥í•˜ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.LotStop_Stop '" & Range("LOTID").text & "', " & Range("SEQ").value & ", " & Range("ALARM").text & ", '" & sReason & "', '" & MES_Master.Range("WORKER") & "'"
 
     Call ExecCmd(sSQL)
 
-    'Á¶È¸ ButtonÀ» °­Á¦·Î ´­·¯¼­ ´Ù½ÃÁ¶È¸
+    'ì¡°íšŒ Buttonì„ ê°•ì œë¡œ ëˆŒëŸ¬ì„œ ë‹¤ì‹œì¡°íšŒ
     Call cmdDisplay_Click
 End Sub
 
-'LotÁßÁö¸¦ ÇØÁ¦½ÃÅ²´Ù.
+'Lotì¤‘ì§€ë¥¼ í•´ì œì‹œí‚¨ë‹¤.
 Private Sub cmdRelease_Click()
     Dim sSQL As String
     Dim sReason As String
     Dim sStopCode As String
 
-    If Range("LOTSTATUS").value <> "ÁßÁö" Then
-        MsgBox "LOT°¡ ÁßÁöÁßÀÌ ¾Æ´Ï¸é ÇØÁ¦ Ã³¸®¸¦ ÇÒ¼ö ¾ø½À´Ï´Ù."
+    If Range("LOTSTATUS").value <> "ì¤‘ì§€" Then
+        MsgBox "LOTê°€ ì¤‘ì§€ì¤‘ì´ ì•„ë‹ˆë©´ í•´ì œ ì²˜ë¦¬ë¥¼ í• ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
         Exit Sub
     End If
     
@@ -112,25 +103,25 @@ Private Sub cmdRelease_Click()
         sStopCode = Range("DATA").Cells(1, 1).End(xlDown).text
     End If
     
-    sReason = InputBox("ÇØÁ¦»çÀ¯¸¦ ÀÔ¿ªÇÏ¼¼¿ä")
+    sReason = InputBox("í•´ì œì‚¬ìœ ë¥¼ ì…ì—­í•˜ì„¸ìš”")
     If Len(sReason) < 5 Then
-        MsgBox "ÇØÁ¦»çÀ¯´Â 5±ÛÀÚ ÀÌ»ó ÀÔ·ÂÇØ¾ß ÇÕ´Ï´Ù."
+        MsgBox "í•´ì œì‚¬ìœ ëŠ” 5ê¸€ì ì´ìƒ ì…ë ¥í•´ì•¼ í•©ë‹ˆë‹¤."
         Exit Sub
     End If
 
-    'Data¸¦ ÀúÀåÇÏ±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ì €ì¥í•˜ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.LotStop_Release '" & sStopCode & "', '" & sReason & "', '" & MES_Master.Range("WORKER") & "'"
 
     Call ExecCmd(sSQL)
 
-    'Á¶È¸ ButtonÀ» °­Á¦·Î ´­·¯¼­ ´Ù½ÃÁ¶È¸
+    'ì¡°íšŒ Buttonì„ ê°•ì œë¡œ ëˆŒëŸ¬ì„œ ë‹¤ì‹œì¡°íšŒ
     Call cmdDisplay_Click
 End Sub
 
 
 Private Sub Worksheet_Change(ByVal Target As Range)
     If Target.Address = Range("ALARM").Address Then
-        Range("ALARM").Offset(0, 1).value = OneSelect("¾Ë¶÷¸í", Range("ALARM").text)
+        Range("ALARM").Offset(0, 1).value = OneSelect("ì•ŒëŒëª…", Range("ALARM").text)
     End If
 End Sub
 

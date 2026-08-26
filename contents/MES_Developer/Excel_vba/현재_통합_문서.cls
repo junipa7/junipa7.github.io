@@ -2,12 +2,13 @@ VERSION 1.0 CLASS
 BEGIN
   MultiUse = -1  'True
 END
-Attribute VB_Name = "ÇöÀç_ÅëÇÕ_¹®¼­"
+Attribute VB_Name = "í˜„ì¬_í†µí•©_ë¬¸ì„œ"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
-Private Const ThisModuleVersion As Integer = 1
+Option Explicit
 
-
-
+Private Sub Workbook_Open()
+    'í†µí•©ë¬¸ì„œê°€ ì—´ë¦´ ë•Œ ì´ˆê¸°í™” ë™ì‘ ìˆ˜í–‰
+End Sub

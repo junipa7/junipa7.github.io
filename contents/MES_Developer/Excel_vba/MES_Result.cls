@@ -1,122 +1,113 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "MES_Result"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = True
 Private Const ThisModuleVersion As Integer = 2
 
-Option Explicit   'º¯¼ö°¡ ÁöÁ¤µÇÁö ¾ÊÀ¸¸é ¿¡·¯°¡ ³ªµµ·Ï Á¤ÀÇ
+Option Explicit   'ë³€ìˆ˜ê°€ ì§€ì •ë˜ì§€ ì•Šìœ¼ë©´ ì—ëŸ¬ê°€ ë‚˜ë„ë¡ ì •ì˜
 
-'´Ù¸¥ Sheet¿¡¼­ È£ÃâÇÒ¶§ ½ÇÇà
+'ë‹¤ë¥¸ Sheetì—ì„œ í˜¸ì¶œí• ë•Œ ì‹¤í–‰
 Public Sub Worksheet_Link(LotID As String)
     Range("LOTID").value = LotID
     Call cmdDisplay_Click
 End Sub
 
-'°Ë»ç½ÇÀû Ã³¸®·Î ÀÌµ¿ÇÑ´Ù.
+'ê²€ì‚¬ì‹¤ì  ì²˜ë¦¬ë¡œ ì´ë™í•œë‹¤.
 Private Sub cmdLink_Click()
     If Range("LOTID") > "" Then
         Call MES_Inspection.Worksheet_Link(Range("LOTID").value)
         MES_Inspection.Activate
     Else
-        MsgBox ("LOT ID°¡ ¾ø½À´Ï´Ù.")
+        MsgBox ("LOT IDê°€ ì—†ìŠµë‹ˆë‹¤.")
     End If
 End Sub
 
-'LOT ÁßÁöÇØÁ¦ Ã³¸®·Î ÀÌµ¿ÇÑ´Ù.
+'LOT ì¤‘ì§€í•´ì œ ì²˜ë¦¬ë¡œ ì´ë™í•œë‹¤.
 Private Sub cmdStopLink_Click()
     If Range("LOTID") > "" Then
         Call MES_LotStop.Worksheet_Link(Range("LOTID").value)
         MES_LotStop.Activate
     Else
-        MsgBox ("LOT ID°¡ ¾ø½À´Ï´Ù.")
+        MsgBox ("LOT IDê°€ ì—†ìŠµë‹ˆë‹¤.")
     End If
 End Sub
 
-'Á¶È¸ ¹öÆ°ÀÌ ´­·¯Áö¸é ½ÇÇàµÇ´ÂÀÌº¥Æ®
+'ì¡°íšŒ ë²„íŠ¼ì´ ëˆŒëŸ¬ì§€ë©´ ì‹¤í–‰ë˜ëŠ”ì´ë²¤íŠ¸
 Private Sub cmdDisplay_Click()
     Dim sSQL As String
     Dim xResult As Variant
        
-    'Lot°¡ Á¸ÀçÇÏÁö ¾ÊÀ¸¸é ÁßÁö
-    Range("LOTID").Offset(0, 1).value = OneSelect("·ÎÆ®¹øÈ£", Range("LOTID").text)
+    'Lotê°€ ì¡´ì¬í•˜ì§€ ì•Šìœ¼ë©´ ì¤‘ì§€
+    Range("LOTID").Offset(0, 1).value = OneSelect("ë¡œíŠ¸ë²ˆí˜¸", Range("LOTID").text)
     If Range("LOTID").Offset(0, 1).text = "" Then
         Exit Sub
     End If
     
-    'Data¸¦ °¡Á®¿À±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.Lot_Info_Select '" + Range("LOTID").text + "'"
     
-    'ÀúÀå ÇÁ·Î½ÃÁ®¸¦ È£ÃâÇÏ°í °á°ú¸¦ Excel Sheet¿¡ Ãâ·ÂÇÑ´Ù.
+    'ì €ì¥ í”„ë¡œì‹œì ¸ë¥¼ í˜¸ì¶œí•˜ê³  ê²°ê³¼ë¥¼ Excel Sheetì— ì¶œë ¥í•œë‹¤.
     Call SelectToRange(sSQL, Range("DATA_HEAD, DATA_DEFECT, DATA"))
 
-    'ÇöÀç°øÁ¤¿¡ ÇØ´çÇÏ´Â ¼³ºñ¸®½ºÆ® ¼³Á¤
+    'í˜„ì¬ê³µì •ì— í•´ë‹¹í•˜ëŠ” ì„¤ë¹„ë¦¬ìŠ¤íŠ¸ ì„¤ì •
     Call RangeCode_Set(Range("MACHINE"), CodeList_Select("Machine.Process", Range("PROCESS").text), True)
 
-'    'Á¶È¸ °á°ú °Ë»ç°øÁ¤ÀÎ´ë ¾ÆÁ÷ °Ë»ç½ÇÀû ÀÔ·ÂÀÌ ¾ÈµÇ¾î ÀÖÀ¸¸é °Ë»ç½ÇÀû ÀÔ·ÂÀ¸·Î °­Á¦ÀÌµ¿
+'    'ì¡°íšŒ ê²°ê³¼ ê²€ì‚¬ê³µì •ì¸ëŒ€ ì•„ì§ ê²€ì‚¬ì‹¤ì  ì…ë ¥ì´ ì•ˆë˜ì–´ ìˆìœ¼ë©´ ê²€ì‚¬ì‹¤ì  ì…ë ¥ìœ¼ë¡œ ê°•ì œì´ë™
 '    If Range("D14").text = "ER" Then
 '        Call cmdLink_Click
 '    End If
 End Sub
 
-'°øÁ¤½ÇÀûÀ» ¿Ï·áÃ³¸®ÇÑ´Ù.
+'ê³µì •ì‹¤ì ì„ ì™„ë£Œì²˜ë¦¬í•œë‹¤.
 Private Sub cmdFinish_Click()
     Dim sSQL As String
     Dim sDefect As String
     Dim iQty As Long
     
-    '°Ë»ç½ÇÀû ÀÔ·ÂÀÌ ¾ÈµÇ¾î ÀÖÀ¸¸é °Ë»ç½ÇÀûÀÔ·Â Sheet·Î ÀÌµ¿ÇÑ´Ù.
+    'ê²€ì‚¬ì‹¤ì  ì…ë ¥ì´ ì•ˆë˜ì–´ ìˆìœ¼ë©´ ê²€ì‚¬ì‹¤ì ì…ë ¥ Sheetë¡œ ì´ë™í•œë‹¤.
     If Range("INSPECTION").value = "ER" Then
         Call cmdLink_Click
         Exit Sub
     End If
     
-    '°Ë»ç½ÇÀû ÀÔ·Â °á°ú°¡ ºÒÇÕ°İÀÎ°æ¿ì ÀçÀÛ¾÷À¸·Î ÁøÇàÇÒ°ÍÀÎÁö È®ÀÎ ¹Ş´Â´Ù.
+    'ê²€ì‚¬ì‹¤ì  ì…ë ¥ ê²°ê³¼ê°€ ë¶ˆí•©ê²©ì¸ê²½ìš° ì¬ì‘ì—…ìœ¼ë¡œ ì§„í–‰í• ê²ƒì¸ì§€ í™•ì¸ ë°›ëŠ”ë‹¤.
     If Range("INSPECTION").value = "NG" Then
-        iQty = MsgBox("°Ë»ç ½ÇÀûÀÌ ºÒÇÕ°İÀÌ±â ¶§¹®¿¡ ÀçÀÛ¾÷ ÇÁ·Î¼¼½º·Î ÁøÇàÇÏ½Ã°Ú½À´Ï±î?.", vbOKCancel, "ºÒÇÕ°İ")
+        iQty = MsgBox("ê²€ì‚¬ ì‹¤ì ì´ ë¶ˆí•©ê²©ì´ê¸° ë•Œë¬¸ì— ì¬ì‘ì—… í”„ë¡œì„¸ìŠ¤ë¡œ ì§„í–‰í•˜ì‹œê² ìŠµë‹ˆê¹Œ?.", vbOKCancel, "ë¶ˆí•©ê²©")
         If iQty = vbCancel Then
             Exit Sub
         End If
     End If
     
-    If Range("LOTSTATUS").value <> "ÁøÇà" And Range("LOTSTATUS").value <> "»ı¼º" Then
-        MsgBox "LOT°¡ Á¤»ó ÁøÇà»óÅÂ°¡ ¾Æ´Ï¸é ½ÇÀûÃ³¸®ÇÒ¼ö ¾ø½À´Ï´Ù."
+    If Range("LOTSTATUS").value <> "ì§„í–‰" And Range("LOTSTATUS").value <> "ìƒì„±" Then
+        MsgBox "LOTê°€ ì •ìƒ ì§„í–‰ìƒíƒœê°€ ì•„ë‹ˆë©´ ì‹¤ì ì²˜ë¦¬í• ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
         Exit Sub
     End If
     
-    'ÃÑºÒ·®¼ö·®À» ÇÕ»êÇÑ´Ù.
+    'ì´ë¶ˆëŸ‰ìˆ˜ëŸ‰ì„ í•©ì‚°í•œë‹¤.
     iQty = Application.WorksheetFunction.Sum(Range("DATA_DEFECT").Columns(4))
     
-    'ºÒ·®Á¤º¸¸¦ ÇÏ³ªÀÇ ¹®ÀÚ¿­·Î º¯È¯
+    'ë¶ˆëŸ‰ì •ë³´ë¥¼ í•˜ë‚˜ì˜ ë¬¸ìì—´ë¡œ ë³€í™˜
     sDefect = RangeToString(Range("DATA_DEFECT"), 2, 4)
 
-    'Data¸¦ °¡Á®¿À±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.Lot_Process_Run '" & Range("LOTID").text & "', " & Range("ROUTINGNO").value & ", '" & Range("MACHINE").text & "', " & iQty & ",'" & sDefect & "', '" & MES_Master.Range("WORKER") & "'"
 
     Call ExecCmd(sSQL)
 
-    'Á¶È¸ ButtonÀ» °­Á¦·Î ´­·¯¼­ ´Ù½ÃÁ¶È¸
+    'ì¡°íšŒ Buttonì„ ê°•ì œë¡œ ëˆŒëŸ¬ì„œ ë‹¤ì‹œì¡°íšŒ
     Call cmdDisplay_Click
 End Sub
 
 Private Sub cmdCancle_Click()
     Dim sSQL As String
   
-    'Data¸¦ °¡Á®¿À±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.Lot_Process_Cancel '" & Range("LOTID").text & "', " & Range("SEQ").text & ", '" & MES_Master.Range("WORKER") & "'"
 
     Call ExecCmd(sSQL)
 
-    'Á¶È¸ ButtonÀ» °­Á¦·Î ´­·¯¼­ ´Ù½ÃÁ¶È¸
+    'ì¡°íšŒ Buttonì„ ê°•ì œë¡œ ëˆŒëŸ¬ì„œ ë‹¤ì‹œì¡°íšŒ
     Call cmdDisplay_Click
 End Sub
 
 
-'ÄŞº¸ÀÇ Ã¹¹øÂ° ¹®ÀÚ¿­À» ¹İÈ¯.
+'ì½¤ë³´ì˜ ì²«ë²ˆì§¸ ë¬¸ìì—´ì„ ë°˜í™˜.
 Private Function ComboFirst(sComboString As String) As String
     Dim i As Integer
     

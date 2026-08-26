@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>modSheet.bas 상세 분석 및 실무 해설서</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Pretendard:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --panel: #ffffff;
+            --panel-soft: #f8fafc;
+            --ink: #17202a;
+            --muted: #64748b;
+            --line: #d7dde8;
+            --accent: #137a7f;
+            --accent-soft: #e9f7f6;
+            --blue: #2864a8;
+            --blue-soft: #eef5fc;
+            --orange: #b85c18;
+            --green: #2e7d32;
+            --shadow: 0 10px 30px rgba(25, 35, 58, 0.08);
+            --code-bg: #0f172a;
+            --code-ink: #93c5fd;
+        }
+
+        body.dark-mode {
+            --bg: #111827;
+            --panel: #172033;
+            --panel-soft: #1d293d;
+            --ink: #edf2f7;
+            --muted: #a7b0c0;
+            --line: #2f3b52;
+            --accent: #4cc4bd;
+            --accent-soft: #183c40;
+            --blue: #60a5fa;
+            --blue-soft: #1e293b;
+            --orange: #f59e0b;
+            --green: #34d399;
+            --shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+            --code-bg: #030712;
+            --code-ink: #60a5fa;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: Arial, "Malgun Gothic", "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--ink);
+            line-height: 1.7;
+            padding-bottom: 80px;
+        }
+
+        /* Top Sticky Interactive Navigation */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: var(--panel);
+            border-bottom: 1px solid var(--line);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 10px 20px;
+        }
+        .nav-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--ink);
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+        .nav-brand-badge {
+            background: var(--accent);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+        .nav-groups {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        /* Dropdown & Button Styles */
+        .nav-dropdown {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 6px;
+            margin-bottom: -6px;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: var(--ink);
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover, .nav-dropdown:hover .nav-btn {
+            color: #ffffff;
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .nav-btn.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            border-color: var(--accent);
+        }
+        .nav-dropdown-content {
+            display: none;
+            position: absolute;
+            top: calc(100% - 2px);
+            left: 0;
+            min-width: 200px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            padding: 6px 0;
+            z-index: 1001;
+        }
+        .nav-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: transparent;
+        }
+        .nav-dropdown:hover .nav-dropdown-content {
+            display: block;
+        }
+        .dropdown-item {
+            display: block;
+            padding: 8px 16px;
+            color: var(--ink);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .dropdown-item:hover {
+            color: var(--accent);
+            background: var(--accent-soft);
+            padding-left: 20px;
+        }
+        .dropdown-item.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            font-weight: 700;
+        }
+
+        .nav-link-simple {
+            text-decoration: none;
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .nav-link-simple:hover {
+            color: var(--ink);
+            background-color: var(--panel-soft);
+            border-color: var(--line);
+        }
+        .nav-link-simple.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            border-color: var(--accent);
+        }
+        .nav-link-simple.ref-link {
+            color: #fff;
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .nav-link-simple.ref-link:hover {
+            background: #0e5e62;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 20px;
+        }
+
+        /* Hero Header */
+        header {
+            background: #101826;
+            color: #ffffff;
+            border-radius: 14px;
+            padding: 32px 36px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+            border-bottom: 5px solid var(--accent);
+            position: relative;
+        }
+        .badge-version {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.12);
+            color: #a5f3fc;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        header h1 { font-size: 1.85rem; font-weight: 800; color: #ffffff; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .subtitle { color: #dbe3ef; font-size: 0.95rem; line-height: 1.6; }
+
+        /* 4-Summary Grid */
+        .nav-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .summary-card {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+        }
+        .summary-card .label { font-size: 0.78rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+        .summary-card .value { font-size: 1.15rem; font-weight: 800; color: var(--blue); margin-top: 4px; }
+
+        /* Section Container */
+        .section-card {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 26px;
+            margin-bottom: 26px;
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid var(--line);
+            padding-bottom: 12px;
+        }
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        /* Image Display Box */
+        .ui-preview-box {
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 18px 0;
+            text-align: center;
+        }
+        .ui-preview-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            border: 1px solid var(--line);
+        }
+        .ui-caption {
+            margin-top: 10px;
+            font-size: 0.84rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        /* Function / Code Cards */
+        .fn-card {
+            background-color: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 18px;
+        }
+        .fn-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+        .fn-name { font-size: 1.02rem; font-weight: 800; color: var(--blue); font-family: Consolas, 'Fira Code', monospace; }
+        .fn-badge {
+            font-size: 0.72rem; padding: 3px 9px; border-radius: 6px; font-weight: 700;
+        }
+        .fn-badge.pub { background: #e8f5e9; color: var(--green); border: 1px solid #c8e6c9; }
+        .fn-badge.priv { background: #fff3e0; color: var(--orange); border: 1px solid #ffe0b2; }
+        .fn-badge.sql { background: var(--blue-soft); color: var(--blue); border: 1px solid #bfdbfe; }
+
+        body.dark-mode .fn-badge.pub { background: #132e1b; color: #81c784; border-color: #1b5e20; }
+        body.dark-mode .fn-badge.priv { background: #332112; color: #ffb74d; border-color: #e65100; }
+        body.dark-mode .fn-badge.sql { background: #1e293b; color: #93c5fd; border-color: #3b82f6; }
+
+        /* Code Block */
+        .code-box {
+            background-color: var(--code-bg);
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: Consolas, 'Fira Code', Monaco, monospace;
+            font-size: 0.86rem;
+            color: var(--code-ink);
+            overflow-x: auto;
+            margin: 14px 0;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+            tab-size: 4;
+        }
+        .analysis-box {
+            background: var(--accent-soft);
+            border-left: 4px solid var(--accent);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.88rem;
+            color: var(--ink);
+            margin-top: 12px;
+        }
+        .analysis-box ul, .analysis-box ol {
+            margin-left: 18px;
+            margin-top: 6px;
+        }
+        .analysis-box li {
+            margin-bottom: 4px;
+        }
+
+        /* Step Flows */
+        .step-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+        .step-card {
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .step-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .step-title { font-weight: 800; color: var(--ink); margin-bottom: 4px; font-size: 0.94rem; }
+        .step-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 0.86rem; background: var(--panel); }
+        th, td { padding: 10px 14px; text-align: left; border: 1px solid var(--line); vertical-align: top; }
+        th { background-color: var(--panel-soft); color: var(--ink); font-weight: 800; }
+        td code { font-family: Consolas, monospace; color: var(--accent); background: var(--accent-soft); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+
+        /* Portal Module Cards (index.html) */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .module-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: var(--shadow);
+        }
+        .module-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+        }
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .module-name { font-family: Consolas, 'Fira Code', monospace; font-weight: 800; font-size: 0.95rem; }
+        .module-ver { font-size: 0.72rem; padding: 2px 7px; border-radius: 5px; font-weight: 700; }
+        .module-summary { font-size: 0.84rem; color: var(--muted); line-height: 1.55; margin-bottom: 16px; }
+        .module-link-btn {
+            display: block;
+            text-align: center;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.84rem;
+            font-weight: 800;
+            transition: all 0.2s ease;
+        }
+        .module-link-btn:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 18px 22px;
+            box-shadow: var(--shadow);
+        }
+        .stat-title { font-size: 0.8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+        .stat-value { font-size: 1.5rem; font-weight: 800; margin: 4px 0; }
+        .stat-desc { font-size: 0.8rem; color: var(--muted); }
+
+        footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin-top: 36px;
+        }
+</style>
+</head>
+<body>
+
+    <!-- Navigation -->
+                            <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">
+                <span>🏭 Smart MES Manual</span>
+                <span class="nav-brand-badge">Developer Docs</span>
+            </a>
+            <div class="nav-groups">
+                <a href="index.html" class="nav-link-simple">🏠 홈 (Index)</a>
+                
+                <!-- 1. 기준정보 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-master" class="nav-btn">
+                        📋 기준정보 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="Process.html" class="dropdown-item">공정 관리 (Process)</a>
+                        <a href="Management.html" class="dropdown-item">기종 마스터 (Management)</a>
+                        <a href="MngSpec.html" class="dropdown-item">공정 사양 (MngSpec)</a>
+                        <a href="BillOfMaterial.html" class="dropdown-item">자재명세서 (BOM)</a>
+                        <a href="MngDisplay.html" class="dropdown-item">종합 대시보드 (Display)</a>
+                    </div>
+                </div>
+
+                <!-- 2. 생산/실적 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-prod" class="nav-btn">
+                        ⚙️ 생산/실적 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="InputPlan.html" class="dropdown-item">투입 계획 (InputPlan)</a>
+                        <a href="LotCreate.html" class="dropdown-item">LOT 생성 (LotCreate)</a>
+                        <a href="Result.html" class="dropdown-item">생산 실적 (Result)</a>
+                        <a href="Inspection.html" class="dropdown-item">검사 실적 (Inspection)</a>
+                        <a href="LotStop.html" class="dropdown-item">LOT 중지/해제 (LotStop)</a>
+                        <a href="MachineStop.html" class="dropdown-item">설비 비가동 (MachineStop)</a>
+                        <a href="Warehousing.html" class="dropdown-item">자재 입고/이동 (Warehousing)</a>
+                        <a href="EmployeeResult.html" class="dropdown-item">작업자 실적 (Employee)</a>
+                    </div>
+                </div>
+
+                <!-- 3. 시스템/공통 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-core" class="nav-btn active">
+                        🔧 시스템/공통 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="Master.html" class="dropdown-item">마스터 관리 (MES_Master)</a>
+                        <a href="ADO.html" class="dropdown-item">DB 커넥션 (modADO)</a>
+                        <a href="Ext.html" class="dropdown-item">보안/템플릿 (modExt)</a>
+                        <a href="RibbonMenu.html" class="dropdown-item">리본 메뉴 (modRibbonMenu)</a>
+                        <a href="Sheet.html" class="dropdown-item active">UI 유틸 (modSheet)</a>
+                        <a href="Upgrade.html" class="dropdown-item">런타임 핫패치 (modUpgrade)</a>
+                    </div>
+                </div>
+
+                <a href="References.html" class="nav-link-simple ref-link">📚 학습참고</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <div class="badge-version">모듈 분석 보고서 • Version 1</div>
+            <h1>modSheet.bas 상세 분석 및 실무 해설서</h1>
+            <p class="subtitle">워크시트 UI/UX 이벤트 핸들링, 유효성 검사 드롭다운 콤보, 필수값 검증 및 데이터 직렬화 라이브러리</p>
+        </header>
+
+        <div class="nav-summary">
+            <div class="summary-card">
+                <div class="label">모듈 명칭</div>
+                <div class="value" style="color: #34d399;">modSheet</div>
+            </div>
+            <div class="summary-card">
+                <div class="label">핵심 도메인</div>
+                <div class="value" style="color: #60a5fa;">Sheet UX & Serialization</div>
+            </div>
+            <div class="summary-card">
+                <div class="label">지원 함수/프로시저</div>
+                <div class="value" style="color: #fbbf24;">12개 (Pub 11 / Priv 1)</div>
+            </div>
+            <div class="summary-card">
+                <div class="label">연동 기술</div>
+                <div class="value" style="color: #c084fc;">Validation / Range API</div>
+            </div>
+        </div>
+
+        <!-- 1. 공통코드 및 유효성 검사 드롭다운 -->
+        <div class="section-card">
+            <h2 class="section-title">1. 공통코드 조회 및 동적 드롭다운 콤보 바인딩</h2>
+
+            <div class="fn-card">
+                <div class="fn-header">
+                    <span class="fn-name">Public Function CodeList_Select(sKeyID, [sParameter]) As String</span>
+                    <span class="fn-badge pub">Public Function</span>
+                </div>
+                <p style="color: #cbd5e1;">DB 저장 프로시저 <code>dbo.Code_Select</code>를 호출하여 엑셀 유효성 검사에 즉시 주입 가능한 콤마(<code>,</code>) 구분 문자열을 반환합니다.</p>
+                <pre class="code-box"><code>Public Function CodeList_Select(ByRef sKeyID As String, Optional sParameter As String = "") As String
+    Dim xResult As Variant
+    xResult = ExecCmd("dbo.Code_Select '" & sKeyID & "', '" & sParameter & "'")
+    
+    If IsNull(xResult(0, 0)) Then
+        CodeList_Select = ""
+    Else
+        CodeList_Select = xResult(0, 0)
+    End If
+End Function
+                </code></pre>
+            </div>
+
+            <div class="fn-card">
+                <div class="fn-header">
+                    <span class="fn-name">Public Function RangeCode_Set(xTarget, sAddress, [bFirstValueDisplay]) As Boolean</span>
+                    <span class="fn-badge pub">Public Function</span>
+                </div>
+                <p style="color: #cbd5e1;">대상 셀 범위(<code>xTarget</code>)에 엑셀 드롭다운 목록(<code>xlValidateList</code>)을 동적으로 등록하고, 옵션에 따라 첫 번째 항목을 자동 선택합니다.</p>
+                <pre class="code-box"><code>Public Function RangeCode_Set(xTarget As Range, sAddress As String, Optional bFirstValueDisplay As Boolean = False) As Boolean
+    Application.ScreenUpdating = False
+    
+    If sAddress <> "" Then
+        With xTarget.Validation
+            .Delete
+            .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:=xlBetween, Formula1:=sAddress
+        End With
+        RangeCode_Set = True
+    Else
+        xTarget.Validation.Delete
+        RangeCode_Set = False
+    End If
+
+    If bFirstValueDisplay Then
+        xTarget.value = ComboFirst(sAddress)
+    End If
+    Application.ScreenUpdating = True
+End Function
+                </code></pre>
+            </div>
+        </div>
+
+        <!-- 2. 변경 영역 판별 및 필수 입력 검증 -->
+        <div class="section-card">
+            <h2 class="section-title">2. 변경 영역 검증 및 필수 입력값 무결성 체크</h2>
+
+            <div class="fn-card">
+                <div class="fn-header">
+                    <span class="fn-name">Public Function Change_Check(Target, xDataRange) As Boolean</span>
+                    <span class="fn-badge pub">Public Function</span>
+                </div>
+                <p style="color: #cbd5e1;"><code>Worksheet_Change</code> 이벤트에서 수정된 셀이 실제 비즈니스 데이터 입력 영역(Data Range) 내부에 속하는지 경계값을 판별합니다.</p>
+                <pre class="code-box"><code>Public Function Change_Check(ByRef Target As Range, ByRef xDataRange As Range) As Boolean
+    If Target.Row < xDataRange.Row Then Change_Check = False: Exit Function
+    If Target.Row >= xDataRange.Row + xDataRange.Rows.Count Then Change_Check = False: Exit Function
+    If Target.Column < xDataRange.Column Then Change_Check = False: Exit Function
+    If Target.Column >= xDataRange.Column + xDataRange.Columns.Count Then Change_Check = False: Exit Function
+    Change_Check = True
+End Function
+                </code></pre>
+            </div>
+
+            <div class="fn-card">
+                <div class="fn-header">
+                    <span class="fn-name">Public Function AllDataInput_Check(xTarget As Range) As Boolean</span>
+                    <span class="fn-badge pub">Public Function</span>
+                </div>
+                <p style="color: #cbd5e1;">단일 행에 대해 공백 셀이 하나라도 존재하는지 순회하여, 저장 전 필수 입력값 누락을 방지합니다.</p>
+            </div>
+        </div>
+
+        <!-- 3. 데이터 직렬화 및 문자열 변환 -->
+        <div class="section-card">
+            <h2 class="section-title">3. 고성능 데이터 직렬화 (Serialization)</h2>
+
+            <div class="fn-card">
+                <div class="fn-header">
+                    <span class="fn-name">Public Function DataList_Create(xTarget As Range) As String</span>
+                    <span class="fn-badge pub">Public Function</span>
+                </div>
+                <p style="color: #cbd5e1;">단일 행 데이터들을 SQL 파라미터 규격(숫자는 그대로, 문자는 <code>'문자열'</code>)으로 인코딩하여 콤마로 연결합니다.</p>
+            </div>
+
+            <div class="fn-card">
+                <div class="fn-header">
+                    <span class="fn-name">Public Function RangeToString(xTarget, iDataCol1, [iDataCol2], [iDataCol3]) As String</span>
+                    <span class="fn-badge pub">Public Function</span>
+                </div>
+                <p style="color: #cbd5e1;">다중 행 데이터셋의 특정 컬럼들을 <code>컬럼1,컬럼2;컬럼1,컬럼2;</code> 형태의 복합 스트링으로 직렬화하여 DB 일괄 처리를 지원합니다.</p>
+            </div>
+        </div>
+
+        <!-- 4. UI 헬퍼 및 서식 제어 -->
+        <div class="section-card">
+            <h2 class="section-title">4. UI 서식 및 행 조작 헬퍼</h2>
+
+            <div class="fn-card">
+                <div class="fn-header">
+                    <span class="fn-name">Public Sub DeleteLine_Create / DeleteLine_Cancel</span>
+                    <span class="fn-badge pub">Public Sub</span>
+                </div>
+                <p style="color: #cbd5e1;">행 삭제 플래그 설정 시 사용자에게 시각적으로 빨간색 취소선(<code>Strikethrough = True, Color = 255</code>)을 표시하거나 복원합니다.</p>
+            </div>
+
+            <div class="fn-card">
+                <div class="fn-header">
+                    <span class="fn-name">Public Function FindNullRow(Target As Range) As Long</span>
+                    <span class="fn-badge pub">Public Function</span>
+                </div>
+                <p style="color: #cbd5e1;"><code>End(xlDown)</code> 가속 탐색을 통해 데이터 영역 다음의 첫 번째 빈 행 번호를 초고속으로 탐색합니다.</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>© Smart MES Development Team. modSheet.bas Technical Manual.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Synchronize dark-mode class with parent window or localStorage
+        function syncTheme() {
+            try {
+                if (window.parent && window.parent.document.body.classList.contains('dark-mode')) {
+                    document.body.classList.add('dark-mode');
+                } else if (localStorage.getItem('theme') === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            } catch(e) {}
+        }
+        syncTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'THEME_CHANGE') {
+                if (event.data.theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

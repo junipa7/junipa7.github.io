@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MES_Result.cls 공정 생산실적 및 불량 등록 상세 기술 분석서 - Smart MES Developer Manual</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Pretendard:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f5f7fb;
+            --panel: #ffffff;
+            --panel-soft: #f8fafc;
+            --ink: #17202a;
+            --muted: #64748b;
+            --line: #d7dde8;
+            --accent: #137a7f;
+            --accent-soft: #e9f7f6;
+            --blue: #2864a8;
+            --blue-soft: #eef5fc;
+            --orange: #b85c18;
+            --green: #2e7d32;
+            --shadow: 0 10px 30px rgba(25, 35, 58, 0.08);
+            --code-bg: #0f172a;
+            --code-ink: #93c5fd;
+        }
+
+        body.dark-mode {
+            --bg: #111827;
+            --panel: #172033;
+            --panel-soft: #1d293d;
+            --ink: #edf2f7;
+            --muted: #a7b0c0;
+            --line: #2f3b52;
+            --accent: #4cc4bd;
+            --accent-soft: #183c40;
+            --blue: #60a5fa;
+            --blue-soft: #1e293b;
+            --orange: #f59e0b;
+            --green: #34d399;
+            --shadow: 0 14px 36px rgba(0, 0, 0, 0.35);
+            --code-bg: #030712;
+            --code-ink: #60a5fa;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: Arial, "Malgun Gothic", "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--ink);
+            line-height: 1.7;
+            padding-bottom: 80px;
+        }
+
+        /* Top Sticky Interactive Navigation */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: var(--panel);
+            border-bottom: 1px solid var(--line);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 10px 20px;
+        }
+        .nav-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            color: var(--ink);
+            font-weight: 800;
+            font-size: 1.05rem;
+        }
+        .nav-brand-badge {
+            background: var(--accent);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+        .nav-groups {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        
+        /* Dropdown & Button Styles */
+        .nav-dropdown {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 6px;
+            margin-bottom: -6px;
+        }
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            text-decoration: none;
+            color: var(--ink);
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .nav-btn:hover, .nav-dropdown:hover .nav-btn {
+            color: #ffffff;
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .nav-btn.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            border-color: var(--accent);
+        }
+        .nav-dropdown-content {
+            display: none;
+            position: absolute;
+            top: calc(100% - 2px);
+            left: 0;
+            min-width: 200px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            padding: 6px 0;
+            z-index: 1001;
+        }
+        .nav-dropdown-content::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: transparent;
+        }
+        .nav-dropdown:hover .nav-dropdown-content {
+            display: block;
+        }
+        .dropdown-item {
+            display: block;
+            padding: 8px 16px;
+            color: var(--ink);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .dropdown-item:hover {
+            color: var(--accent);
+            background: var(--accent-soft);
+            padding-left: 20px;
+        }
+        .dropdown-item.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            font-weight: 700;
+        }
+
+        .nav-link-simple {
+            text-decoration: none;
+            color: var(--muted);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+        .nav-link-simple:hover {
+            color: var(--ink);
+            background-color: var(--panel-soft);
+            border-color: var(--line);
+        }
+        .nav-link-simple.active {
+            color: var(--accent);
+            background: var(--accent-soft);
+            border-color: var(--accent);
+        }
+        .nav-link-simple.ref-link {
+            color: #fff;
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        .nav-link-simple.ref-link:hover {
+            background: #0e5e62;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 20px;
+        }
+
+        /* Hero Header */
+        header {
+            background: #101826;
+            color: #ffffff;
+            border-radius: 14px;
+            padding: 32px 36px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+            border-bottom: 5px solid var(--accent);
+            position: relative;
+        }
+        .badge-version {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.12);
+            color: #a5f3fc;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        header h1 { font-size: 1.85rem; font-weight: 800; color: #ffffff; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .subtitle { color: #dbe3ef; font-size: 0.95rem; line-height: 1.6; }
+
+        /* 4-Summary Grid */
+        .nav-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .summary-card {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+        }
+        .summary-card .label { font-size: 0.78rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+        .summary-card .value { font-size: 1.15rem; font-weight: 800; color: var(--blue); margin-top: 4px; }
+
+        /* Section Container */
+        .section-card {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 26px;
+            margin-bottom: 26px;
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid var(--line);
+            padding-bottom: 12px;
+        }
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 18px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        /* Image Display Box */
+        .ui-preview-box {
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 18px 0;
+            text-align: center;
+        }
+        .ui-preview-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            border: 1px solid var(--line);
+        }
+        .ui-caption {
+            margin-top: 10px;
+            font-size: 0.84rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        /* Function / Code Cards */
+        .fn-card {
+            background-color: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 18px;
+        }
+        .fn-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+            gap: 8px;
+        }
+        .fn-name { font-size: 1.02rem; font-weight: 800; color: var(--blue); font-family: Consolas, 'Fira Code', monospace; }
+        .fn-badge {
+            font-size: 0.72rem; padding: 3px 9px; border-radius: 6px; font-weight: 700;
+        }
+        .fn-badge.pub { background: #e8f5e9; color: var(--green); border: 1px solid #c8e6c9; }
+        .fn-badge.priv { background: #fff3e0; color: var(--orange); border: 1px solid #ffe0b2; }
+        .fn-badge.sql { background: var(--blue-soft); color: var(--blue); border: 1px solid #bfdbfe; }
+
+        body.dark-mode .fn-badge.pub { background: #132e1b; color: #81c784; border-color: #1b5e20; }
+        body.dark-mode .fn-badge.priv { background: #332112; color: #ffb74d; border-color: #e65100; }
+        body.dark-mode .fn-badge.sql { background: #1e293b; color: #93c5fd; border-color: #3b82f6; }
+
+        /* Code Block */
+        .code-box {
+            background-color: var(--code-bg);
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: Consolas, 'Fira Code', Monaco, monospace;
+            font-size: 0.86rem;
+            color: var(--code-ink);
+            overflow-x: auto;
+            margin: 14px 0;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+            tab-size: 4;
+        }
+        .analysis-box {
+            background: var(--accent-soft);
+            border-left: 4px solid var(--accent);
+            padding: 14px 18px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.88rem;
+            color: var(--ink);
+            margin-top: 12px;
+        }
+        .analysis-box ul, .analysis-box ol {
+            margin-left: 18px;
+            margin-top: 6px;
+        }
+        .analysis-box li {
+            margin-bottom: 4px;
+        }
+
+        /* Step Flows */
+        .step-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+        .step-card {
+            background: var(--panel-soft);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .step-badge {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .step-title { font-weight: 800; color: var(--ink); margin-bottom: 4px; font-size: 0.94rem; }
+        .step-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.55; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 0.86rem; background: var(--panel); }
+        th, td { padding: 10px 14px; text-align: left; border: 1px solid var(--line); vertical-align: top; }
+        th { background-color: var(--panel-soft); color: var(--ink); font-weight: 800; }
+        td code { font-family: Consolas, monospace; color: var(--accent); background: var(--accent-soft); padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; }
+
+        /* Portal Module Cards (index.html) */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .module-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: var(--shadow);
+        }
+        .module-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--accent);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+        }
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        .module-name { font-family: Consolas, 'Fira Code', monospace; font-weight: 800; font-size: 0.95rem; }
+        .module-ver { font-size: 0.72rem; padding: 2px 7px; border-radius: 5px; font-weight: 700; }
+        .module-summary { font-size: 0.84rem; color: var(--muted); line-height: 1.55; margin-bottom: 16px; }
+        .module-link-btn {
+            display: block;
+            text-align: center;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            text-decoration: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.84rem;
+            font-weight: 800;
+            transition: all 0.2s ease;
+        }
+        .module-link-btn:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 18px 22px;
+            box-shadow: var(--shadow);
+        }
+        .stat-title { font-size: 0.8rem; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+        .stat-value { font-size: 1.5rem; font-weight: 800; margin: 4px 0; }
+        .stat-desc { font-size: 0.8rem; color: var(--muted); }
+
+        footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin-top: 36px;
+        }
+</style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-brand">
+                <span>🏭 Smart MES Manual</span>
+                <span class="nav-brand-badge">Developer Docs</span>
+            </a>
+            <div class="nav-groups">
+                <a href="index.html" class="nav-link-simple">🏠 홈 (Index)</a>
+                
+                <!-- 1. 기준정보 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-master" class="nav-btn">
+                        📋 기준정보 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="Process.html" class="dropdown-item">공정 관리 (Process)</a>
+                        <a href="Management.html" class="dropdown-item">기종 마스터 (Management)</a>
+                        <a href="MngSpec.html" class="dropdown-item">공정 사양 (MngSpec)</a>
+                        <a href="BillOfMaterial.html" class="dropdown-item">자재명세서 (BOM)</a>
+                        <a href="MngDisplay.html" class="dropdown-item">종합 대시보드 (Display)</a>
+                    </div>
+                </div>
+
+                <!-- 2. 생산/실적 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-prod" class="nav-btn active">
+                        ⚙️ 생산/실적 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="InputPlan.html" class="dropdown-item">투입 계획 (InputPlan)</a>
+                        <a href="LotCreate.html" class="dropdown-item">LOT 생성 (LotCreate)</a>
+                        <a href="Result.html" class="dropdown-item active">생산 실적 (Result)</a>
+                        <a href="Inspection.html" class="dropdown-item">검사 실적 (Inspection)</a>
+                        <a href="LotStop.html" class="dropdown-item">LOT 중지/해제 (LotStop)</a>
+                        <a href="MachineStop.html" class="dropdown-item">설비 비가동 (MachineStop)</a>
+                        <a href="Warehousing.html" class="dropdown-item">자재 입고/이동 (Warehousing)</a>
+                        <a href="EmployeeResult.html" class="dropdown-item">작업자 실적 (Employee)</a>
+                    </div>
+                </div>
+
+                <!-- 3. 시스템/공통 드롭다운 & 버튼 -->
+                <div class="nav-dropdown">
+                    <a href="index.html#sec-core" class="nav-btn">
+                        🔧 시스템/공통 ▾
+                    </a>
+                    <div class="nav-dropdown-content">
+                        <a href="Master.html" class="dropdown-item">마스터 관리 (MES_Master)</a>
+                        <a href="ADO.html" class="dropdown-item">DB 커넥션 (modADO)</a>
+                        <a href="Ext.html" class="dropdown-item">보안/템플릿 (modExt)</a>
+                        <a href="RibbonMenu.html" class="dropdown-item">리본 메뉴 (modRibbonMenu)</a>
+                        <a href="Sheet.html" class="dropdown-item">UI 유틸 (modSheet)</a>
+                        <a href="Upgrade.html" class="dropdown-item">런타임 핫패치 (modUpgrade)</a>
+                    </div>
+                </div>
+
+                <a href="References.html" class="nav-link-simple ref-link">📚 학습참고</a>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <header>
+            <div class="badge-version">생산/실적 (Production) • Screen Architecture Manual</div>
+            <h1>MES_Result.cls 공정 생산실적 및 불량 등록 상세 기술 분석서</h1>
+            <p class="subtitle">LOT별 공정 착공(RUN) 및 완료 실적 저장, 작업자/설비 배정, 검사 인터락 및 불량 항목 다중 직렬화(RangeToString) 저장</p>
+        </header>
+
+        <!-- 4 Summary Cards -->
+        <div class="nav-summary">
+            
+        <div class="summary-card">
+            <div class="label">화면 모듈</div>
+            <div class="value">MES_Result.cls</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">매핑 백엔드 테이블</div>
+            <div class="value">dbo.ProcessResult, dbo.BadResult</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">연계 저장 프로시저</div>
+            <div class="value">ProcessResult_Save / BadResult_Save / Lot_Process_Run</div>
+        </div>
+        <div class="summary-card">
+            <div class="label">불량 직렬화 저장</div>
+            <div class="value">modSheet.RangeToString 연동</div>
+        </div>
+        </div>
+
+        <!-- 1. UI 구조 및 실제 화면 분석 -->
+        <div class="section-card">
+            <h2 class="section-title">1. MES_Result.cls 공정 생산실적 및 불량 등록 상세 기술 분석서 화면 레이아웃 & UI 컨트롤 분석</h2>
+            <p style="color: #cbd5e1; margin-bottom: 16px;">
+                <strong>MES_Result</strong> 화면은 현장 작업자가 LOT의 각 공정 착공(Run)과 완료 실적(양품 수량, 불량 수량, 투입 설비, 작업자)을 등록하는 MES 시스템의 핵심 생산 실행 인터페이스입니다. 하단 불량 그리드(DEFECT_DATA)에 입력된 다수의 불량 항목을 단 1회 트랜잭션으로 직렬화하여 백엔드에 안전하게 저장합니다.
+            </p>
+
+            <div class="ui-preview-box">
+                <img src="MES_Result.jpg" alt="MES_Result.cls 실제 구동 화면">
+                <div class="ui-caption">▲ [MES_Result.jpg] 실제 엑셀 클라이언트 구동 화면 (상단 조회조건/ActiveX 버튼 및 DATA 그리드)</div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr><th>구분</th><th>엑셀 셀 주소</th><th>명명된 범위 (Name)</th><th>연계 DB 컬럼 / 컨트롤 설명</th></tr>
+                </thead>
+                <tbody>
+                    
+        <tr>
+            <td><strong>LOT 식별자</strong></td>
+            <td><code>B1</code></td>
+            <td><code>Range("LOT_ID")</code></td>
+            <td>작업 대상 LOT 번호 (바코드 스캔 또는 화면 링크)</td>
+        </tr>
+        <tr>
+            <td><strong>진행 공정</strong></td>
+            <td><code>D1</code></td>
+            <td><code>Range("PROCESS")</code></td>
+            <td>현재 진행 공정코드</td>
+        </tr>
+        <tr>
+            <td><strong>작업 설비</strong></td>
+            <td><code>F1</code></td>
+            <td><code>Range("MACHINE")</code></td>
+            <td>투입 생산 설비코드</td>
+        </tr>
+        <tr>
+            <td><strong>작업자</strong></td>
+            <td><code>H1</code></td>
+            <td><code>Range("WORKER")</code></td>
+            <td>작업자 사번/이름</td>
+        </tr>
+        <tr>
+            <td><strong>수량 정보</strong></td>
+            <td><code>B3, D3, F3</code></td>
+            <td><code>투입/양품/불량수량</code></td>
+            <td>투입수량(InputCount), 양품수량(ResultCount), 불량수량(BadCount)</td>
+        </tr>
+        <tr>
+            <td><strong>불량 상세 영역</strong></td>
+            <td><code>A7:D15</code></td>
+            <td><code>Range("DEFECT_DATA")</code></td>
+            <td>불량코드(BadCode), 불량명, 불량수량 입력 그리드</td>
+        </tr>
+        <tr>
+            <td><strong>ActiveX 버튼</strong></td>
+            <td><code>상단 행</code></td>
+            <td><code>cmdRun, cmdSave, cmdInspection</code></td>
+            <td>[공정착공], [실적저장], [검사화면 이동] 버튼</td>
+        </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 2. MS-SQL 데이터베이스 백엔드 아키텍처 -->
+        <div class="section-card">
+            <h2 class="section-title">2. MS-SQL Server 백엔드 구조 (MESDB_CREATE.sql)</h2>
+            <p style="color: #cbd5e1; margin-bottom: 16px;">
+                <code>MESDB_CREATE.sql</code>에 정의된 백엔드 테이블 DDL 스키마 및 연계 저장 프로시저(Stored Procedure)의 완전한 T-SQL 구현 소스코드입니다.
+            </p>
+            
+        <div class="fn-card">
+            <div class="fn-header">
+                <span class="fn-name">TABLE [dbo].[ProcessResult]</span>
+                <span class="fn-badge sql">DDL Definition</span>
+            </div>
+            <p style='color: #cbd5e1; margin-bottom: 10px;'>공정 실적 테이블 DDL</p>
+            <pre class="code-box"><code>CREATE TABLE [dbo].[ProcessResult](
+    [LotID]       [varchar](50) NOT NULL, -- LOT 번호
+    [Process]     [smallint] NOT NULL,    -- 공정코드
+    [InputCount]  [int] NOT NULL,         -- 투입 수량
+    [ResultCount] [int] NOT NULL,         -- 양품 완료 수량
+    [BadCount]    [int] NOT NULL,         -- 불량 수량
+    [Status]      [varchar](50) NOT NULL, -- 공정상태 (RUN, END)
+    [Machine]     [varchar](50) NULL,     -- 작업 설비
+    [Worker]      [varchar](50) NOT NULL, -- 작업자
+    [StartTime]   [datetime] NOT NULL,    -- 착공 일시
+    [EndTime]     [datetime] NULL,        -- 완료 일시
+    [EventTime]   [datetime] NOT NULL,    -- 등록 일시
+    [EventUser]   [varchar](50) NOT NULL, -- 등록자
+    CONSTRAINT [PK_ProcessResult] PRIMARY KEY CLUSTERED ([LotID] ASC, [Process] ASC)
+) ON [PRIMARY]</code></pre>
+        </div>
+        <div class="fn-card">
+            <div class="fn-header">
+                <span class="fn-name">PROCEDURE [dbo].[ProcessResult_Save]</span>
+                <span class="fn-badge sql">Stored Procedure</span>
+            </div>
+            <p style='color: #cbd5e1; margin-bottom: 10px;'>공정 실적 완료 트랜잭션</p>
+            <pre class="code-box"><code>CREATE PROCEDURE [dbo].[ProcessResult_Save](
+    @LotID varchar(50),
+    @Process smallint,
+    @InputCount int,
+    @ResultCount int,
+    @BadCount int,
+    @Machine varchar(50),
+    @Worker varchar(50),
+    @BadDataList varchar(MAX) = '' -- 직렬화된 불량 목록 문자열
+)
+AS
+BEGIN
+    SET NOCOUNT ON
+    BEGIN TRANSACTION
+    
+    -- 1. 투입수량 = 양품수량 + 불량수량 일치 검증
+    IF @InputCount <> (@ResultCount + @BadCount)
+    BEGIN
+        RAISERROR('투입 수량과 양품+불량 합계가 일치하지 않습니다.', 16, -1)
+        ROLLBACK TRANSACTION
+        RETURN -10
+    END
+
+    -- 2. ProcessResult 갱신
+    UPDATE dbo.ProcessResult
+    SET ResultCount = @ResultCount,
+        BadCount = @BadCount,
+        [Status] = 'END',
+        Machine = @Machine,
+        Worker = @Worker,
+        EndTime = GETDATE(),
+        EventTime = GETDATE(),
+        EventUser = @Worker
+    WHERE LotID = @LotID AND Process = @Process
+
+    -- 3. 불량 데이터(BadResult) 다중 저장 (String Parsing)
+    IF @BadDataList <> ''
+    BEGIN
+        -- BadResult_Save를 내부적으로 호출하여 불량 상세 적재
+        EXEC dbo.BadResult_BatchSave @LotID, @Process, @BadDataList, @Worker
+    END
+
+    COMMIT TRANSACTION
+    RETURN 0
+END</code></pre>
+        </div>
+        </div>
+
+        <!-- 3. VBA 클라이언트 동작 라이프사이클 -->
+        <div class="section-card">
+            <h2 class="section-title">3. VBA 클라이언트 동작 라이프사이클 & 상태 관리</h2>
+            <div class="step-container">
+                
+        <div class="step-card">
+            <span class="step-badge" style="background: var(--primary);">1. LOT 조회 & 착공</span>
+            <div class="step-title">cmdRun_Click</div>
+            <div class="step-desc">LOT 바코드 스캔 후 <code>dbo.Lot_Process_Run</code> 호출하여 공정 시작시간(StartTime) 기록</div>
+        </div>
+        <div class="step-card">
+            <span class="step-badge" style="background: var(--secondary);">2. 검사 연계 (필요시)</span>
+            <div class="step-title">cmdInspection_Click</div>
+            <div class="step-desc">해당 공정이 검사공정인 경우 <code>MES_Inspection</code> 화면으로 전환하여 측정값 입력</div>
+        </div>
+        <div class="step-card">
+            <span class="step-badge" style="background: var(--warning);">3. 불량 입력</span>
+            <div class="step-title">Range('DEFECT_DATA')</div>
+            <div class="step-desc">발생한 불량 항목과 수량을 그리드에 입력 (수량 합계 자동 계산)</div>
+        </div>
+        <div class="step-card">
+            <span class="step-badge" style="background: var(--secondary);">4. 실적 일괄 저장</span>
+            <div class="step-title">cmdSave_Click</div>
+            <div class="step-desc"><code>RangeToString</code>으로 불량 데이터를 직렬화하고 <code>ProcessResult_Save</code> 호출 완료</div>
+        </div>
+            </div>
+        </div>
+
+        <!-- 4. VBA 프로시저 상세 소스코드 해설 -->
+        <div class="section-card">
+            <h2 class="section-title">4. MES_Result.cls 핵심 프로시저 상세 소스코드 해설</h2>
+            
+        <div class="fn-card">
+            <div class="fn-header">
+                <span class="fn-name">Private Sub cmdSave_Click() - 실적 및 불량 직렬화 저장</span>
+                <span class="fn-badge pub">Result Saver</span>
+            </div>
+            <p style="color: #cbd5e1;">실적 데이터 및 다중 불량 레코드를 일괄 트랜잭션 저장</p>
+            <pre class="code-box"><code>Private Sub cmdSave_Click()
+    Dim sSQL As String
+    Dim sDefectString As String
+    
+    '불량 그리드의 데이터를 문자열로 직렬화 (modSheet.RangeToString 활용)
+    sDefectString = RangeToString(Range("DEFECT_DATA"))
+    
+    sSQL = "dbo.ProcessResult_Save '" & Range("LOT_ID").Value & "', " & _
+           Range("PROCESS").Value & ", " & _
+           Range("INPUT_COUNT").Value & ", " & _
+           Range("RESULT_COUNT").Value & ", " & _
+           Range("BAD_COUNT").Value & ", '" & _
+           Range("MACHINE").Value & "', '" & _
+           Range("WORKER").Value & "', '" & sDefectString & "'"
+           
+    Call ExecCmd(sSQL)
+    MsgBox "공정 실적이 성공적으로 저장되었습니다.", vbInformation, "완료"
+End Sub</code></pre>
+            
+            <div class="analysis-box">
+                <strong>💡 핵심 로직 및 현장 적용 포인트:</strong>
+                <ul><li><code>RangeToString</code>을 통해 수십 개의 불량 행을 단 1회의 네트워크 패킷으로 백엔드 SP에 전달하여 초고속 저장을 실현합니다.</li></ul>
+            </div>
+        </div>
+        </div>
+
+        <footer>
+            <p>© Smart MES Development Team. MES_Result.cls Technical Manual.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Synchronize dark-mode class with parent window or localStorage
+        function syncTheme() {
+            try {
+                if (window.parent && window.parent.document.body.classList.contains('dark-mode')) {
+                    document.body.classList.add('dark-mode');
+                } else if (localStorage.getItem('theme') === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            } catch(e) {}
+        }
+        syncTheme();
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'THEME_CHANGE') {
+                if (event.data.theme === 'dark') {
+                    document.body.classList.add('dark-mode');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

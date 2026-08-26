@@ -1,21 +1,13 @@
 Attribute VB_Name = "modSheet"
 Private Const ThisModuleVersion As Integer = 1
 
-Option Explicit   'º¯¼ö°¡ ÁöÁ¤µÇÁö ¾ÊÀ¸¸é ¿¡·¯°¡ ³ªµµ·Ï Á¤ÀÇ
+Option Explicit   'ë³€ìˆ˜ ì„ ì–¸ ê°•ì œ
 
-' Code¸¦ °ü¸®ÇÏ±â À§ÇÑ ±¸Á¶Ã¼ ¼±¾ğ
-' Sheet¿¡¼­ º¯¼ö·Î »ç¿ë
-'Public Type CodeListType
-'    Lists      As String
-'    Count        As Long
-'End Type
-
-
-'Code Å×ÀÌºí °ªÀ» ÀĞ¾î¿Í¼­ ","·Î ±¸ºĞÇÑ °á°ú¸¦ ¹İÈ¯ÇÑ´Ù.
+'Code í…Œì´ë¸”ì—ì„œ ë°ì´í„°ë¥¼ ì½ì–´ì™€ì„œ ","ë¡œ êµ¬ë¶„ëœ í…ìŠ¤íŠ¸ë¡œ ë°˜í™˜í•œë‹¤.
 Public Function CodeList_Select(ByRef sKeyID As String, Optional sParameter As String = "") As String
     Dim xResult As Variant
 
-    'ÀúÀå ÇÁ·Î½ÃÁ®¸¦ È£ÃâÇÏ°í °á°ú¸¦ ¹è¿­º¯¼ö·Î ¹İÈ¯ÇÑ´Ù.
+    'ì €ì¥ í”„ë¡œì‹œì €ë¥¼ í˜¸ì¶œí•˜ê³  ê²°ê³¼ ë°°ì—´ì„ ë°˜í™˜í•œë‹¤.
     xResult = ExecCmd("dbo.Code_Select '" & sKeyID & "', '" & sParameter & "'")
     
     If IsNull(xResult(0, 0)) Then
@@ -26,8 +18,7 @@ Public Function CodeList_Select(ByRef sKeyID As String, Optional sParameter As S
     
 End Function
 
-
-'»èÁ¦µÉÇà¿¡ Ãë¼Ò¼±À» ±×¸®°í ¹®ÀÚ¸¦ »¡°£»öÀ¸·Î º¯°æÇÕ´Ï´Ù.
+'í–‰ì— ì·¨ì†Œì„ (ì‚­ì œì„ )ì„ ê¸‹ê³  ê¸€ììƒ‰ì„ ë¹¨ê°„ìƒ‰ìœ¼ë¡œ ë³€ê²½í•©ë‹ˆë‹¤.
 Public Sub DeleteLine_Create(ByRef xTarget As Range)
 
     With xTarget.Font
@@ -37,15 +28,14 @@ Public Sub DeleteLine_Create(ByRef xTarget As Range)
         .OutlineFont = False
         .Shadow = False
         .Underline = xlUnderlineStyleNone
-        .Color = 255
+        .Color = 255 'ë¹¨ê°„ìƒ‰
         .TintAndShade = 0
         .ThemeFont = xlThemeFontMinor
     End With
         
-    
 End Sub
 
-'»èÁ¦µÉÇà¿¡ Ãë¼Ò¼±À» ±×¸®°í ¹®ÀÚ¸¦ »¡°£»öÀ¸·Î º¯°æÇÕ´Ï´Ù.
+'í–‰ì— ê·¸ì–´ì§„ ì·¨ì†Œì„ ì„ í•´ì œí•˜ê³  ê¸€ììƒ‰ì„ ì›ë˜ëŒ€ë¡œ ë³µì›í•©ë‹ˆë‹¤.
 Public Sub DeleteLine_Cancel(ByRef xTarget As Range)
 
     With xTarget.Font
@@ -62,11 +52,10 @@ Public Sub DeleteLine_Cancel(ByRef xTarget As Range)
     
 End Sub
 
-
-'º¯°æµÈ CellÀÇ Data¹üÀ§°¡ À¯È¿ÇÑÁö °Ë»ç
+'í•´ë‹¹ Cellì´ Data ì…ë ¥ ì˜ì—­ ë‚´ì— ìˆëŠ”ì§€ ê²€ì‚¬
 Public Function ChangeRange_Check(ByRef Target As Range, ByVal iStartRow As Long, ByVal iEndcol As Long) As Boolean
     
-    '½ÃÀÛÇà ÀÌÈÄ ÀÌ¸é¼­ ¸¶Áö¸· ÄÃ·³ ¹üÀ§¸¦ °Ë»ç
+    'ì‹œì‘ Row ì´ìƒì´ë©´ì„œ ë Column ì´í•˜ì¸ì§€ ê²€ì‚¬
     If Target.Cells.Row >= iStartRow And Target.Cells.Column <= iEndcol Then
         ChangeRange_Check = True
     Else
@@ -74,10 +63,9 @@ Public Function ChangeRange_Check(ByRef Target As Range, ByVal iStartRow As Long
     End If
 End Function
 
-'º¯°æµÈ CellÀÇ Data¹üÀ§°¡ À¯È¿ÇÑÁö °Ë»ç
+'í•´ë‹¹ Cellì´ Data ìœ íš¨ ë²”ìœ„ ë‚´ì— ìˆëŠ”ì§€ ê²€ì‚¬
 Public Function Change_Check(ByRef Target As Range, ByRef xDataRange As Range) As Boolean
     
-    '½ÃÀÛÇà ÀÌÈÄ ÀÌ¸é¼­ ¸¶Áö¸· ÄÃ·³ ¹üÀ§¸¦ °Ë»ç
     If Target.Row < xDataRange.Row Then
         Change_Check = False
         Exit Function
@@ -102,14 +90,12 @@ Public Function Change_Check(ByRef Target As Range, ByRef xDataRange As Range) A
     
 End Function
 
-
-
-'ÀÔ·ÂÇØ¾ßÇÒ 1ÇàÀÇ Á¤º¸°¡ ¸ğµÎ ÀÔ·ÂÀÌ µÇ¾ú´ÂÁö °Ë»çÇÑ´Ù.
+'ì…ë ¥í•´ì•¼ í•  1ê°œ í–‰ì˜ ëª¨ë“  ë°ì´í„°ê°€ ì…ë ¥ë˜ì—ˆëŠ”ì§€ ê²€ì‚¬í•œë‹¤.
 Public Function AllDataInput_Check(xTarget As Range) As Boolean
     Dim i As Long
     
     For i = 1 To xTarget.Columns.Count
-        'ÇÏ³ª¶óµµ ÀÔ·ÂÀÌ ¾ÈµÇ¾úÀ¸¸é ¿¡·¯·Î Ã³¸®
+        'í•˜ë‚˜ë¼ë„ ì…ë ¥ì´ ì•ˆë˜ì–´ ìˆìœ¼ë©´ False ì²˜ë¦¬
         If xTarget.Columns(i).text = "" Then
             AllDataInput_Check = False
             Exit Function
@@ -120,26 +106,16 @@ Public Function AllDataInput_Check(xTarget As Range) As Boolean
 
 End Function
 
-'ÁöÁ¤ÇÑ ¹üÀ§¿¡ µ¥ÀÌÅÍ À¯È¿¼º °Ë»ç¸¦ ¸ñ·ÏÀ¸·Î ÁöÁ¤ÇÏ¿© ¸ñ·Ï°ªÀ» ¹İ¿µÇÔ.
+'íŠ¹ì • Cellì— ë°ì´í„° ìœ íš¨ì„± ê²€ì‚¬(ë“œë¡­ë‹¤ìš´ ëª©ë¡)ë¥¼ ì„¤ì •í•˜ì—¬ ì¼ê´„ ë°˜ì˜.
 Public Function RangeCode_Set(xTarget As Range, sAddress As String, Optional bFirstValueDisplay As Boolean = False) As Boolean
 
     Application.ScreenUpdating = False
     
-   If sAddress <> "" Then
+    If sAddress <> "" Then
         With xTarget.Validation
             .Delete
             .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:=xlBetween, Formula1:=sAddress
-    '        .IgnoreBlank = True
-    '        .InCellDropdown = True
-    '        .InputTitle = ""
-    '        .ErrorTitle = ""
-    '        .InputMessage = ""
-    '        .ErrorMessage = ""
-    '        .IMEMode = xlIMEModeNoControl
-    '        .ShowInput = True
-    '        .ShowError = True
         End With
-        
         RangeCode_Set = True
     Else
         xTarget.Validation.Delete
@@ -154,7 +130,7 @@ Public Function RangeCode_Set(xTarget As Range, sAddress As String, Optional bFi
 
 End Function
 
-'ÄŞº¸ÀÇ Ã¹¹øÂ° ¹®ÀÚ¿­À» ¹İÈ¯.
+'ì½¤ë³´ ë¬¸ìì—´ì˜ ì²« ë²ˆì§¸ í•­ëª© ë°˜í™˜
 Private Function ComboFirst(sComboString As String) As String
     Dim i As Integer
     
@@ -167,20 +143,17 @@ Private Function ComboFirst(sComboString As String) As String
     End If
 End Function
 
-
-'ÁöÁ¤µÈ ¹üÀ§ÀÇ Data¸¦ ","·Î ±¸ºĞÇÏ¿© ¹®ÀÚ¿­·Î ¸¸µë.
-'ÀúÀå ÇÁ·Î½ÃÁ® È£ÃâÀ» À§ÇÑ ÆÄ¶ó¸ŞÅÍ¿ëÀ¸·Î »ç¿ë
+'1ê°œ í–‰ì˜ Dataë¥¼ ","ë¡œ ì—°ê²°í•˜ì—¬ SQL íŒŒë¼ë¯¸í„° ê·œê²© ë¬¸ìì—´ ìƒì„±
 Public Function DataList_Create(ByRef xTarget As Range) As String
     Dim i As Integer
     
     DataList_Create = ""
     
     For i = 1 To xTarget.Columns.Count
-        'Ã³À½ÀÌ ¾Æ´Ï¸é µÚ¿¡ ", "Ç¥¸¦ Ãß°¡ÇÑ´Ù. ¸¶Áö¸·¿¡´Â Ãß°¡ÇÏÁö ¾Ê±â À§ÇØ ¾Õ¿¡¼­ °Ë»ç
+        'ì²˜ìŒì´ ì•„ë‹ˆë©´ ì•ì— ", " ì‰¼í‘œë¥¼ ì¶”ê°€í•œë‹¤.
         If DataList_Create <> "" Then
             DataList_Create = DataList_Create + ", "
         End If
-        
         
         If IsNumeric(xTarget.Columns(i).text) Then
             DataList_Create = DataList_Create + xTarget.Columns(i).text
@@ -191,7 +164,7 @@ Public Function DataList_Create(ByRef xTarget As Range) As String
 
 End Function
 
-'ÁöÁ¤µÈ RangeÀÇ °ªÀ» ÇÏ³ªÀÇ ¹®ÀÚ¿­·Î ¹İÈ¯ÇÑ´Ù.
+'ë‹¤ì¤‘ Rangeì˜ ë°ì´í„°ë¥¼ í•˜ë‚˜ì˜ ë³µí•© ë¬¸ìì—´ë¡œ ì§ë ¬í™”í•˜ì—¬ ë°˜í™˜í•œë‹¤.
 Public Function RangeToString(ByRef xTarget As Range, iDataCol1 As Integer, Optional iDataCol2 As Integer = 0, Optional iDataCol3 As Integer = 0) As String
     Dim iRow As Integer
     Dim iCol As Integer
@@ -201,7 +174,7 @@ Public Function RangeToString(ByRef xTarget As Range, iDataCol1 As Integer, Opti
     sPlus = ""
     
     For iRow = 1 To xTarget.Rows.Count
-        'Data°¡ ¾øÀ¸¸é °­Á¦ Á¾·á Ã³¸®ÇÑ´Ù.
+        'Dataê°€ ì—†ëŠ” í–‰ì€ ê±´ë„ˆë›°ê±°ë‚˜ ì¢…ë£Œí•œë‹¤.
         If xTarget(iRow, 1) = "" Then
             Exit Function
         End If
@@ -217,13 +190,12 @@ Public Function RangeToString(ByRef xTarget As Range, iDataCol1 As Integer, Opti
     
 End Function
 
-'ÁöÁ¤ÇÑ ¹üÀ§ÀÇ ³¯ÀÚÇü½Ä ÁöÁ¤
+'ë‚ ì§œ ë° ì‹œê°„ í‘œì¤€ ì„œì‹ ì„¤ì •
 Sub DateFromatSet(xTarget As Range)
     xTarget.NumberFormatLocal = "yyyy-mm-dd hh:mm:ss"
 End Sub
 
-'Data°¡ ¾ø´Â Ã¹¹øÂ° Çà¹øÈ£¸¦ Ã£¾Æ ¿É´Ï´Ù.
-'End(xlDown)ÀÌ Data°¡ ÀÖ´Â ¸¶Áö¸·±îÁö ÀÌµ¿ÇÏ±â ¶§¹®¿¡ +1À» ÇÏ¸é Data°¡ ¾ø´Â Ã¹ÇàÀÓ.
+'Dataê°€ ì—†ëŠ” ì²«ë²ˆì§¸ ë¹ˆ í–‰ ë²ˆí˜¸ë¥¼ ì°¾ì•„ì„œ ë°˜í™˜í•©ë‹ˆë‹¤.
 Public Function FindNullRow(Target As Range) As Long
     If Target.Offset(1, 0) = "" Then
         FindNullRow = Target.Offset(1, 0).Row
@@ -232,35 +204,30 @@ Public Function FindNullRow(Target As Range) As Long
     End If
 End Function
 
-
-'¼±ÅÃÇ× ¼¿ÀÇ 1ÁÙ¿¡ ´ëÇÑ ÁÖ¼Ò¸¦ ¹İÈ¯
+'ì„ íƒëœ ì…€ì´ ì†í•œ 1ê°œ í–‰ì˜ ì „ì²´ ì˜ì—­ ì£¼ì†Œë¥¼ ë°˜í™˜
 Public Function LineRange(Target As Range, Optional iResize As Integer = 0) As Object
     Dim xRange As Range
     
     Set xRange = Target.CurrentRegion
-    
     Set LineRange = xRange.Rows(Target.Row - xRange.Row + 1).Resize(1, xRange.Columns.Count - iResize)
     
 End Function
 
-'SPECÁß¿¡ COMBO°¡ ÀÖÀ¸¸é ÃøÁ¤°ªÀ» ÄŞº¸¹Ú½º·Î ¼±ÅÃÇÒ¼ö ÀÖµµ·Ï ¼öÁ¤ÇØÁØ´Ù
+'SPEC í…Œì´ë¸” ì¤‘ COMBO íƒ€ì…ì¸ í•­ëª©ì— ë“œë¡­ë‹¤ìš´ ì½¤ë³´ë°•ìŠ¤ë¥¼ ì¼ê´„ ì„¤ì •í•œë‹¤.
 Public Sub ComboSetup(xRange As Range, iComboCol As Integer, iSetupCol As Integer)
     Dim iRow As Integer
 
-    'ÄŞº¸¿´´Ù°¡ ¼ıÀÚ·Î º¯ÇÑ°æ¿ì ÃÊ±âÈ­¸¦ À§ÇÏ¿© ¹«Á¶°Ç ÄŞº¸¸¦ »èÁ¦ÇÑ´Ù.
+    'ê¸°ì¡´ ìœ íš¨ì„± ê²€ì‚¬ ì´ˆê¸°í™”
     xRange.Columns(iSetupCol).Validation.Delete
     
     For iRow = 1 To xRange.Rows.Count
-        
-        '½Ç¼ö·Î Range¸¦ ³Ê¹« Å©°Ô ÁöÁ¤ÇÏ¿© ¼Óµµ°¡ ´À·ÁÁö´Â°ÍÀ» ¹æÁöÇÏ±â À§ÇÏ¿© Ãß°¡
         If xRange.Cells(iRow, 1).text = "" Then
             Exit Sub
         End If
         
         If InStr(1, xRange.Cells(iRow, iComboCol), ",", vbTextCompare) > 0 Then
-            'ÄŞº¸ÀÎ°æ¿ì´Â ¼³Á¤
+            'ì½¤ë³´ í•­ëª© ì„¤ì •
             Call RangeCode_Set(xRange.Cells(iRow, iSetupCol), xRange.Cells(iRow, iComboCol))
         End If
-        
     Next
-End Sub
+End Sub

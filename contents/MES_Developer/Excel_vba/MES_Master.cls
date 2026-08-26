@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Private Const ThisModuleVersion As Integer = 4
 
-Option Explicit   'º¯¼ö°¡ ÁöÁ¤µÇÁö ¾ÊÀ¸¸é ¿¡·¯°¡ ³ªµµ·Ï Á¤ÀÇ
+Option Explicit   'ë³€ìˆ˜ê°€ ì§€ì •ë˜ì§€ ì•Šìœ¼ë©´ ì—ëŸ¬ê°€ ë‚˜ë„ë¡ ì •ì˜
 
 Private sSourceName As String
 Private sSourceType As String
@@ -18,18 +18,18 @@ Private iHistoryID As Integer
 Private Sub cmdDisplay_Click()
     Dim sSQL As String
     
-    'Data¸¦ °¡Á®¿À±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     sSQL = "dbo.UpgradeMaster_Select '%', '%'"
     
-    'ÀúÀå ÇÁ·Î½ÃÁ®¸¦ È£ÃâÇÏ°í °á°ú¸¦ Excel Sheet¿¡ Ãâ·ÂÇÑ´Ù.
+    'ì €ì¥ í”„ë¡œì‹œì ¸ë¥¼ í˜¸ì¶œí•˜ê³  ê²°ê³¼ë¥¼ Excel Sheetì— ì¶œë ¥í•œë‹¤.
     Call SelectToRange(sSQL, Range("LIST"))
     
-    'ÄÜÆ®·Ñ ÃÊ±âÈ­
+    'ì½˜íŠ¸ë¡¤ ì´ˆê¸°í™”
     Range("VERSION").CurrentRegion.Offset(1, 0).ClearContents
     txtSource.value = ""
     cmdSave.Enabled = False
     
-    'º¯¼öÃÊ±âÈ­
+    'ë³€ìˆ˜ì´ˆê¸°í™”
     sSourceName = ""
     sSourceType = ""
     iHistoryID = 0
@@ -40,7 +40,7 @@ Private Sub cmdSave_Click()
 
     Dim sSQL As String
     
-    'Data¸¦ ÀúÀåÇÏ±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+    'Dataë¥¼ ì €ì¥í•˜ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
     'sSQL = "dbo.UpgradeMaster_Save '" & sSourceName & "', '" & sSourceType & "', '" & StrConv(txtSource.text, vbWide) & "', '" & MES_Master.Range("WORKER").text & "'"
     sSQL = "dbo.UpgradeHistory_Update " & iHistoryID & ", '" & StrConv(txtSource.text, vbWide) & "', '" & MES_Master.Range("WORKER").text & "'"
     Call ExecCmd(sSQL)
@@ -68,10 +68,10 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
             sSourceName = Target.text
             sSourceType = Target.Offset(0, 1).text
             
-            'Data¸¦ °¡Á®¿À±â À§ÇÑ ÀúÀå ÇÁ·Î½ÃÁ® È£Ãâ Query¸¦ ¸¸µç´Ù.
+            'Dataë¥¼ ê°€ì ¸ì˜¤ê¸° ìœ„í•œ ì €ì¥ í”„ë¡œì‹œì ¸ í˜¸ì¶œ Queryë¥¼ ë§Œë“ ë‹¤.
             sSQL = "dbo.UpgradeHistory_Select " & Target.Offset(0, 2).text
             
-            'ÀúÀå ÇÁ·Î½ÃÁ®¸¦ È£ÃâÇÏ°í °á°ú¸¦ Excel Sheet¿¡ Ãâ·ÂÇÑ´Ù.
+           'ì €ì¥ í”„ë¡œì‹œì ¸ë¥¼ í˜¸ì¶œí•˜ê³  ê²°ê³¼ë¥¼ Excel Sheetì— ì¶œë ¥í•œë‹¤.
             Call SelectToSheet(sSQL, Range("VERSION"))
             
             If Target.Offset(0, 1).text = "Query" Then
@@ -83,7 +83,7 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
         ElseIf Target.Column = Range("VERSION").Column Then
         
             iHistoryID = Target.Offset(0, 1).value
-            txtSource.value = StrConv(OneSelect("¾÷±×·¡ÀÌµåÀÌ·ÂÁ¶È¸", iHistoryID), vbNarrow)
+            txtSource.value = StrConv(OneSelect("ì—…ê·¸ë˜ì´ë“œì´ë ¥ì¡°íšŒ", iHistoryID), vbNarrow)
            
         End If
     
